@@ -73,6 +73,7 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
     addDiagonalMoves(board, popls1b(diagonalPieces), moves);
   }
 }
+
 void Search::addKnightMoves(Board board, MoveList &moves) {
   int color = board.flags & WHITE_TO_MOVE_BIT ? WHITE : BLACK;
   u64 friendlyKnights = board.bitboards[color+KNIGHT];
