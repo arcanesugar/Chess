@@ -12,8 +12,11 @@ struct ConsoleState {
   bool printBoard = true;
 };
 
-void makeMoveFromConsole(Board board, ConsoleState &c);
+void makeMoveFromConsole(Board &board, ConsoleState &c);
 void getNextInput(ConsoleState &c);
 byte squareNameToIndex(std::string squareName);
 void displaySettings(ConsoleState &c);
-void printLegalMoves(Board board, Search search, ConsoleState &c);
+void printLegalMoves(Board &board, Search search, ConsoleState &c);
+void makeRandomMove(Board &board, Search search,ConsoleState &c);
+void whosTurnIsIt(Board &board, ConsoleState &c);
+void showHelpMenu(ConsoleState &c);

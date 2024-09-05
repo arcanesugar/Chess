@@ -11,6 +11,38 @@ void getNextInput(ConsoleState &c) {
   c.printBoard = true;
 }
 
+void showHelpMenu(ConsoleState &c){
+  c.output.append(
+        (std::string)"---Help---\n"
+      + "  trn - White/Black\n"
+      + "  mve - Make Move\n"
+      + "  lgl - Legal Moves\n"
+      + "  dsp - Display Settings\n"
+      + "  rnd - Random Move\n"
+      + "  tst - TODO: add testing\n");
+}
+void whosTurnIsIt(Board &board, ConsoleState &c){
+  if (board.flags & WHITE_TO_MOVE_BIT) {
+    c.output = "White to move";
+  } else {
+    c.output = "Black to move";
+  }
+}
+
+void makeRandomMove(Board &board, Search search,ConsoleState &c){
+  MoveList legalMoves;
+  search.generateMoves(board, legalMoves);
+  if(legalMoves.end <= 0) {
+    c.output = "No Legal Moves";
+    c.printBoard = true;
+    return;
+  }
+  Move move = legalMoves.moves[rand()%legalMoves.end];
+  board.makeMove(move);
+  c.output = debug::printMove(c.settings, board, move);
+  c.output.append(std::to_string(legalMoves.end));
+  c.printBoard = false;
+}
 byte squareNameToIndex(std::string squareName) {
   byte squareIndex =
       ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
@@ -18,7 +50,7 @@ byte squareNameToIndex(std::string squareName) {
   return squareIndex;
 }
 
-void printLegalMoves(Board board, Search search, ConsoleState &c){
+void printLegalMoves(Board &board, Search search, ConsoleState &c){
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
   c.output = std::to_string((int)legalMoves.end) + " moves printed\n";
@@ -77,7 +109,7 @@ void displaySettings(ConsoleState &c){
   }
 }
 
-void makeMoveFromConsole(Board board, ConsoleState &c){
+void makeMoveFromConsole(Board &board, ConsoleState &c){
   c.output = "from:\n";
   getNextInput(c);
   int from = squareNameToIndex(c.lastInput);
