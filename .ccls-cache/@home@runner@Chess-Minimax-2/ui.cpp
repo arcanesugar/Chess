@@ -1,14 +1,18 @@
 #include "ui.h"
 void getNextInput(ConsoleState &c) {
-  std::cout << c.output;
-  std::cout << ">>";
+  std::cout << c.output<< ">>";
   std::string temp;
   std::getline(std::cin, temp);
-  if(temp != ""){
-    c.lastInput = temp;
-  }
+  if(temp != "") c.lastInput = temp;//just keep the last input if input is blank
   c.output = "";
   c.printBoard = true;
+}
+
+byte squareNameToIndex(std::string squareName) {
+  byte squareIndex =
+      ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
+  std::cout << std::to_string((int)squareIndex);
+  return squareIndex;
 }
 
 void showHelpMenu(ConsoleState &c){
@@ -28,7 +32,6 @@ void whosTurnIsIt(Board &board, ConsoleState &c){
     c.output = "Black to move";
   }
 }
-
 void makeRandomMove(Board &board, Search search,ConsoleState &c){
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
@@ -43,13 +46,6 @@ void makeRandomMove(Board &board, Search search,ConsoleState &c){
   c.output.append(std::to_string(legalMoves.end));
   c.printBoard = false;
 }
-byte squareNameToIndex(std::string squareName) {
-  byte squareIndex =
-      ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
-  std::cout << std::to_string((int)squareIndex);
-  return squareIndex;
-}
-
 void printLegalMoves(Board &board, Search search, ConsoleState &c){
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
@@ -57,6 +53,18 @@ void printLegalMoves(Board &board, Search search, ConsoleState &c){
   for (int i = 0; i < legalMoves.end; i++) {
     std::cout<<debug::printMove(c.settings, board, legalMoves.moves[i])<<std::endl;
   }
+  c.printBoard = false;
+}
+void makeMoveFromConsole(Board &board, ConsoleState &c){
+  c.output = "from:\n";
+  getNextInput(c);
+  int from = squareNameToIndex(c.lastInput);
+  c.output = "to:\n";
+  getNextInput(c);
+  int to = squareNameToIndex(c.lastInput);
+  Move move = {(byte)from, (byte)to};
+  board.makeMove(move);
+  c.output = debug::printMove(c.settings, board, move);
   c.printBoard = false;
 }
 
@@ -107,17 +115,4 @@ void displaySettings(ConsoleState &c){
       break;
     }
   }
-}
-
-void makeMoveFromConsole(Board &board, ConsoleState &c){
-  c.output = "from:\n";
-  getNextInput(c);
-  int from = squareNameToIndex(c.lastInput);
-  c.output = "to:\n";
-  getNextInput(c);
-  int to = squareNameToIndex(c.lastInput);
-  Move move = {(byte)from, (byte)to};
-  board.makeMove(move);
-  c.output = debug::printMove(c.settings, board, move);
-  c.printBoard = false;
 }

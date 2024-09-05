@@ -13,7 +13,6 @@ int main() {
   bool quit = false;
   Search search;
   search.init();
-  debug::Settings printSettings;
   ConsoleState consoleState;
   while (!quit) {
     if(consoleState.printBoard) consoleState.output = "\n" + debug::printBoard(consoleState.settings,board) + consoleState.output;
@@ -24,7 +23,6 @@ int main() {
     if (input == "lgl") printLegalMoves(board, search, consoleState);
     if (input == "rnd") makeRandomMove(board, search, consoleState);
     if (input == "trn") whosTurnIsIt(board, consoleState);
-
     if(input == "hlp" || input == "help") showHelpMenu(consoleState);
   
   }
