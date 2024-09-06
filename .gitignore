@@ -6,6 +6,7 @@ Prerequisites
 .ccls-cache/
 /replit.nix
 /.replit
+/main
 
 # Compiled Object files
 *.slo
