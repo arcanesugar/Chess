@@ -1,9 +1,10 @@
 #pragma once
 #include <iostream>
 
-#include "Board/board.h"
+#include "../Board/board.h"
+#include "../Search/search.h"
 #include "debug.h"
-#include "search.h"
+
 
 struct ConsoleState {
   debug::Settings settings;

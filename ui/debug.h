@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include "Board/board.h"
+#include "../Board/board.h"
 
 namespace debug{
   struct Settings{

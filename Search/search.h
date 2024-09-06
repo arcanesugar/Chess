@@ -1,5 +1,7 @@
 #pragma once
-#include "debug.h"
+#include "../Board/board.h"
+#include "../ui/debug.h"
+
 struct MoveList{
   Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is lust a beteer number(and adds room for psedeo legal moves)
   byte end = 0;

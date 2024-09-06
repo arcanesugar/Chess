@@ -3,9 +3,9 @@
 #include <random>
 
 #include "Board/board.h"
-#include "debug.h"
-#include "search.h"
-#include "ui.h"
+#include "Search/search.h"
+#include "ui/debug.h"
+#include "ui/ui.h"
 
 int main() {
   Board board;
