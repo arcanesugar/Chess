@@ -1,5 +1,11 @@
-# Prerequisites
+Prerequisites
 *.d
+
+#replit files 
+.breakpoints
+.ccls-cache/
+/replit.nix
+/.replit
 
 # Compiled Object files
 *.slo
