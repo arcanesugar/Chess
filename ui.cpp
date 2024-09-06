@@ -1,5 +1,21 @@
 #include "ui.h"
-void getNextInput(ConsoleState &c) {
+
+void ConsoleInterface::run(Board &board, Search &search){
+  bool quit = false;
+  while (!quit) {
+    if(c.printBoard) c.output = "\n" + debug::printBoard(c.settings,board) + c.output;
+    getNextInput();
+    std::string input = c.lastInput;
+    if (input == "mve") makeMoveFromConsole(board);
+    if(input == "dsp")  displaySettings();
+    if (input == "lgl") printLegalMoves(board, search);
+    if (input == "rnd") makeRandomMove(board, search);
+    if (input == "trn") whosTurnIsIt(board);
+    if(input == "hlp" || input == "help") showHelpMenu();
+  }
+}
+
+void ConsoleInterface::getNextInput() {
   std::cout << c.output<< ">>";
   std::string temp;
   std::getline(std::cin, temp);
@@ -8,14 +24,14 @@ void getNextInput(ConsoleState &c) {
   c.printBoard = true;
 }
 
-byte squareNameToIndex(std::string squareName) {
+byte ConsoleInterface::squareNameToIndex(std::string squareName) {
   byte squareIndex =
       ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
   std::cout << std::to_string((int)squareIndex);
   return squareIndex;
 }
 
-void showHelpMenu(ConsoleState &c){
+void ConsoleInterface::showHelpMenu(){
   c.output.append(
         (std::string)"---Help---\n"
       + "  trn - White/Black\n"
@@ -25,14 +41,14 @@ void showHelpMenu(ConsoleState &c){
       + "  rnd - Random Move\n"
       + "  tst - TODO: add testing\n");
 }
-void whosTurnIsIt(Board &board, ConsoleState &c){
+void ConsoleInterface::whosTurnIsIt(Board &board){
   if (board.flags & WHITE_TO_MOVE_BIT) {
     c.output = "White to move";
   } else {
     c.output = "Black to move";
   }
 }
-void makeRandomMove(Board &board, Search search,ConsoleState &c){
+void ConsoleInterface::makeRandomMove(Board &board, Search &search){
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
   if(legalMoves.end <= 0) {
@@ -46,7 +62,7 @@ void makeRandomMove(Board &board, Search search,ConsoleState &c){
   c.output.append(std::to_string(legalMoves.end));
   c.printBoard = false;
 }
-void printLegalMoves(Board &board, Search search, ConsoleState &c){
+void ConsoleInterface::printLegalMoves(Board &board, Search &search){
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
   c.output = std::to_string((int)legalMoves.end) + " moves printed\n";
@@ -55,12 +71,12 @@ void printLegalMoves(Board &board, Search search, ConsoleState &c){
   }
   c.printBoard = false;
 }
-void makeMoveFromConsole(Board &board, ConsoleState &c){
+void ConsoleInterface::makeMoveFromConsole(Board &board){
   c.output = "from:\n";
-  getNextInput(c);
+  getNextInput();
   int from = squareNameToIndex(c.lastInput);
   c.output = "to:\n";
-  getNextInput(c);
+  getNextInput();
   int to = squareNameToIndex(c.lastInput);
   Move move = {(byte)from, (byte)to};
   board.makeMove(move);
@@ -68,7 +84,7 @@ void makeMoveFromConsole(Board &board, ConsoleState &c){
   c.printBoard = false;
 }
 
-void displaySettings(ConsoleState &c){
+void ConsoleInterface::displaySettings(){
   bool done = false;
   while(!done){
     c.output = "";
@@ -85,7 +101,7 @@ void displaySettings(ConsoleState &c){
     c.output.append("  2 - Set dark color\n");
     c.output.append("  3 - Set light color\n");
     c.output.append("  9 - Done\n");
-    getNextInput(c);
+    getNextInput();
     if(!std::isdigit(c.lastInput[0])) continue;
     switch(std::stoi(c.lastInput)){
       case 0:
@@ -97,14 +113,14 @@ void displaySettings(ConsoleState &c){
       case 2:
         c.output = "Choose new dark color: \n";
         c.output.append(debug::testFormatting(true)+"\n");
-        getNextInput(c);
+        getNextInput();
         c.settings.darkColor = "\x1b[";
         c.settings.darkColor.append(c.lastInput + "m");
       break;
       case 3:
         c.output = "Choose new light color(should start with 4 or 10): \n";
         c.output.append(debug::testFormatting(true)+"\n");
-        getNextInput(c);
+        getNextInput();
         c.settings.lightColor = "\x1b[";
         c.settings.lightColor.append(c.lastInput + "m");
       break;

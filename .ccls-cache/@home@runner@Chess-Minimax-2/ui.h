@@ -11,14 +11,20 @@ struct ConsoleState {
   std::string output = "";
   bool printBoard = true;
 };
+class ConsoleInterface{
+  ConsoleState c;
 
-byte squareNameToIndex(std::string squareName);
+  byte squareNameToIndex(std::string squareName);
 
-void getNextInput(ConsoleState &c);
+  void getNextInput();
 
-void showHelpMenu(ConsoleState &c);
-void displaySettings(ConsoleState &c);
-void whosTurnIsIt(Board &board, ConsoleState &c);
-void makeMoveFromConsole(Board &board, ConsoleState &c);
-void makeRandomMove(Board &board, Search search,ConsoleState &c);
-void printLegalMoves(Board &board, Search search, ConsoleState &c);
+  void showHelpMenu();
+  void displaySettings();
+  void whosTurnIsIt(Board &board);
+  void makeMoveFromConsole(Board &board);
+  void makeRandomMove(Board &board, Search &search);
+  void printLegalMoves(Board &board, Search &search);
+
+public:
+  void run(Board &board, Search &search);//run the console interface
+};
