@@ -9,11 +9,17 @@ struct MoveList{
 };
 
 class Search{
-  u64 hRankMask = (u64)72340172838076673;
-  u64 aRankMask = 9259542123273814144U;
+  
+  u64 rankMasks[8] = {};
   u64 fileMasks[8] = {};
+  u64 rookMasks[64];
+  u64 bishopMasks[64];
   u64 knightMoves[64];
   void generateKnightMoves();//fills the knight moves array, does not do actual move generation
+  void generateFileMasks();
+  void generateRankMasks();
+  void generateRookMasks();
+  void generateBishopMasks();
 
   void addDiagonalMoves(Board board, int square, MoveList &moves);
   void addHorizontalMoves(Board board, int square, MoveList &moves);
@@ -21,9 +27,9 @@ class Search{
   void addSlidingMoves(Board board, MoveList &moves);
   void addKnightMoves(Board board, MoveList &moves);
   void addKingMoves(Board board, MoveList &moves);
-  void generateFileMasks();
+  
+
 public:
   void init();
   void generateMoves(Board board, MoveList &moves);
-
 };

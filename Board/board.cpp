@@ -1,6 +1,6 @@
 #include <cmath>
 #include "board.h"
-int getSquareIndex(int file, int rank){return file*8 + (rank);};
+int getSquareIndex(int rank, int file){return (rank*8) + file;};
 void Board::updateColorBitboards(){
   bitboards[WHITE_PIECES] = bitboards[WHITE+PAWN] | bitboards[WHITE+BISHOP] | bitboards[WHITE+KNIGHT] | bitboards[WHITE+ROOK] | bitboards[WHITE+QUEEN] | bitboards[WHITE+KING];
   bitboards[BLACK_PIECES] = bitboards[BLACK+PAWN] | bitboards[BLACK+BISHOP] | bitboards[BLACK+KNIGHT] | bitboards[BLACK+ROOK] | bitboards[BLACK+QUEEN] | bitboards[BLACK+KING];

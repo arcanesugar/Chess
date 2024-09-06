@@ -22,7 +22,7 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
     moves.append(move);
   }
   //double forward moves
-  pawnDestinations = board.bitboards[color + PAWN] &(board.flags&WHITE_TO_MOVE_BIT ? fileMasks[1] : fileMasks[6]);
+  pawnDestinations = board.bitboards[color + PAWN] &(board.flags&WHITE_TO_MOVE_BIT ? rankMasks[1] : rankMasks[6]);
   std::cout<<debug::printBitboard(pawnDestinations);
   pawnDestinations = signedShift(pawnDestinations, 16 * dir);
   pawnDestinations &= ~(board.bitboards[WHITE_PIECES]|board.bitboards[BLACK_PIECES]);
@@ -35,7 +35,7 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   
   // pawn captures
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
-  pawnDestinations &= (board.flags & WHITE_TO_MOVE_BIT) ? ~aRankMask : ~hRankMask;
+  pawnDestinations &= (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[7] : ~fileMasks[0];
   pawnDestinations &= opponentBitboard;
   while (pawnDestinations) {
     Move move;
@@ -45,7 +45,7 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   }
 
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
-  pawnDestinations &= (board.flags & WHITE_TO_MOVE_BIT) ? ~hRankMask : ~aRankMask;
+  pawnDestinations &= (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[0] : ~fileMasks[7];
   pawnDestinations &= opponentBitboard;
   while (pawnDestinations) {
     Move move;
@@ -55,10 +55,10 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   }
 }
 
-void Search::addDiagonalMoves(Board board, int square, MoveList &moves){
+void Search::addHorizontalMoves(Board board, int square, MoveList &moves){
 
 };
-void Search::addHorizontalMoves(Board board, int square, MoveList &moves){
+void Search::addDiagonalMoves(Board board, int square, MoveList &moves){
   
 };
 
@@ -95,12 +95,44 @@ void Search::addKingMoves(Board board, MoveList &moves) {}
 
 void Search::init(){
   generateFileMasks();
+  generateRankMasks();
   generateKnightMoves();
+  generateRookMasks();
+  generateBishopMasks();
 }
 
+void Search::generateRankMasks(){
+  for(int i = 0; i<8; i++){
+    rankMasks[i] = (u64)255<<(8*i);
+  }
+}
 void Search::generateFileMasks(){
   for(int i = 0; i<8; i++){
-    fileMasks[i] = (u64)255<<(8*i);
+    u64 mask = (u64)0;
+    for(int y = 0; y<8; y++){
+      setBit(mask, (y*8)+i);
+    }
+    fileMasks[i] = mask;
+  }
+}
+
+void Search::generateRookMasks(){
+  for(int rank = 0; rank<8; rank++){//y
+    for(int file = 0; file<8; file++){//x
+      u64 mask = (u64)0;
+      mask |= fileMasks[file];
+      rookMasks[(rank*8)+file] = mask;
+    }
+  }
+}
+
+void Search::generateBishopMasks(){
+  for(int rank = 0; rank<8; rank++){//y
+    for(int file = 0; file<8; file++){//x
+      u64 mask = (u64)0;
+
+      bishopMasks[(rank*8)+file] = mask;
+    }
   }
 }
 
