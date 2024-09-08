@@ -56,7 +56,7 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
 }
 
 void Search::addHorizontalMoves(Board board, int square, MoveList &moves){
-
+  
 };
 void Search::addDiagonalMoves(Board board, int square, MoveList &moves){
   
@@ -99,6 +99,8 @@ void Search::init(){
   generateKnightMoves();
   generateRookMasks();
   generateBishopMasks();
+  loadMagics();
+  saveMagics();
 }
 
 void Search::generateRankMasks(){
@@ -121,6 +123,7 @@ void Search::generateRookMasks(){
     for(int file = 0; file<8; file++){//x
       u64 mask = (u64)0;
       mask |= fileMasks[file];
+      mask |= rankMasks[rank];
       rookMasks[(rank*8)+file] = mask;
     }
   }
@@ -130,7 +133,16 @@ void Search::generateBishopMasks(){
   for(int rank = 0; rank<8; rank++){//y
     for(int file = 0; file<8; file++){//x
       u64 mask = (u64)0;
-
+      int directions [4][2] = {{1,1},{1,-1},{-1,1},{-1,-1}};
+      for(int i = 0; i<4; i++){
+        int x = file;
+        int y = rank;
+        while((x>=0 && x<8)&&(y>=0&&y<8)){
+          setBit(mask,(y*8)+x);
+          x+=directions[i][0];
+          y+=directions[i][1];
+        }
+      }
       bishopMasks[(rank*8)+file] = mask;
     }
   }
@@ -162,3 +174,64 @@ void Search::generateKnightMoves(){
     }
   }
 }
+
+
+void Search::searchForRookMagics(){
+  
+};
+
+void Search::saveMagics(){
+  std::ofstream file("Search/magics.txt",std::ofstream::out | std::ofstream::trunc);
+  if(!file.is_open()){
+    std::cout<<"[error] Could not open magics.txt"<<std::endl;
+    return;
+  }
+  int i = 0;
+  for(u64 u : rookMagics){
+    file<<std::to_string(u)<<"\n"<<std::to_string(rookShifts[i++])<<"\n";
+  }
+  file<<"Bishop\n";
+  i = 0;
+  for(u64 u : bishopMagics){
+    file<<std::to_string(u)<<"\n"<<std::to_string(bishopShifts[i++])<<"\n";
+  }
+};
+
+void Search::loadMagics(){
+  std::ifstream file("Search/magics.txt");
+  if(!file.is_open()){
+    std::cout<<"[error] Could not open magics.txt"<<std::endl;
+    return;
+  }
+  std::string line;
+  int index = 0;
+  bool rook = true;
+  bool shift = false;
+  while(getline(file,line)){
+    if(line == "Bishop"){
+      index = 0;
+      shift = false;
+      rook = false;
+      continue;
+    }
+    if(shift){
+      int val = std::stoi(line);
+      if(rook){
+        rookShifts[index] = val;
+      }else{
+        bishopShifts[index] = val;
+      }
+      index+=1;
+      shift = false;
+      continue;
+    }
+    u64 val = std::stoull(line);
+    if(rook){
+      rookMagics[index] = val;
+    }else{
+      bishopMagics[index] = val;
+    }
+    shift = true;
+  }
+};
+

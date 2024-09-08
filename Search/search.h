@@ -1,4 +1,5 @@
 #pragma once
+#include <fstream>
 #include "../Board/board.h"
 #include "../ui/debug.h"
 
@@ -10,17 +11,23 @@ struct MoveList{
 
 class Search{
   
-  u64 rankMasks[8] = {};
-  u64 fileMasks[8] = {};
+
   u64 rookMasks[64];
   u64 bishopMasks[64];
   u64 knightMoves[64];
+
+  u64 rookMagics[64];
+  int rookShifts[64];
+  u64 bishopMagics[64];
+  int bishopShifts[64];
+
   void generateKnightMoves();//fills the knight moves array, does not do actual move generation
   void generateFileMasks();
   void generateRankMasks();
   void generateRookMasks();
   void generateBishopMasks();
-
+  void generateRookBlockers();
+  
   void addDiagonalMoves(Board board, int square, MoveList &moves);
   void addHorizontalMoves(Board board, int square, MoveList &moves);
   void addPawnMoves(Board board, MoveList &moves);
@@ -30,6 +37,11 @@ class Search{
   
 
 public:
+u64 rankMasks[8] = {};
+u64 fileMasks[8] = {};
   void init();
   void generateMoves(Board board, MoveList &moves);
+  void searchForRookMagics();
+  void saveMagics();
+  void loadMagics();
 };
