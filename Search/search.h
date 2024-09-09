@@ -1,10 +1,14 @@
 #pragma once
 #include <fstream>
+#include <map>//temporary 
+#include <vector>
+#include <cmath>
+#include <random>
 #include "../Board/board.h"
 #include "../ui/debug.h"
 
 struct MoveList{
-  Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is lust a beteer number(and adds room for psedeo legal moves)
+  Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is lust a beter number(and adds room for psedeo legal moves)
   byte end = 0;
   inline void append(Move const &m){moves[end] = m; end++;}
 };
@@ -20,6 +24,7 @@ class Search{
   int rookShifts[64];
   u64 bishopMagics[64];
   int bishopShifts[64];
+  std::map<u64,u64> rookMoves;//key, moves bitboard 
 
   void generateKnightMoves();//fills the knight moves array, does not do actual move generation
   void generateFileMasks();
@@ -41,7 +46,7 @@ u64 rankMasks[8] = {};
 u64 fileMasks[8] = {};
   void init();
   void generateMoves(Board board, MoveList &moves);
-  void searchForRookMagics();
+  void searchForMagics();
   void saveMagics();
   void loadMagics();
 };

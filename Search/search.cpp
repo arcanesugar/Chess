@@ -100,7 +100,6 @@ void Search::init(){
   generateRookMasks();
   generateBishopMasks();
   loadMagics();
-  saveMagics();
 }
 
 void Search::generateRankMasks(){
@@ -175,9 +174,89 @@ void Search::generateKnightMoves(){
   }
 }
 
+//random functions from https://www.chessprogramming.org/Looking_for_Magics
+u64 random_uint64() {
+  u64 u1, u2, u3, u4;
+  u1 = (u64)(random()) & 0xFFFF; u2 = (u64)(random()) & 0xFFFF;
+  u3 = (u64)(random()) & 0xFFFF; u4 = (u64)(random()) & 0xFFFF;
+  return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
+}
 
-void Search::searchForRookMagics(){
-  
+u64 random_u64_fewbits() {
+  return random_uint64() & random_uint64() & random_uint64();
+}
+
+void Search::searchForMagics(){
+  std::cout<<"[generating blockers]\n";
+  std::vector<u64> blockers[64];
+  for(int i = 0; i<64; i++){
+    int bc = bitcount(rookMasks[i]);
+    u64 bb = rookMasks[i];
+    std::vector<int> bitIndices;
+    while(bb){
+      bitIndices.push_back(popls1b(bb));
+    }
+    for(int j = 0; j<pow(2,bc);j++){
+      u64 blocker = (u64)0;
+      for(int f = 0; f<bc; f++){
+        blocker |= (((u64)j>>f)&1)<<bitIndices[f];
+      }
+      blockers[i].push_back(blocker);
+    }
+  }
+  std::cout<<debug::printBitboard(blockers[14][blockers[14].size()-1]);
+  std::cout<<"[beginning search]\n";
+  for(int &i : rookShifts){
+    i = -999;
+  }
+  while(1){
+    for(int i = 0; i<100; i++){
+      for(int j = 0;j<64;j++){
+        u64 magic = random_u64_fewbits();
+        int shift = -999;
+        for(int s = 40; s<64; s++){
+          std::map<u64,bool> foundKeys;//map is probably not the best fit here
+          bool failure = false;
+          for(u64 blocker : blockers[j]){
+            u64 hashed = u64(blocker*magic)>>s;
+            if(foundKeys.find(hashed) != foundKeys.end()){
+              failure = true;
+              break;
+            }
+            foundKeys.insert({hashed,true});
+          }
+          if(failure) break;
+          shift = s;
+        }
+        if(shift >rookShifts[j]){
+          rookMagics[j] = magic;
+          rookShifts[j] = shift;
+          std::cout<<"Found Magic [square "<<j<<" shift "<<shift<<" magic "<<magic<<"]\n";
+        }
+      }
+      int found = 0;
+      int rookTableSize= 0;
+      for(int i= 0; i<64; i++){
+        if(rookShifts[i]!= -999)found++;
+        rookTableSize += pow(2,64-rookShifts[i]);
+      }
+      std::cout<<"\nMagics found for "<<found<<"/64 squares\n";
+      std::cout<<"Rook table ~"<<rookTableSize*8<<" bytes\n\n";
+    }
+    std::string temp;
+    std::cout<<"Continue search?(y/n)\n";
+    std::getline(std::cin, temp);
+    if(temp == "n"){
+      break;
+    }
+  }
+  std::string temp;
+  std::cout<<"Save magics?(y/n)\n";
+  std::getline(std::cin, temp);
+  if(temp == "y"){
+    saveMagics();
+  }
+  loadMagics();
 };
 
 void Search::saveMagics(){

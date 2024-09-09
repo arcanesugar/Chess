@@ -12,6 +12,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if (input == "rnd") makeRandomMove(board, search);
     if (input == "trn") whosTurnIsIt(board);
     if(input == "hlp" || input == "help") showHelpMenu();
+    if(input == "sch") search.searchForMagics();
   }
 }
 

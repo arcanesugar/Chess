@@ -46,3 +46,11 @@ int popls1b(u64 &bb){
   resetBit(bb,index);
   return index;
 }
+int bitcount(u64 bb){
+  int count = 0;
+  while(bb){
+    popls1b(bb);
+    count++;
+  }
+  return count;
+}
