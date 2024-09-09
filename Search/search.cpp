@@ -186,12 +186,11 @@ u64 random_u64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
 }
 
-void Search::searchForMagics(){
-  std::cout<<"[generating blockers]\n";
-  std::vector<u64> blockers[64];
+
+void Search::generateRookBlockers(){
   for(int i = 0; i<64; i++){
-    int bc = bitcount(rookMasks[i]);
     u64 bb = rookMasks[i];
+    int bc = bitcount(bb);
     std::vector<int> bitIndices;
     while(bb){
       bitIndices.push_back(popls1b(bb));
@@ -201,57 +200,104 @@ void Search::searchForMagics(){
       for(int f = 0; f<bc; f++){
         blocker |= (((u64)j>>f)&1)<<bitIndices[f];
       }
-      blockers[i].push_back(blocker);
+      rookBlockers[i].push_back(blocker);
     }
   }
-  std::cout<<debug::printBitboard(blockers[14][blockers[14].size()-1]);
-  std::cout<<"[beginning search]\n";
-  for(int &i : rookShifts){
-    i = -999;
+}
+
+void Search::generateBishopBlockers(){
+  for(int i = 0; i<64; i++){
+    u64 bb = bishopMasks[i];
+    int bc = bitcount(bb);
+    std::vector<int> bitIndices;
+    while(bb){
+      bitIndices.push_back(popls1b(bb));
+    }
+    for(int j = 0; j<pow(2,bc);j++){
+      u64 blocker = (u64)0;
+      for(int f = 0; f<bc; f++){
+        blocker |= (((u64)j>>f)&1)<<bitIndices[f];
+      }
+      bishopBlockers[i].push_back(blocker);
+    }
+  }
+}
+
+bool Search::testMagic(std::vector<u64> *blockers, int square,u64 magic, int shift){
+  std::map<u64,bool> foundKeys;//map is probably not the best fit here
+  for(u64 blocker : blockers[square]){
+    u64 hashed = u64(blocker*magic)>>shift;
+    if(foundKeys.find(hashed) != foundKeys.end()){
+      return false;
+    }
+    foundKeys.insert({hashed,true});
+  }
+  return true;
+}
+void Search::searchForMagics(){
+  std::cout<<"[generating blockers]\n";
+  generateRookBlockers();
+  generateBishopBlockers();
+  std::cout<<"[beginning search]\nresume from last time?(Y/n)";
+  std::string temp;
+  std::getline(std::cin, temp);
+  loadMagics();
+  if(temp == "n"){
+    for(int &i : rookShifts){
+      i = -999;
+    }
+    for(int &i : bishopShifts){
+      i = -999;
+    }
   }
   while(1){
-    for(int i = 0; i<100; i++){
-      for(int j = 0;j<64;j++){
+    for(int attempt = 0; attempt<100; attempt++){
+      for(int square = 0;square<64;square++){
         u64 magic = random_u64_fewbits();
         int shift = -999;
         for(int s = 40; s<64; s++){
-          std::map<u64,bool> foundKeys;//map is probably not the best fit here
-          bool failure = false;
-          for(u64 blocker : blockers[j]){
-            u64 hashed = u64(blocker*magic)>>s;
-            if(foundKeys.find(hashed) != foundKeys.end()){
-              failure = true;
-              break;
-            }
-            foundKeys.insert({hashed,true});
-          }
-          if(failure) break;
-          shift = s;
+          if(testMagic(rookBlockers, square,magic,s)){shift = s;}
+          else{break;}
         }
-        if(shift >rookShifts[j]){
-          rookMagics[j] = magic;
-          rookShifts[j] = shift;
-          std::cout<<"Found Magic [square "<<j<<" shift "<<shift<<" magic "<<magic<<"]\n";
+        if(shift >rookShifts[square]){
+          rookMagics[square] = magic;
+          rookShifts[square] = shift;
+        }
+        shift = -999;
+        for(int s = 40; s<64; s++){
+          if(testMagic(bishopBlockers, square,magic,s)){shift = s;}
+          else{break;}
+        }
+        if(shift >bishopShifts[square]){
+          bishopMagics[square] = magic;
+          bishopShifts[square] = shift;
         }
       }
-      int found = 0;
+
+      //print information about search
+      int foundRook = 0;
       int rookTableSize= 0;
+      int foundBishop = 0;
+      int bishopTableSize= 0;
       for(int i= 0; i<64; i++){
-        if(rookShifts[i]!= -999)found++;
+        if(rookShifts[i]!= -999)foundRook++;
         rookTableSize += pow(2,64-rookShifts[i]);
+        if(bishopShifts[i]!= -999)foundBishop++;
+        bishopTableSize += pow(2,64-bishopShifts[i]);
       }
-      std::cout<<"\nMagics found for "<<found<<"/64 squares\n";
-      std::cout<<"Rook table ~"<<rookTableSize*8<<" bytes\n\n";
+      std::cout<<"\nRook magics found for "<<foundRook<<"/64 squares\n";
+      std::cout<<"Rook table ~"<<rookTableSize*8<<" bytes\n";
+      std::cout<<"Bishop magics found for "<<foundBishop<<"/64 squares\n";
+      std::cout<<"Bishop table ~"<<bishopTableSize*8<<" bytes\n";
     }
     std::string temp;
-    std::cout<<"Continue search?(y/n)\n";
+    std::cout<<"Continue search?(Y/n)\n";
     std::getline(std::cin, temp);
     if(temp == "n"){
       break;
     }
   }
-  std::string temp;
-  std::cout<<"Save magics?(y/n)\n";
+  std::cout<<"Save magics?(y/N)\n";
   std::getline(std::cin, temp);
   if(temp == "y"){
     saveMagics();

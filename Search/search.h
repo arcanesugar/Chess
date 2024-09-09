@@ -25,14 +25,20 @@ class Search{
   u64 bishopMagics[64];
   int bishopShifts[64];
   std::map<u64,u64> rookMoves;//key, moves bitboard 
-
+  
   void generateKnightMoves();//fills the knight moves array, does not do actual move generation
   void generateFileMasks();
   void generateRankMasks();
   void generateRookMasks();
   void generateBishopMasks();
+
+  //Used only for magic number search
+  std::vector<u64> rookBlockers[64];
+  std::vector<u64> bishopBlockers[64];
+  bool testMagic(std::vector<u64> *blockers, int square, u64 magic, int shift);
   void generateRookBlockers();
-  
+  void generateBishopBlockers();
+
   void addDiagonalMoves(Board board, int square, MoveList &moves);
   void addHorizontalMoves(Board board, int square, MoveList &moves);
   void addPawnMoves(Board board, MoveList &moves);
