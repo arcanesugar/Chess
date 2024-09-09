@@ -13,6 +13,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if (input == "trn") whosTurnIsIt(board);
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") search.searchForMagics();
+    if(input == "q") quit = true;
   }
 }
 
@@ -35,12 +36,15 @@ byte ConsoleInterface::squareNameToIndex(std::string squareName) {
 void ConsoleInterface::showHelpMenu(){
   c.output.append(
         (std::string)"---Help---\n"
-      + "  trn - White/Black\n"
-      + "  mve - Make Move\n"
-      + "  lgl - Legal Moves\n"
-      + "  dsp - Display Settings\n"
-      + "  rnd - Random Move\n"
-      + "  tst - TODO: add testing\n");
+      + "  trn - Who's turn is it\n"
+      + "  mve - Make move\n"
+      + "  lgl - Show legal moves\n"
+      + "  dsp - Display settings\n"
+      + "  rnd - Random move\n"
+      + "  sch - \"Search\" for magic numbers\n"
+      + "  hlp/help - Show this list\n"
+      + "  tst - TODO: add testing\n"
+      + "  q - Quit\n");
 }
 void ConsoleInterface::whosTurnIsIt(Board &board){
   if (board.flags & WHITE_TO_MOVE_BIT) {

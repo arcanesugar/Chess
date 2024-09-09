@@ -48,8 +48,8 @@ class Search{
   
 
 public:
-u64 rankMasks[8] = {};
-u64 fileMasks[8] = {};
+  u64 rankMasks[8] = {};
+  u64 fileMasks[8] = {};
   void init();
   void generateMoves(Board board, MoveList &moves);
   void searchForMagics();
