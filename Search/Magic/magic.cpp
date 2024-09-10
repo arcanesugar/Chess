@@ -15,6 +15,7 @@ u64 random_u64_fewbits() {
 
 void Search::generateRookBlockers(){
   for(int i = 0; i<64; i++){
+    rookBlockers[i].clear();
     u64 bb = rookMasks[i];
     int bc = bitcount(bb);
     std::vector<int> bitIndices;
@@ -33,6 +34,7 @@ void Search::generateRookBlockers(){
 
 void Search::generateBishopBlockers(){
   for(int i = 0; i<64; i++){
+    bishopBlockers[i].clear();
     u64 bb = bishopMasks[i];
     int bc = bitcount(bb);
     std::vector<int> bitIndices;
@@ -46,6 +48,7 @@ void Search::generateBishopBlockers(){
       }
       bishopBlockers[i].push_back(blocker);
     }
+
   }
 }
 
