@@ -21,6 +21,7 @@ enum piece{
 #define WHITE 0
 #define BLACK 6
 #define EMPTY 12
+
 #define WHITE_PIECES 12
 #define BLACK_PIECES 13
 struct Move{
@@ -33,6 +34,7 @@ int getSquareIndex(int file, int rank);
 
 struct Board{
   u64 bitboards[14];
+  u64 occupancy;//1 if a piece is present
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
   

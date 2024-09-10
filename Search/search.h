@@ -42,6 +42,10 @@ class Search{
   void generateRookBlockers();
   void generateBishopBlockers();
 
+  //move generation functions
+  u64 friendlyBitboard;
+  u64 enemyBitboard;
+  int color;//the color of the player whos turn it is
   void addDiagonalMoves(Board board, int square, MoveList &moves);
   void addHorizontalMoves(Board board, int square, MoveList &moves);
   void addPawnMoves(Board board, MoveList &moves);
@@ -50,9 +54,10 @@ class Search{
   void addKingMoves(Board board, MoveList &moves);
   
 public:
+  Search();
   u64 rankMasks[8] = {};
   u64 fileMasks[8] = {};
-  void init();
+
   void generateMoves(Board board, MoveList &moves);
   void searchForMagics();
   void saveMagics();

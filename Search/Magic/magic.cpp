@@ -1,6 +1,7 @@
 #include "../search.h"
 
 //random functions from https://www.chessprogramming.org/Looking_for_Magics
+//modified slightly to fit naming convention
 u64 random_uint64() {
   u64 u1, u2, u3, u4;
   u1 = (u64)(random()) & 0xFFFF; u2 = (u64)(random()) & 0xFFFF;
@@ -11,7 +12,6 @@ u64 random_uint64() {
 u64 random_u64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
 }
-
 
 void Search::generateRookBlockers(){
   for(int i = 0; i<64; i++){
@@ -63,6 +63,10 @@ bool Search::testMagic(std::vector<u64> *blockers, int square,u64 magic, int shi
   }
   return true;
 }
+
+//Search can be greatly improved
+// for example, just using the shift values is an innacurate way to estimate the lookup table size
+//and rand is never seeded
 void Search::searchForMagics(){
   std::cout<<"[generating blockers]\n";
   generateRookBlockers();
