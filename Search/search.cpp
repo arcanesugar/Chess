@@ -85,27 +85,25 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   }
 }
 
+void Search::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
+  while (squares) {
+    Move move;
+    move.to = popls1b(squares);
+    move.from = fromSquare;
+    moves.append(move);
+  }
+}
 void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & rookMasks[square];
   u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
   u64 destinations = rookMoves[square][hashed] & (~friendlyBitboard);
-  while (destinations) {
-    Move move;
-    move.to = popls1b(destinations);
-    move.from = square;
-    moves.append(move);
-  }
+  addMovesToSquares(moves, square, destinations);
 };
 void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & bishopMasks[square];
   u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
   u64 destinations = bishopMoves[square][hashed] & (~friendlyBitboard);
-  while (destinations) {
-    Move move;
-    move.to = popls1b(destinations);
-    move.from = square;
-    moves.append(move);
-  }
+  addMovesToSquares(moves, square, destinations);
 };
 
 void Search::addKnightMoves(Board board, MoveList &moves) {
@@ -113,27 +111,15 @@ void Search::addKnightMoves(Board board, MoveList &moves) {
   while (friendlyKnights) {
     int square = popls1b(friendlyKnights);
     u64 targets = knightMoves[square] & (~friendlyBitboard);
-    while (targets) {
-      Move move;
-      move.to = popls1b(targets);
-      move.from = square;
-      moves.append(move);
-    }
+    addMovesToSquares(moves, square, targets);
   }
 }
 
 void Search::addKingMoves(Board board, MoveList &moves) {
   int square = popls1b(board.bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
-  while (targets) {
-    Move move;
-    move.to = popls1b(targets);
-    move.from = square;
-    moves.append(move);
-  }
+  addMovesToSquares(moves, square, targets);
 }
-
-
 
 // Generate Masks, Move Lookups, ect
 //Only need to run once, but should still be understandable
@@ -304,8 +290,6 @@ void Search::runMoveGenerationTest(){
     }else{
       std::cout<<"\x1b[32m";
     }
-    std::cout<<"Depth: "<<i<<" Found: "<<found
-      <<"/"<<expected[i]<<"\n";
-
+    std::cout<<"Depth: "<<i<<" Found: "<<found<<"/"<<expected[i]<<"\n";
   }
 }

@@ -15,40 +15,30 @@ u64 random_u64_fewbits() {
 
 void Search::generateRookBlockers(){
   for(int i = 0; i<64; i++){
-    rookBlockers[i].clear();
-    u64 bb = rookMasks[i];
-    int bc = bitcount(bb);
-    std::vector<int> bitIndices;
-    while(bb){
-      bitIndices.push_back(popls1b(bb));
-    }
-    for(int j = 0; j<pow(2,bc);j++){
-      u64 blocker = (u64)0;
-      for(int f = 0; f<bc; f++){
-        blocker |= (((u64)j>>f)&1)<<bitIndices[f];
-      }
-      rookBlockers[i].push_back(blocker);
-    }
+    generateBlockersFromMask(rookMasks[i], rookBlockers[i]);
   }
 }
 
 void Search::generateBishopBlockers(){
   for(int i = 0; i<64; i++){
-    bishopBlockers[i].clear();
-    u64 bb = bishopMasks[i];
-    int bc = bitcount(bb);
-    std::vector<int> bitIndices;
-    while(bb){
-      bitIndices.push_back(popls1b(bb));
-    }
-    for(int j = 0; j<pow(2,bc);j++){
-      u64 blocker = (u64)0;
-      for(int f = 0; f<bc; f++){
-        blocker |= (((u64)j>>f)&1)<<bitIndices[f];
-      }
-      bishopBlockers[i].push_back(blocker);
-    }
+    generateBlockersFromMask(bishopMasks[i], bishopBlockers[i]);
+  }
+}
 
+void Search::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
+  target.clear();
+  u64 bb = mask;
+  int bc = bitcount(bb);
+  std::vector<int> bitIndices;
+  while(bb){
+    bitIndices.push_back(popls1b(bb));
+  }
+  for(int j = 0; j<pow(2,bc);j++){
+    u64 blocker = (u64)0;
+    for(int f = 0; f<bc; f++){
+      blocker |= (((u64)j>>f)&1)<<bitIndices[f];
+    }
+    target.push_back(blocker);
   }
 }
 
