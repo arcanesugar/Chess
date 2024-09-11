@@ -52,7 +52,8 @@ class Search{
   void addSlidingMoves(Board board, MoveList &moves);
   void addKnightMoves(Board board, MoveList &moves);
   void addKingMoves(Board board, MoveList &moves);
-  
+  u64 perftTest(Board &b, int depth);
+
 public:
   Search();
   u64 rankMasks[8] = {};
@@ -62,4 +63,6 @@ public:
   void searchForMagics();
   void saveMagics();
   void loadMagics();
+  void runMoveGenerationTest();
+
 };

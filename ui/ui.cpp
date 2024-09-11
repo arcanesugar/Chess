@@ -13,6 +13,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if (input == "trn") whosTurnIsIt(board);
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") search.searchForMagics();
+    if(input == "tst") search.runMoveGenerationTest();
     if(input == "q") quit = true;
   }
 }
@@ -43,7 +44,7 @@ void ConsoleInterface::showHelpMenu(){
       + "  rnd - Random move\n"
       + "  sch - \"Search\" for magic numbers\n"
       + "  hlp/help - Show this list\n"
-      + "  tst - TODO: add testing\n"
+      + "  tst - Run move generation test\n"
       + "  q - Quit\n");
 }
 void ConsoleInterface::whosTurnIsIt(Board &board){

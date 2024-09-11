@@ -89,7 +89,6 @@ void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & rookMasks[square];
   u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
   u64 destinations = rookMoves[square][hashed] & (~friendlyBitboard);
-  resetBit(destinations, square);
   while (destinations) {
     Move move;
     move.to = popls1b(destinations);
@@ -101,7 +100,6 @@ void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & bishopMasks[square];
   u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
   u64 destinations = bishopMoves[square][hashed] & (~friendlyBitboard);
-  resetBit(destinations, square);
   while (destinations) {
     Move move;
     move.to = popls1b(destinations);
@@ -266,5 +264,48 @@ void Search::fillBishopMoves() {
       bishopMoves[i].insert(
           {(blocker * bishopMagics[i]) >> bishopShifts[i], moves});
     }
+  }
+}
+
+
+u64 Search::perftTest(Board &b, int depth){
+  if(depth <= 0){return 1;}
+  u64 count = 0;
+  MoveList moves;
+  generateMoves(b, moves);
+  for(int i = 0; i<moves.end;i++){
+    b.makeMove(moves.moves[i]);
+    count += perftTest(b, depth-1);
+    b.unmakeMove(moves.moves[i]);
+  }
+  return count;
+}
+void Search::runMoveGenerationTest(){
+  Board board;
+  //https://www.chessprogramming.org/Perft_Results
+  //position 6
+  u64 expected[11] = {
+  0,
+  46,
+  2079,
+  89890,
+  3894594,
+  164075551,
+  6923051137,
+  287188994746,
+  11923589843526,
+  490154852788714
+  };
+  board.loadFromFEN("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+  for(int i = 1; i<10; i++){
+    u64 found = perftTest(board,i);
+    if(found != expected[i]){
+      std::cout<<"\x1b[31m";
+    }else{
+      std::cout<<"\x1b[32m";
+    }
+    std::cout<<"Depth: "<<i<<" Found: "<<found
+      <<"/"<<expected[i]<<"\n";
+
   }
 }
