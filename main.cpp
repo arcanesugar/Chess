@@ -13,7 +13,6 @@ int main() {
   board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
   std::cout<<"[creating search...]\n";
   Search search;
-  search.init();
   std::cout<<"[creating consoleInterface...]\n";
   ConsoleInterface consoleInterface;
   std::cout<<"[beginning consoleInterface...]\n";

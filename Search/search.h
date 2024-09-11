@@ -39,22 +39,34 @@ class Search{
   std::vector<u64> rookBlockers[64];
   std::vector<u64> bishopBlockers[64];
   bool testMagic(std::vector<u64> *blockers, int square, u64 magic, int shift);
+  void generateBlockersFromMask(u64 mask,std::vector<u64> &target);
   void generateRookBlockers();
   void generateBishopBlockers();
 
+  //move generation functions
+  u64 friendlyBitboard;
+  u64 enemyBitboard;
+  int color;//the color of the player whos turn it is
+  void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares);
   void addDiagonalMoves(Board board, int square, MoveList &moves);
   void addHorizontalMoves(Board board, int square, MoveList &moves);
   void addPawnMoves(Board board, MoveList &moves);
   void addSlidingMoves(Board board, MoveList &moves);
   void addKnightMoves(Board board, MoveList &moves);
   void addKingMoves(Board board, MoveList &moves);
+
+  //testing
+  u64 perftTest(Board &b, int depth);
   
 public:
+  Search();
   u64 rankMasks[8] = {};
   u64 fileMasks[8] = {};
-  void init();
+
   void generateMoves(Board board, MoveList &moves);
   void searchForMagics();
   void saveMagics();
   void loadMagics();
+  void runMoveGenerationTest();
+
 };
