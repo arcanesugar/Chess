@@ -15,6 +15,17 @@ void ConsoleInterface::run(Board &board, Search &search){
     if(input == "sch") search.searchForMagics();
     if(input == "tst") search.runMoveGenerationTest();
     if(input == "q") quit = true;
+
+    if(input == "ks"){
+      Move m;
+      m.flags |= KINGSIDE_BIT;
+      board.makeMove(m);
+    }
+    if(input == "qs"){
+      Move m;
+      m.flags |= QUEENSIDE_BIT;
+      board.makeMove(m);
+    }
   }
 }
 
@@ -39,6 +50,8 @@ void ConsoleInterface::showHelpMenu(){
         (std::string)"---Help---\n"
       + "  trn - Who's turn is it\n"
       + "  mve - Make move\n"
+      + "  ks - Castle Kingside\n"
+      + "  qs - Castle Queenside\n"
       + "  lgl - Show legal moves\n"
       + "  dsp - Display settings\n"
       + "  rnd - Random move\n"

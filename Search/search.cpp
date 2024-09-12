@@ -18,7 +18,7 @@ void Search::generateMoves(Board board, MoveList &moves) {
      ? board.bitboards[BLACK_PIECES]
      : board.bitboards[WHITE_PIECES];
 
-  color = board.flags & WHITE_TO_MOVE_BIT ? WHITE : BLACK;
+  color = (board.flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   moves.end = 0;
   addPawnMoves(board, moves);
   addSlidingMoves(board, moves);

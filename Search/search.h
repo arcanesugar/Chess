@@ -54,7 +54,7 @@ class Search{
   void addSlidingMoves(Board board, MoveList &moves);
   void addKnightMoves(Board board, MoveList &moves);
   void addKingMoves(Board board, MoveList &moves);
-
+  void addCastlingMoves(Board board, MoveList &moves);
   //testing
   u64 perftTest(Board &b, int depth);
   

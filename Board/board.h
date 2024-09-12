@@ -6,6 +6,8 @@
 #include "Bitboards/bitboard.h"
 
 #define CAPTURE_BIT       0b00000001
+#define KINGSIDE_BIT      0b00000010
+#define QUEENSIDE_BIT     0b00000100
 #define EN_PASSAN 16
 
 #define WHITE_TO_MOVE_BIT 0b00000001

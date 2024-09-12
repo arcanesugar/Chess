@@ -38,6 +38,41 @@ void Board::loadFromFEN(std::string fen){
 }
 
 void Board::makeMove(Move &m){
+  int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
+  if(m.flags&KINGSIDE_BIT){
+    int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
+    //move king
+    resetBit(bitboards[color+KING],3+offset);
+    setBit(bitboards[color+KING],1+offset);
+    squares[3+offset] = EMPTY;
+    squares[1+offset] = color+KING;
+    //move rook
+    resetBit(bitboards[WHITE+KING],0+offset);
+    setBit(bitboards[WHITE+KING],2+offset);
+    squares[0+offset] = EMPTY;
+    squares[2+offset] = color+ROOK;
+
+    flags ^= WHITE_TO_MOVE_BIT;
+    updateColorBitboards();
+    return;
+  }
+  if(m.flags&QUEENSIDE_BIT){
+    int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
+    //move king
+    resetBit(bitboards[color+KING],3+offset);
+    setBit(bitboards[color+KING],5+offset);
+    squares[3+offset] = EMPTY;
+    squares[5+offset] = color+KING;
+    //move rook
+    resetBit(bitboards[WHITE+KING],7+offset);
+    setBit(bitboards[WHITE+KING],4+offset);
+    squares[7+offset] = EMPTY;
+    squares[4+offset] = color+ROOK;
+
+    flags ^= WHITE_TO_MOVE_BIT;
+    updateColorBitboards();
+    return;
+  }
   byte fromPiece = squares[m.from];
   byte toPiece = squares[m.to];
   if(toPiece!=EMPTY) m.flags |= CAPTURE_BIT;
