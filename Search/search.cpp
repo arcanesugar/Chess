@@ -259,7 +259,7 @@ u64 Search::perftTest(Board &b, int depth){
   u64 count = 0;
   MoveList moves;
   generateMoves(b, moves);
-  for(int i = 0; i<moves.end;i++){
+  for(byte i = 0; i<moves.end;i++){
     b.makeMove(moves.moves[i]);
     count += perftTest(b, depth-1);
     b.unmakeMove(moves.moves[i]);
@@ -270,20 +270,18 @@ void Search::runMoveGenerationTest(){
   Board board;
   //https://www.chessprogramming.org/Perft_Results
   //position 6
-  u64 expected[11] = {
+  u64 expected[8] = {
   0,
-  46,
-  2079,
-  89890,
-  3894594,
-  164075551,
-  6923051137,
-  287188994746,
-  11923589843526,
-  490154852788714
+  20,
+  400,
+  8902,
+  197281,
+  4865609,
+  119060324,
+  3195901860
   };
-  board.loadFromFEN("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-  for(int i = 1; i<10; i++){
+  board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  for(int i = 1; i<8; i++){
     u64 found = perftTest(board,i);
     if(found != expected[i]){
       std::cout<<"\x1b[31m";

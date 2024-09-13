@@ -7,11 +7,20 @@ void Board::updateColorBitboards(){
   occupancy = bitboards[WHITE_PIECES]|bitboards[BLACK_PIECES];
 }
 void Board::loadFromFEN(std::string fen){
+  std::string parsed[6];
+  int index = 0;
+  for(char c: fen){
+    if(c == ' '){
+      index++;
+      continue;
+    }
+    parsed[index].push_back(c);
+  }
   for(u64 &bb : bitboards){
     bb = (u64)0;
   }
   int squareIndex = 63;
-  for(char c: fen){
+  for(char c: parsed[0]){
     if(c == '/') continue;
     if(isdigit(c)){
       for(int i = 0; i<c-'0'; i++){
@@ -33,8 +42,20 @@ void Board::loadFromFEN(std::string fen){
       squares[squareIndex] = color+piece;
       squareIndex-=1;
     }
+    if(squareIndex<0){break;}
   }
   updateColorBitboards();
+
+  //set flags
+  flags = (u64)0;
+  if(parsed[1] == "w"){
+    flags |= WHITE_TO_MOVE_BIT;
+  }
+
+  if(parsed[2].find("K")) flags |= WHITE_KINGSIDE_BIT;
+  if(parsed[2].find("Q")) flags |= WHITE_QUEENSIDE_BIT;
+  if(parsed[2].find("k")) flags |= BLACK_KINGSIDE_BIT;
+  if(parsed[2].find("q")) flags |= BLACK_QUEENSIDE_BIT;
 }
 
 void Board::makeMove(Move &m){
