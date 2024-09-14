@@ -42,7 +42,6 @@ void ConsoleInterface::getNextInput() {
 byte ConsoleInterface::squareNameToIndex(std::string squareName) {
   byte squareIndex =
       ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
-  std::cout << std::to_string((int)squareIndex);
   return squareIndex;
 }
 
