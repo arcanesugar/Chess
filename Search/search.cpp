@@ -24,6 +24,7 @@ void Search::generateMoves(Board board, MoveList &moves) {
   addSlidingMoves(board, moves);
   addKnightMoves(board, moves);
   addKingMoves(board, moves);
+  addCastlingMoves(board, moves);
 }
 
 void Search::addSlidingMoves(Board board, MoveList &moves) {
@@ -121,6 +122,45 @@ void Search::addKingMoves(Board board, MoveList &moves) {
   addMovesToSquares(moves, square, targets);
 }
 
+void Search::addCastlingMoves(Board board, MoveList &moves){
+  bool kingside,queenside;
+  if(board.flags&WHITE_TO_MOVE_BIT){
+    kingside = board.flags&WHITE_KINGSIDE_BIT;
+    queenside = board.flags&WHITE_QUEENSIDE_BIT;
+    if(kingside){
+      if(board.squares[2] == EMPTY && board.squares[1] == EMPTY){
+        Move move;
+        move.flags |= KINGSIDE_BIT;
+        moves.append(move);
+      }
+    }
+    if(queenside){
+      if(board.squares[4] == EMPTY && board.squares[5] == EMPTY && board.squares[6] == EMPTY){
+        Move move;
+        move.flags |= QUEENSIDE_BIT;
+        moves.append(move);
+      }
+    }
+  }
+  else{
+    kingside = board.flags&BLACK_KINGSIDE_BIT;
+    queenside = board.flags&BLACK_QUEENSIDE_BIT;
+    if(kingside){
+      if(board.squares[58] == EMPTY && board.squares[57] == EMPTY){
+        Move move;
+        move.flags |= KINGSIDE_BIT;
+        moves.append(move);
+      }
+    }
+    if(queenside){
+      if(board.squares[60] == EMPTY && board.squares[61] == EMPTY && board.squares[62] == EMPTY){
+        Move move;
+        move.flags |= QUEENSIDE_BIT;
+        moves.append(move);
+      }
+    }
+  }
+}
 // Generate Masks, Move Lookups, ect
 //Only need to run once, but should still be understandable
 
@@ -266,6 +306,7 @@ u64 Search::perftTest(Board &b, int depth){
   }
   return count;
 }
+
 void Search::runMoveGenerationTest(){
   Board board;
   //https://www.chessprogramming.org/Perft_Results

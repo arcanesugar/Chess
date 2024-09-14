@@ -10,7 +10,7 @@
 int main() {
   std::cout<<"[creating board...]\n";
   Board board;
-  board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+  board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   std::cout<<"[creating search...]\n";
   Search search;
   std::cout<<"[creating consoleInterface...]\n";

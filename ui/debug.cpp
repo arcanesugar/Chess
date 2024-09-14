@@ -49,6 +49,22 @@ std::string debug::printBoard(Settings settings, Board const &board){
 };
 
 std::string debug::printMove(Settings settings, Board const &board, Move &m){
+  if(m.flags&WHITE_KINGSIDE_BIT){
+    m.from = 3;
+    m.to = 1;
+  }
+  if(m.flags&WHITE_QUEENSIDE_BIT){
+    m.from = 3;
+    m.to = 5;
+  }
+  if(m.flags&BLACK_KINGSIDE_BIT){
+    m.from = 59;
+    m.to = 57;
+  }
+  if(m.flags&BLACK_QUEENSIDE_BIT){
+    m.from = 59;
+    m.to = 61;
+  }
   std::string str = "";
   str.append(" a b c d e f g h\n");
   for(int file = 7; file>=0; file--){

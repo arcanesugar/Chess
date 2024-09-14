@@ -52,10 +52,18 @@ void Board::loadFromFEN(std::string fen){
     flags |= WHITE_TO_MOVE_BIT;
   }
 
-  if(parsed[2].find("K")) flags |= WHITE_KINGSIDE_BIT;
-  if(parsed[2].find("Q")) flags |= WHITE_QUEENSIDE_BIT;
-  if(parsed[2].find("k")) flags |= BLACK_KINGSIDE_BIT;
-  if(parsed[2].find("q")) flags |= BLACK_QUEENSIDE_BIT;
+  if(parsed[2].find("K") != parsed[2].npos) flags |= WHITE_KINGSIDE_BIT;
+  if(parsed[2].find("Q") != parsed[2].npos) flags |= WHITE_QUEENSIDE_BIT;
+  if(parsed[2].find("k") != parsed[2].npos) flags |= BLACK_KINGSIDE_BIT;
+  if(parsed[2].find("q") != parsed[2].npos) flags |= BLACK_QUEENSIDE_BIT;
+  for(int i = 0; i<8; i++){
+    if((flags>>i)&1){
+      std::cout<<"1";
+    }else{
+      std::cout<<"0";
+    }
+  }
+  
 }
 
 void Board::makeMove(Move &m){
