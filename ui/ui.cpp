@@ -79,7 +79,6 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
   Move move = legalMoves.moves[rand()%legalMoves.end];
   board.makeMove(move);
   c.output = debug::printMove(c.settings, board, move);
-  c.output.append(std::to_string(legalMoves.end));
   c.printBoard = false;
 }
 void ConsoleInterface::printLegalMoves(Board &board, Search &search){

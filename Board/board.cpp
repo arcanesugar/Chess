@@ -123,7 +123,6 @@ void Board::makeMove(Move &m){
         enPassanTarget +=8;
       }
     }
-    std::cout<<std::to_string(enPassanTarget)<<"\n";
   }
   
   if(m.flags&CAPTURE_BIT){

@@ -11,6 +11,12 @@ struct MoveList{
   Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is lust a beter number(and adds room for psedeo legal moves)
   byte end = 0;
   inline void append(Move const &m){moves[end] = m; end++;}
+  void remove(byte index){
+    // delete 3 (index 2)
+    for (byte i = index; i < 8; ++i)
+        moves[i] = moves[i + 1]; // copy next element left
+    end-=1;
+  }
 };
 
 class Search{
@@ -23,6 +29,7 @@ class Search{
   int rookShifts[64];
   u64 bishopMagics[64];
   int bishopShifts[64];
+  bool inFilter = false;
   std::map<u64,u64> rookMoves[64];//key, moves bitboard 
   std::map<u64,u64> bishopMoves[64];//key, moves bitboard 
   
@@ -55,6 +62,7 @@ class Search{
   void addKnightMoves(Board board, MoveList &moves);
   void addKingMoves(Board board, MoveList &moves);
   void addCastlingMoves(Board board, MoveList &moves);
+  void filterLegalMoves(Board board, MoveList &moves);
   //testing
   u64 perftTest(Board &b, int depth);
   

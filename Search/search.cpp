@@ -9,6 +9,7 @@ Search::Search() {
   generateKingMoves();
   fillRookMoves();
   fillBishopMoves();
+
 }
 void Search::generateMoves(Board board, MoveList &moves) {
   friendlyBitboard = (board.flags & WHITE_TO_MOVE_BIT)
@@ -25,6 +26,31 @@ void Search::generateMoves(Board board, MoveList &moves) {
   addKnightMoves(board, moves);
   addKingMoves(board, moves);
   addCastlingMoves(board, moves);
+  if(!inFilter){
+    filterLegalMoves(board, moves);
+  }
+}
+
+void Search::filterLegalMoves(Board board, MoveList &moves){
+  inFilter = true;
+  for(int i = moves.end; i>=0; i--){
+    board.makeMove(moves.moves[i]);
+    byte kingSquare = popls1b(board.bitboards[color+KING]);
+    MoveList responses;
+    generateMoves(board, responses);
+    bool isLegal = true;
+    for(Move response : responses.moves){
+      if(response.to == kingSquare){
+        isLegal = false;
+        break;
+      }
+    }
+    board.unmakeMove(moves.moves[i]);
+    if(!isLegal){
+       moves.remove(i);
+    }
+  }
+  inFilter = false;
 }
 
 void Search::addSlidingMoves(Board board, MoveList &moves) {
