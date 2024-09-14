@@ -84,6 +84,33 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
     move.from = move.to - (9 * dir);
     moves.append(move);
   }
+
+  //En Passan
+  if(board.enPassanTarget != 255){
+    pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
+    pawnDestinations &=
+        (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[0] : ~fileMasks[7];
+    pawnDestinations &= (u64)1<<board.enPassanTarget;
+    while (pawnDestinations) {
+      Move move;
+      move.flags |= EN_PASSAN_BIT;
+      move.to = popls1b(pawnDestinations);
+      move.from = move.to - (9 * dir);
+      moves.append(move);
+    }
+
+    pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
+    pawnDestinations &=
+        (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[7] : ~fileMasks[0];
+    pawnDestinations &= (u64)1<<board.enPassanTarget;
+    while (pawnDestinations) {
+      Move move;
+      move.flags |= EN_PASSAN_BIT;
+      move.to = popls1b(pawnDestinations);
+      move.from = move.to - (7 * dir);
+      moves.append(move);
+    }
+  }
 }
 
 void Search::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){

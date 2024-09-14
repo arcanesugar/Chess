@@ -14,7 +14,7 @@ struct ConsoleState {
 };
 class ConsoleInterface{
   ConsoleState c;
-
+  Move last;
   byte squareNameToIndex(std::string squareName);
 
   void getNextInput();
@@ -22,7 +22,7 @@ class ConsoleInterface{
   void showHelpMenu();
   void displaySettings();
   void whosTurnIsIt(Board &board);
-  void makeMoveFromConsole(Board &board);
+  void makeMoveFromConsole(Board &board, Search &search);
   void makeRandomMove(Board &board, Search &search);
   void printLegalMoves(Board &board, Search &search);
 

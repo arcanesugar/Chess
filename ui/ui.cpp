@@ -6,7 +6,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if(c.printBoard) c.output = "\n" + debug::printBoard(c.settings,board) + c.output;
     getNextInput();
     std::string input = c.lastInput;
-    if (input == "mve") makeMoveFromConsole(board);
+    if (input == "mve") makeMoveFromConsole(board, search);
     if(input == "dsp")  displaySettings();
     if (input == "lgl") printLegalMoves(board, search);
     if (input == "rnd") makeRandomMove(board, search);
@@ -14,6 +14,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") search.searchForMagics();
     if(input == "tst") search.runMoveGenerationTest();
+    if(input == "und") board.unmakeMove(last);
     if(input == "q") quit = true;
 
     if(input == "ks"){
@@ -56,6 +57,7 @@ void ConsoleInterface::showHelpMenu(){
       + "  dsp - Display settings\n"
       + "  rnd - Random move\n"
       + "  sch - \"Search\" for magic numbers\n"
+      + "  und - Undo last move\n"
       + "  hlp/help - Show this list\n"
       + "  tst - Run move generation test\n"
       + "  q - Quit\n");
@@ -90,7 +92,7 @@ void ConsoleInterface::printLegalMoves(Board &board, Search &search){
   }
   c.printBoard = false;
 }
-void ConsoleInterface::makeMoveFromConsole(Board &board){
+void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   c.output = "from:\n";
   getNextInput();
   int from = squareNameToIndex(c.lastInput);
@@ -98,7 +100,26 @@ void ConsoleInterface::makeMoveFromConsole(Board &board){
   getNextInput();
   int to = squareNameToIndex(c.lastInput);
   Move move = {(byte)from, (byte)to};
-  board.makeMove(move);
+  MoveList legalMoves;
+  search.generateMoves(board, legalMoves);
+  bool isLegal = false;
+  for(int i  =0; i<legalMoves.end; i++){
+    if(move.from == legalMoves.moves[i].from && move.to == legalMoves.moves[i].to){
+      isLegal = true;
+      move = legalMoves.moves[i];//assigns proporties like flags
+    }
+  }
+  if(isLegal){
+    board.makeMove(move);
+    last = move;
+  }else{
+    c.output = "This move is not legal, continue? (y/N)\n";
+    getNextInput();
+    if(c.lastInput == "y"){
+      board.makeMove(move);
+      last = move;
+    }
+  }
   c.output = debug::printMove(c.settings, board, move);
   c.printBoard = false;
 }

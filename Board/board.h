@@ -2,12 +2,14 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 #include "Bitboards/bitboard.h"
 
 #define CAPTURE_BIT       0b00000001
 #define KINGSIDE_BIT      0b00000010
 #define QUEENSIDE_BIT     0b00000100
+#define EN_PASSAN_BIT     0b00001000
 
 #define EN_PASSAN 16
 
@@ -42,6 +44,7 @@ int getSquareIndex(int file, int rank);
 struct Board{
   u64 bitboards[14];
   u64 occupancy;//1 if a piece is present
+  byte enPassanTarget = 255;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
   

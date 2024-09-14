@@ -48,22 +48,13 @@ void Board::loadFromFEN(std::string fen){
 
   //set flags
   flags = (u64)0;
-  if(parsed[1] == "w"){
+  if(parsed[1] == "w")
     flags |= WHITE_TO_MOVE_BIT;
-  }
-
+  
   if(parsed[2].find("K") != parsed[2].npos) flags |= WHITE_KINGSIDE_BIT;
   if(parsed[2].find("Q") != parsed[2].npos) flags |= WHITE_QUEENSIDE_BIT;
   if(parsed[2].find("k") != parsed[2].npos) flags |= BLACK_KINGSIDE_BIT;
   if(parsed[2].find("q") != parsed[2].npos) flags |= BLACK_QUEENSIDE_BIT;
-  for(int i = 0; i<8; i++){
-    if((flags>>i)&1){
-      std::cout<<"1";
-    }else{
-      std::cout<<"0";
-    }
-  }
-  
 }
 
 void Board::makeMove(Move &m){
@@ -76,8 +67,8 @@ void Board::makeMove(Move &m){
     squares[3+offset] = EMPTY;
     squares[1+offset] = color+KING;
     //move rook
-    resetBit(bitboards[WHITE+KING],0+offset);
-    setBit(bitboards[WHITE+KING],2+offset);
+    resetBit(bitboards[color+ROOK],0+offset);
+    setBit(bitboards[color+ROOK],2+offset);
     squares[0+offset] = EMPTY;
     squares[2+offset] = color+ROOK;
 
@@ -93,8 +84,8 @@ void Board::makeMove(Move &m){
     squares[3+offset] = EMPTY;
     squares[5+offset] = color+KING;
     //move rook
-    resetBit(bitboards[WHITE+KING],7+offset);
-    setBit(bitboards[WHITE+KING],4+offset);
+    resetBit(bitboards[color+ROOK],7+offset);
+    setBit(bitboards[color+ROOK],4+offset);
     squares[7+offset] = EMPTY;
     squares[4+offset] = color+ROOK;
 
@@ -102,6 +93,7 @@ void Board::makeMove(Move &m){
     updateColorBitboards();
     return;
   }
+
   byte fromPiece = squares[m.from];
   byte toPiece = squares[m.to];
   if(toPiece!=EMPTY) m.flags |= CAPTURE_BIT;
@@ -111,6 +103,29 @@ void Board::makeMove(Move &m){
   resetBit(bitboards[fromPiece],m.from);
   resetBit(bitboards[toPiece],m.to);
   setBit(bitboards[fromPiece],m.to);
+  if(m.flags & EN_PASSAN_BIT){
+    if(flags&WHITE_TO_MOVE_BIT){
+      resetBit(bitboards[BLACK+PAWN],m.to-8);
+      squares[m.to-8] = EMPTY;
+    }else{
+      resetBit(bitboards[WHITE+PAWN],m.to+8);
+      squares[m.to+8] = EMPTY;
+    }
+  }
+  //Update en passan target
+  enPassanTarget = 255;
+  if(fromPiece == PAWN || fromPiece == BLACK+PAWN){
+    if(std::abs(m.to-m.from)>9){//double forward move
+      enPassanTarget = m.to;
+      if(flags&WHITE_TO_MOVE_BIT){
+        enPassanTarget -= 8;
+      }else{
+        enPassanTarget +=8;
+      }
+    }
+    std::cout<<std::to_string(enPassanTarget)<<"\n";
+  }
+  
   if(m.flags&CAPTURE_BIT){
     m.flags |= toPiece<<4;
   }
@@ -124,6 +139,16 @@ void Board::unmakeMove(Move &m){
   squares[m.from] = squares[m.to];
   setBit(bitboards[pieceOnToSquare],m.from);
   resetBit(bitboards[pieceOnToSquare],m.to);
+
+  if(m.flags & EN_PASSAN_BIT){
+    if(flags&WHITE_TO_MOVE_BIT){
+      setBit(bitboards[WHITE+PAWN],m.to+8);
+      squares[m.to+8] = WHITE+PAWN;
+    }else{
+      setBit(bitboards[BLACK+PAWN],m.to-8);
+      squares[m.to-8] = BLACK+PAWN;
+    }
+  }
   
   if(m.flags&CAPTURE_BIT){//undo captures
     setBit(bitboards[m.flags>>4],m.to);
