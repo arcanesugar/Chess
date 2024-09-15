@@ -107,11 +107,13 @@ void Board::makeMove(Move &m){
     if(flags&WHITE_TO_MOVE_BIT){
       resetBit(bitboards[BLACK+PAWN],m.to-8);
       squares[m.to-8] = EMPTY;
+      std::cout<<m.to-8<<"\n";
     }else{
       resetBit(bitboards[WHITE+PAWN],m.to+8);
       squares[m.to+8] = EMPTY;
     }
   }
+  m.enPassanTarget = enPassanTarget;
   //Update en passan target
   enPassanTarget = 255;
   if(fromPiece == PAWN || fromPiece == BLACK+PAWN){
@@ -155,6 +157,7 @@ void Board::unmakeMove(Move &m){
   }else{
     squares[m.to] = EMPTY;
   }
+  enPassanTarget = m.enPassanTarget;
   flags ^= WHITE_TO_MOVE_BIT;
   updateColorBitboards();
 }

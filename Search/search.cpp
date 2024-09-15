@@ -64,11 +64,12 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
   }
 }
 
-void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets){
+void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
   while (targets) {
     Move move;
     move.to = popls1b(targets);
     move.from = move.to + offset;
+    move.flags = flags;
     moves.append(move);
   }
 }
@@ -105,12 +106,12 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
     pawnDestinations &= ~leftFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    addMovesFromOffset(moves, -7*dir, pawnDestinations);
+    addMovesFromOffset(moves, -7*dir, pawnDestinations, EN_PASSAN_BIT);
 
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
     pawnDestinations &= ~rightFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    addMovesFromOffset(moves, -9*dir, pawnDestinations);
+    addMovesFromOffset(moves, -9*dir, pawnDestinations,EN_PASSAN_BIT);
   }
 }
 

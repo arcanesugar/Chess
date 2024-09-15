@@ -37,6 +37,7 @@ struct Move{
   byte from = 0;
   byte to = 0;
   byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
+  byte enPassanTarget = 255; //the en passan target before the move was made
 };
 
 int getSquareIndex(int file, int rank);
