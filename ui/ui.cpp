@@ -13,7 +13,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if (input == "trn") whosTurnIsIt(board);
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") search.searchForMagics();
-    if(input == "tst") search.runMoveGenerationTest();
+    if(input == "tst") search.runMoveGenerationTest(board);
     if(input == "und") board.unmakeMove(last);
     if(input == "q") quit = true;
 

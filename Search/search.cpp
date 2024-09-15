@@ -336,10 +336,11 @@ u64 Search::perftTest(Board &b, int depth, bool root){
     if(root){
       std::string fromStr = "";
       std::string toStr = "";
-      fromStr.push_back('a'+(moves.moves[i].from%8));
-      toStr.push_back('a'+(moves.moves[i].to%8));
+      fromStr.push_back('h'-(moves.moves[i].from%8));
+      toStr.push_back('h'-(moves.moves[i].to%8));
       fromStr.append(std::to_string((moves.moves[i].from/8)+1));
       toStr.append(std::to_string((moves.moves[i].to/8)+1));
+      
       std::cout<<"["<<fromStr<<"->"<<toStr<<"] : ";
       std::cout<<found<<std::endl;
     }
@@ -349,8 +350,7 @@ u64 Search::perftTest(Board &b, int depth, bool root){
   return count;
 }
 
-void Search::runMoveGenerationTest(){
-  Board board;
+void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
   //position 6
   u64 expected[8] = {
