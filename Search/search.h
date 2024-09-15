@@ -76,5 +76,5 @@ public:
   void saveMagics();
   void loadMagics();
   void runMoveGenerationTest(Board &board);
-
+  void runMoveGenerationSuite();
 };

@@ -14,6 +14,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") search.searchForMagics();
     if(input == "tst") search.runMoveGenerationTest(board);
+    if(input == "mgs") search.runMoveGenerationSuite();
     if(input == "und") board.unmakeMove(last);
     if(input == "q") quit = true;
 
@@ -58,7 +59,8 @@ void ConsoleInterface::showHelpMenu(){
       + "  sch - \"Search\" for magic numbers\n"
       + "  und - Undo last move\n"
       + "  hlp/help - Show this list\n"
-      + "  tst - Run move generation test\n"
+      + "  tst - Run move generation test on current position\n"
+      + "  mgs - Run move generation test suite\n"
       + "  q - Quit\n");
 }
 void ConsoleInterface::whosTurnIsIt(Board &board){

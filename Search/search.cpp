@@ -354,28 +354,50 @@ u64 Search::perftTest(Board &b, int depth, bool root){
 
 void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
-  //position 6
-  u64 expected[8] = {
-  0,
-  20,
-  400,
-  8902,
-  197281,
-  4865609,
-  119060324,
-  3195901860
-  };
-  board.loadFromFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
   debug::Settings settings;
   std::cout<<debug::printBoard(settings, board)<<"\n";
   for(int i = 1; i<6; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
+    std::cout<<"\x1b[0mFound: "<<found<<"\n\n";
+  }
+}
+
+void Search::runMoveGenerationSuite(){
+  Board board;
+  //https://www.chessprogramming.org/Perft_Results
+  std::string positions[5] = {
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ",
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "
+  };
+  u64 expected[5] = {
+    4865609,
+    4085603,
+    674624,
+    422333,
+    3894594
+  };
+  int depths[5] = {
+    5,
+    4,
+    5,
+    4,
+    4
+  };
+  debug::Settings settings;
+  for(int i = 0; i<5; i++){
+    board.loadFromFEN(positions[i]);
+    u64 found = perftTest(board,depths[i]);
+    std::cout<<"Depth: "<<depths[i];
+    std::cout<<" Found: ";
     if(found != expected[i]){
       std::cout<<"\x1b[31m";
     }else{
       std::cout<<"\x1b[32m";
     }
-    std::cout<<"Found: "<<found<<"/"<<expected[i]<<"\x1b[0m\n\n";
+    std::cout<<found<<"/"<<expected[i]<<"\x1b[0m"<<std::endl;
   }
 }
