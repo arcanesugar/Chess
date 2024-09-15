@@ -85,7 +85,9 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   
   // double forward moves
   pawnDestinations = board.bitboards[color + PAWN] & startRank;
-  pawnDestinations = signedShift(pawnDestinations, 16 * dir);
+  pawnDestinations = signedShift(pawnDestinations, 8 * dir);
+  pawnDestinations &=  ~board.occupancy;
+  pawnDestinations = signedShift(pawnDestinations, 8 * dir);
   pawnDestinations &=  ~board.occupancy;
   addMovesFromOffset(moves, -16*dir, pawnDestinations);
 
@@ -321,14 +323,25 @@ void Search::fillBishopMoves() {
 }
 
 
-u64 Search::perftTest(Board &b, int depth){
+u64 Search::perftTest(Board &b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
   generateMoves(b, moves);
   for(byte i = 0; i<moves.end;i++){
     b.makeMove(moves.moves[i]);
-    count += perftTest(b, depth-1);
+    u64 found = perftTest(b, depth-1,false);
+    if(root){
+      std::string fromStr = "";
+      std::string toStr = "";
+      fromStr.push_back('a'+(moves.moves[i].from%8));
+      toStr.push_back('a'+(moves.moves[i].to%8));
+      fromStr.append(std::to_string((moves.moves[i].from/8)+1));
+      toStr.append(std::to_string((moves.moves[i].to/8)+1));
+      std::cout<<"["<<fromStr<<"->"<<toStr<<"] : ";
+      std::cout<<found<<std::endl;
+    }
+    count += found;
     b.unmakeMove(moves.moves[i]);
   }
   return count;
@@ -350,12 +363,13 @@ void Search::runMoveGenerationTest(){
   };
   board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   for(int i = 1; i<8; i++){
+    std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
     if(found != expected[i]){
       std::cout<<"\x1b[31m";
     }else{
       std::cout<<"\x1b[32m";
     }
-    std::cout<<"Depth: "<<i<<" Found: "<<found<<"/"<<expected[i]<<"\n";
+    std::cout<<"Found: "<<found<<"/"<<expected[i]<<"\n\n";
   }
 }

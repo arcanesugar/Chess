@@ -65,7 +65,7 @@ class Search{
   void addCastlingMoves(Board board, MoveList &moves);
   void filterLegalMoves(Board board, MoveList &moves);
   //testing
-  u64 perftTest(Board &b, int depth);
+  u64 perftTest(Board &b, int depth, bool root = true);
   
 public:
   Search();
