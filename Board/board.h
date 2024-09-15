@@ -38,6 +38,7 @@ struct Move{
   byte to = 0;
   byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
   byte enPassanTarget = 255; //the en passan target before the move was made
+  byte boardFlags = 0;
 };
 
 int getSquareIndex(int file, int rank);
@@ -48,6 +49,7 @@ struct Board{
   byte enPassanTarget = 255;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
+  u64 castlingMasks[4] = {1792U,57344U,1970324836974592U,63050394783186944U};
   
   void makeMove(Move &m);
   void unmakeMove(Move &m);

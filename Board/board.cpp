@@ -50,7 +50,7 @@ void Board::loadFromFEN(std::string fen){
   flags = (u64)0;
   if(parsed[1] == "w")
     flags |= WHITE_TO_MOVE_BIT;
-  
+
   if(parsed[2].find("K") != parsed[2].npos) flags |= WHITE_KINGSIDE_BIT;
   if(parsed[2].find("Q") != parsed[2].npos) flags |= WHITE_QUEENSIDE_BIT;
   if(parsed[2].find("k") != parsed[2].npos) flags |= BLACK_KINGSIDE_BIT;
@@ -59,6 +59,7 @@ void Board::loadFromFEN(std::string fen){
 
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
+  m.boardFlags = flags;
   if(m.flags&KINGSIDE_BIT){
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     //move king
@@ -103,11 +104,44 @@ void Board::makeMove(Move &m){
   resetBit(bitboards[fromPiece],m.from);
   resetBit(bitboards[toPiece],m.to);
   setBit(bitboards[fromPiece],m.to);
+  //update castling rights
+  if(m.from == 0 || m.to == 0){
+    flags &= ~WHITE_KINGSIDE_BIT;
+  }
+  if(m.from == 7 || m.to == 7){
+    flags &= ~WHITE_QUEENSIDE_BIT;
+  }
+
+  if(m.from == 56|| m.to == 56){
+    flags &= ~BLACK_KINGSIDE_BIT;
+  }
+  if(m.from == 63 || m.to == 63){
+    flags &= ~BLACK_QUEENSIDE_BIT;
+  }
+  if(fromPiece == color+KING){
+    if(flags&WHITE_TO_MOVE_BIT){
+      flags &= ~(WHITE_QUEENSIDE_BIT | WHITE_KINGSIDE_BIT);
+    }else{
+      flags &= ~(BLACK_QUEENSIDE_BIT | BLACK_KINGSIDE_BIT);
+    }
+  }
+  if((u64(1)<<fromPiece) & castlingMasks[0]){
+    flags &= ~WHITE_KINGSIDE_BIT;
+  }
+  if((u64(1)<<fromPiece) & castlingMasks[1]){
+    flags &= ~WHITE_QUEENSIDE_BIT;
+  }
+  if((u64(1)<<fromPiece) & castlingMasks[2]){
+    flags &= ~BLACK_KINGSIDE_BIT;
+  }
+  if((u64(1)<<fromPiece) & castlingMasks[3]){
+    flags &= ~BLACK_QUEENSIDE_BIT;
+  }
+  
   if(m.flags & EN_PASSAN_BIT){
     if(flags&WHITE_TO_MOVE_BIT){
       resetBit(bitboards[BLACK+PAWN],m.to-8);
       squares[m.to-8] = EMPTY;
-      std::cout<<m.to-8<<"\n";
     }else{
       resetBit(bitboards[WHITE+PAWN],m.to+8);
       squares[m.to+8] = EMPTY;
@@ -158,6 +192,6 @@ void Board::unmakeMove(Move &m){
     squares[m.to] = EMPTY;
   }
   enPassanTarget = m.enPassanTarget;
-  flags ^= WHITE_TO_MOVE_BIT;
+  flags  = m.boardFlags;
   updateColorBitboards();
 }
