@@ -37,12 +37,14 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
   for(int i = moves.end-1; i>=0; i--){
     board.makeMove(moves.moves[i]);
     byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
-
     MoveList responses;
     generateMoves(board, responses);
     bool isLegal = true;
-    for(Move response : responses.moves){
-      if(response.to == kingSquare){
+    for(int j = 0; j < responses.end; j++){
+      if(responses.moves[j].flags & (QUEENSIDE_BIT | KINGSIDE_BIT)){
+        continue;
+      }
+      if(responses.moves[j].to == kingSquare){
         isLegal = false;
         debug::Settings settings;
         break;
@@ -356,7 +358,7 @@ void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
   debug::Settings settings;
   std::cout<<debug::printBoard(settings, board)<<"\n";
-  for(int i = 1; i<6; i++){
+  for(int i = 1; i<5; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
     std::cout<<"\x1b[0mFound: "<<found<<"\n\n";
@@ -390,7 +392,7 @@ void Search::runMoveGenerationSuite(){
   debug::Settings settings;
   for(int i = 0; i<5; i++){
     board.loadFromFEN(positions[i]);
-    u64 found = perftTest(board,depths[i]);
+    u64 found = perftTest(board,depths[i],false);
     std::cout<<"Depth: "<<depths[i];
     std::cout<<" Found: ";
     if(found != expected[i]){

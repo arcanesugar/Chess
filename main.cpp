@@ -11,7 +11,7 @@ int main() {
   std::cout<<"[creating board...]\n";
   Board board;
   //board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-  board.loadFromFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+  board.loadFromFEN("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 ");
   for(u64 bb : board.castlingMasks){
     std::cout<<debug::printBitboard(bb);
   }
