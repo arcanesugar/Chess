@@ -12,7 +12,6 @@ struct MoveList{
   byte end = 0;
   inline void append(Move const &m){moves[end] = m; end++;}
   void remove(byte index){
-    // delete 3 (index 2)
     for (byte i = index; i < end; ++i)
         moves[i] = moves[i + 1]; // copy next element left
     end-=1;

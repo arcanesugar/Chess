@@ -78,6 +78,7 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
   board.makeMove(move);
+  last = move;
   c.output = debug::printMove(c.settings, board, move);
   c.printBoard = false;
 }

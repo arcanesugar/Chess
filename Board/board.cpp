@@ -19,6 +19,9 @@ void Board::loadFromFEN(std::string fen){
   for(u64 &bb : bitboards){
     bb = (u64)0;
   }
+  for(byte &b : squares){
+    b = EMPTY;
+  }
   int squareIndex = 63;
   for(char c: parsed[0]){
     if(c == '/') continue;

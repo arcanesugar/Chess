@@ -33,9 +33,10 @@ void Search::generateMoves(Board board, MoveList &moves) {
 
 void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = true;
-  byte kingSquare = popls1b(board.bitboards[color+KING]);
+  byte friendlyColor = color;
   for(int i = moves.end; i>=0; i--){
     board.makeMove(moves.moves[i]);
+    byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
     MoveList responses;
     generateMoves(board, responses);
     bool isLegal = true;
@@ -362,8 +363,10 @@ void Search::runMoveGenerationTest(){
   119060324,
   3195901860
   };
-  board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-  for(int i = 1; i<8; i++){
+  board.loadFromFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+  debug::Settings settings;
+  std::cout<<debug::printBoard(settings, board)<<"\n";
+  for(int i = 1; i<6; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
     if(found != expected[i]){
@@ -371,6 +374,6 @@ void Search::runMoveGenerationTest(){
     }else{
       std::cout<<"\x1b[32m";
     }
-    std::cout<<"Found: "<<found<<"/"<<expected[i]<<"\n\n";
+    std::cout<<"Found: "<<found<<"/"<<expected[i]<<"\x1b[0m\n\n";
   }
 }
