@@ -33,9 +33,9 @@ void Search::generateMoves(Board board, MoveList &moves) {
 
 void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = true;
+  byte kingSquare = popls1b(board.bitboards[color+KING]);
   for(int i = moves.end; i>=0; i--){
     board.makeMove(moves.moves[i]);
-    byte kingSquare = popls1b(board.bitboards[color+KING]);
     MoveList responses;
     generateMoves(board, responses);
     bool isLegal = true;
