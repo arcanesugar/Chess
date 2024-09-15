@@ -16,17 +16,20 @@ void ConsoleInterface::run(Board &board, Search &search){
     if(input == "tst") search.runMoveGenerationTest(board);
     if(input == "mgs") search.runMoveGenerationSuite();
     if(input == "und") board.unmakeMove(last);
+    if(input == "dbg") showDebugView(board);
     if(input == "q") quit = true;
 
     if(input == "ks"){
       Move m;
       m.flags |= KINGSIDE_BIT;
       board.makeMove(m);
+      last = m;
     }
     if(input == "qs"){
       Move m;
       m.flags |= QUEENSIDE_BIT;
       board.makeMove(m);
+      last = m;
     }
   }
 }
@@ -55,6 +58,7 @@ void ConsoleInterface::showHelpMenu(){
       + "  qs - Castle Queenside\n"
       + "  lgl - Show legal moves\n"
       + "  dsp - Display settings\n"
+      + "  dbg - Debug View\n"
       + "  rnd - Random move\n"
       + "  sch - \"Search\" for magic numbers\n"
       + "  und - Undo last move\n"
@@ -172,4 +176,20 @@ void ConsoleInterface::displaySettings(){
       break;
     }
   }
+}
+
+void ConsoleInterface::showDebugView(Board &board){
+  c.output.append(debug::printBoard(c.settings,board));
+  for(int i = 0; i<14; i++){
+    c.output.append(debug::printBitboard(board.bitboards[i]));
+    c.output.append("\n");
+  }
+  for(int i = 7; i>=0; i--){
+    if(board.flags>>i&1){
+      c.output.append("1");
+    }else{
+      c.output.append("0");
+    }
+  }
+  c.output.append("\n");
 }

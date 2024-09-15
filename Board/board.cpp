@@ -172,6 +172,45 @@ void Board::makeMove(Move &m){
 }
 
 void Board::unmakeMove(Move &m){
+  int color = (flags & WHITE_TO_MOVE_BIT) ? BLACK : WHITE;
+  if(m.flags&KINGSIDE_BIT){
+    flags ^= WHITE_TO_MOVE_BIT;
+    int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
+    //move king
+    setBit(bitboards[color+KING],3+offset);
+    resetBit(bitboards[color+KING],1+offset);
+    squares[1+offset] = EMPTY;
+    squares[3+offset] = color+KING;
+    //move rook
+    setBit(bitboards[color+ROOK],0+offset);
+    resetBit(bitboards[color+ROOK],2+offset);
+    squares[2+offset] = EMPTY;
+    squares[0+offset] = color+ROOK;
+
+    enPassanTarget = m.enPassanTarget;
+    flags  = m.boardFlags;
+    updateColorBitboards();
+    return;
+  }
+  if(m.flags&QUEENSIDE_BIT){
+    flags ^= WHITE_TO_MOVE_BIT;
+    int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
+    //move king
+    setBit(bitboards[color+KING],3+offset);
+    resetBit(bitboards[color+KING],5+offset);
+    squares[5+offset] = EMPTY;
+    squares[3+offset] = color+KING;
+    //move rook
+    setBit(bitboards[color+ROOK],7+offset);
+    resetBit(bitboards[color+ROOK],4+offset);
+    squares[4+offset] = EMPTY;
+    squares[7+offset] = color+ROOK;
+
+    enPassanTarget = m.enPassanTarget;
+    flags  = m.boardFlags;
+    updateColorBitboards();
+    return;
+  }
   byte pieceOnToSquare = squares[m.to];
   //move piece back
   squares[m.from] = squares[m.to];

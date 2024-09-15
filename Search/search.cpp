@@ -357,11 +357,10 @@ u64 Search::perftTest(Board &b, int depth, bool root){
 void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
   debug::Settings settings;
-  std::cout<<debug::printBoard(settings, board)<<"\n";
   for(int i = 1; i<5; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
-    std::cout<<"\x1b[0mFound: "<<found<<"\n\n";
+    std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;
   }
 }
 

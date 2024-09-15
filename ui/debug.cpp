@@ -39,7 +39,9 @@ std::string debug::printBoard(Settings settings, Board const &board){
       }else{
         str.append(settings.darkColor);
       }
+      
       std::string piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
+      //std::string piece = std::to_string(board.squares[getSquareIndex(file,rank)]);
       str.append(piece + " \x1b[0m");
     }
     str.append("\x1b[0m" + std::to_string(file+1)+ "\n");

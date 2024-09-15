@@ -25,7 +25,7 @@ class ConsoleInterface{
   void makeMoveFromConsole(Board &board, Search &search);
   void makeRandomMove(Board &board, Search &search);
   void printLegalMoves(Board &board, Search &search);
-
+  void showDebugView(Board &board);
 public:
   void run(Board &board, Search &search);//run the console interface
 };
