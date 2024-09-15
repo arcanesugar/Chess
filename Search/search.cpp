@@ -34,15 +34,17 @@ void Search::generateMoves(Board board, MoveList &moves) {
 void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = true;
   byte friendlyColor = color;
-  for(int i = moves.end; i>=0; i--){
+  for(int i = moves.end-1; i>=0; i--){
     board.makeMove(moves.moves[i]);
     byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
+
     MoveList responses;
     generateMoves(board, responses);
     bool isLegal = true;
     for(Move response : responses.moves){
       if(response.to == kingSquare){
         isLegal = false;
+        debug::Settings settings;
         break;
       }
     }
