@@ -64,78 +64,51 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
   }
 }
 
+void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets){
+  while (targets) {
+    Move move;
+    move.to = popls1b(targets);
+    move.from = move.to + offset;
+    moves.append(move);
+  }
+}
+
 void Search::addPawnMoves(Board board, MoveList &moves) {
   int dir = board.flags & WHITE_TO_MOVE_BIT ? 1 : -1;
+  u64 leftFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[7] : fileMasks[0];
+  u64 rightFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[0] : fileMasks[7];
+  u64 startRank = (board.flags & WHITE_TO_MOVE_BIT ? rankMasks[1] : rankMasks[6]);
   // forward pawn moves
   u64 pawnDestinations = signedShift(board.bitboards[color + PAWN], 8 * dir);
   pawnDestinations &= ~board.occupancy;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (8 * dir);
-    moves.append(move);
-  }
+  addMovesFromOffset(moves, -8*dir, pawnDestinations);
+  
   // double forward moves
-  pawnDestinations =
-      board.bitboards[color + PAWN] &
-      (board.flags & WHITE_TO_MOVE_BIT ? rankMasks[1] : rankMasks[6]);
+  pawnDestinations = board.bitboards[color + PAWN] & startRank;
   pawnDestinations = signedShift(pawnDestinations, 16 * dir);
   pawnDestinations &=  ~board.occupancy;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (16 * dir);
-    moves.append(move);
-  }
+  addMovesFromOffset(moves, -16*dir, pawnDestinations);
 
   // pawn captures
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
-  pawnDestinations &=
-      (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[7] : ~fileMasks[0];
-  pawnDestinations &= enemyBitboard;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (7 * dir);
-    moves.append(move);
-  }
+  pawnDestinations &= ~leftFileMask & enemyBitboard;
+  addMovesFromOffset(moves, -7*dir, pawnDestinations);
 
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
-  pawnDestinations &=
-      (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[0] : ~fileMasks[7];
-  pawnDestinations &= enemyBitboard;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (9 * dir);
-    moves.append(move);
-  }
+  pawnDestinations &= ~rightFileMask & enemyBitboard;
+  addMovesFromOffset(moves, -9*dir, pawnDestinations);
 
   //En Passan
   if(board.enPassanTarget != 255){
-    pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
-    pawnDestinations &=
-        (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[0] : ~fileMasks[7];
-    pawnDestinations &= (u64)1<<board.enPassanTarget;
-    while (pawnDestinations) {
-      Move move;
-      move.flags |= EN_PASSAN_BIT;
-      move.to = popls1b(pawnDestinations);
-      move.from = move.to - (9 * dir);
-      moves.append(move);
-    }
-
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
-    pawnDestinations &=
-        (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[7] : ~fileMasks[0];
+    pawnDestinations &= ~leftFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    while (pawnDestinations) {
-      Move move;
-      move.flags |= EN_PASSAN_BIT;
-      move.to = popls1b(pawnDestinations);
-      move.from = move.to - (7 * dir);
-      moves.append(move);
-    }
+    addMovesFromOffset(moves, -7*dir, pawnDestinations);
+
+    pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
+    pawnDestinations &= ~rightFileMask;
+    pawnDestinations &= (u64)1<<board.enPassanTarget;
+    addMovesFromOffset(moves, -9*dir, pawnDestinations);
   }
 }
 
@@ -153,6 +126,7 @@ void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
   u64 destinations = rookMoves[square][hashed] & (~friendlyBitboard);
   addMovesToSquares(moves, square, destinations);
 };
+
 void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & bishopMasks[square];
   u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];

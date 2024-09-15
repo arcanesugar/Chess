@@ -55,6 +55,7 @@ class Search{
   u64 enemyBitboard;
   int color;//the color of the player whos turn it is
   void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares);
+  void addMovesFromOffset(MoveList &moves, int offset, u64 targets);
   void addDiagonalMoves(Board board, int square, MoveList &moves);
   void addHorizontalMoves(Board board, int square, MoveList &moves);
   void addPawnMoves(Board board, MoveList &moves);
