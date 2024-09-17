@@ -107,20 +107,7 @@ void Board::makeMove(Move &m){
   resetBit(bitboards[fromPiece],m.from);
   resetBit(bitboards[toPiece],m.to);
   setBit(bitboards[fromPiece],m.to);
-  //update castling rights
-  if(m.from == 0 || m.to == 0){
-    flags &= ~WHITE_KINGSIDE_BIT;
-  }
-  if(m.from == 7 || m.to == 7){
-    flags &= ~WHITE_QUEENSIDE_BIT;
-  }
 
-  if(m.from == 56|| m.to == 56){
-    flags &= ~BLACK_KINGSIDE_BIT;
-  }
-  if(m.from == 63 || m.to == 63){
-    flags &= ~BLACK_QUEENSIDE_BIT;
-  }
   if(fromPiece == color+KING){
     if(flags&WHITE_TO_MOVE_BIT){
       flags &= ~(WHITE_QUEENSIDE_BIT | WHITE_KINGSIDE_BIT);
@@ -128,17 +115,15 @@ void Board::makeMove(Move &m){
       flags &= ~(BLACK_QUEENSIDE_BIT | BLACK_KINGSIDE_BIT);
     }
   }
-  if((u64(1)<<fromPiece) & castlingMasks[0]){
-    flags &= ~WHITE_KINGSIDE_BIT;
-  }
-  if((u64(1)<<fromPiece) & castlingMasks[1]){
-    flags &= ~WHITE_QUEENSIDE_BIT;
-  }
-  if((u64(1)<<fromPiece) & castlingMasks[2]){
-    flags &= ~BLACK_KINGSIDE_BIT;
-  }
-  if((u64(1)<<fromPiece) & castlingMasks[3]){
-    flags &= ~BLACK_QUEENSIDE_BIT;
+  //update castling rights
+  byte rookSquares[4] = {0,7,56,63};
+  for(int i = 0; i<4; i++){
+    if(m.from == rookSquares[i] || m.to == rookSquares[i]){
+      flags &= ~(WHITE_KINGSIDE_BIT<<i);
+    }
+    if((u64(1)<<fromPiece) & castlingMasks[i]){
+      flags &= ~(WHITE_KINGSIDE_BIT<<i);
+    }
   }
   
   if(m.flags & EN_PASSAN_BIT){
