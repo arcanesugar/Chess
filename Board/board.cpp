@@ -62,7 +62,7 @@ void Board::loadFromFEN(std::string fen){
 
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  m.boardFlags = flags;
+  m.setBoardFlags(flags);
   if(m.flags&KINGSIDE_BIT){
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
@@ -114,7 +114,7 @@ void Board::makeMove(Move &m){
   resetBit(bitboards[fromPiece],m.from);
   resetBit(bitboards[toPiece],m.to);
   setBit(bitboards[fromPiece],m.to);
-  m.flags |= toPiece<<4;//store captured piece (if there is no piece it will just be empty)
+  m.setCapturedPiece(toPiece);//store captured piece (if there is no piece it will just be empty)
   
   if(fromPiece == color+KING){
     if(flags&WHITE_TO_MOVE_BIT){
@@ -145,7 +145,7 @@ void Board::makeMove(Move &m){
       squares[m.to+8] = EMPTY;
     }
   }
-  m.enPassanTarget = enPassanTarget;
+  m.setEnPassanTarget(enPassanTarget);
   
   //Update en passan target
   enPassanTarget = EN_PASSAN_NULL;
@@ -211,7 +211,7 @@ void Board::unmakeMove(Move &m){
   setBit(bitboards[pieceOnToSquare],m.from);
   resetBit(bitboards[pieceOnToSquare],m.to);
   setBit(bitboards[m.flags>>4],m.to);
-  squares[m.to] = m.flags>>4;
+  squares[m.to] = m.getCapturedPiece();
 
   //undo en passan
   if(m.flags & EN_PASSAN_BIT){
@@ -225,7 +225,7 @@ void Board::unmakeMove(Move &m){
   }
 
   //restore board state
-  enPassanTarget = m.enPassanTarget;
-  flags  = m.boardFlags;
+  enPassanTarget = m.getEnPassanTarget();
+  flags  = m.getBoardFlags();
   updateColorBitboards();
 }

@@ -20,6 +20,7 @@
 
 #define WHITE_CASTLING_RIGHTS 0b00000110
 #define BLACK_CASTLING_RIGHTS 0b00011000
+
 enum piece{
   PAWN = 0,
   BISHOP,
@@ -37,15 +38,23 @@ enum piece{
 struct Move{
   byte from = 0;
   byte to = 0;
-public:
-  byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
-  byte enPassanTarget = 255; //the en passan target before the move was made
+  byte enPassanTarget = EN_PASSAN_NULL; //the en passan target before the move was made
   byte boardFlags = 0;
+  byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
+public:
+void setTo(byte to) { this->to = to; }
+void setFrom(byte from) { this->from = from; }
+void setBoardFlags(byte flags){boardFlags = flags;}
+void setEnPassanTarget(byte target){ enPassanTarget = target;}
+void setCapturedPiece(byte piece){flags |= piece<<4;}
 
-void setTo(byte to) { this->to = to; };
-void setFrom(byte from) { this->from = from; };
-byte getTo() { return to;};
-byte getFrom() { return from;};
+
+byte getTo() { return to;}
+byte getFrom() { return from;}
+byte getEnPassanTarget(){ return enPassanTarget;}
+byte getBoardFlags(){return boardFlags;}
+byte getCapturedPiece(){return flags>>4;}
+
 };
 
 int getSquareIndex(int file, int rank);

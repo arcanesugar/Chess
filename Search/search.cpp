@@ -392,6 +392,7 @@ void Search::runMoveGenerationSuite(){
     4
   };
   debug::Settings settings;
+  auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<6; i++){
     board.loadFromFEN(positions[i]);
     u64 found = perftTest(board,depths[i],false);
@@ -404,4 +405,7 @@ void Search::runMoveGenerationSuite(){
     }
     std::cout<<found<<"/"<<expected[i]<<"\x1b[0m"<<std::endl;
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = end-start;
+  std::cout<<"Finished in "<<(float)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f<<"s"<<std::endl;
 }
