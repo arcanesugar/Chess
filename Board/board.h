@@ -21,6 +21,10 @@
 #define WHITE_CASTLING_RIGHTS 0b00000110
 #define BLACK_CASTLING_RIGHTS 0b00011000
 
+
+//masks
+#define TO_PIECE_MASK   0b1111110000000000
+#define FROM_PIECE_MASK 0b0000001111110000
 enum piece{
   PAWN = 0,
   BISHOP,
@@ -36,24 +40,26 @@ enum piece{
 #define WHITE_PIECES 12
 #define BLACK_PIECES 13
 struct Move{
-  byte from = 0;
-  byte to = 0;
+private:
+  //unsigned short move = 0; //ttttttffffffrrcc  t = to f = from r = promotion c = castling
+byte to = 0;
+byte from = 0;
   byte enPassanTarget = EN_PASSAN_NULL; //the en passan target before the move was made
   byte boardFlags = 0;
-  byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
+
 public:
-void setTo(byte to) { this->to = to; }
-void setFrom(byte from) { this->from = from; }
-void setBoardFlags(byte flags){boardFlags = flags;}
-void setEnPassanTarget(byte target){ enPassanTarget = target;}
-void setCapturedPiece(byte piece){flags |= piece<<4;}
+byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
+inline void setTo(byte to) { /*move |= to<<10;*/ this->to = to;}
+inline void setFrom(byte from) { /*move |= from<<4;*/ this->from = from;}
+inline void setBoardFlags(byte flags){boardFlags = flags;}
+inline void setEnPassanTarget(byte target){ enPassanTarget = target;}
+inline void setCapturedPiece(byte piece){flags |= piece<<4;}
 
-
-byte getTo() { return to;}
-byte getFrom() { return from;}
-byte getEnPassanTarget(){ return enPassanTarget;}
-byte getBoardFlags(){return boardFlags;}
-byte getCapturedPiece(){return flags>>4;}
+inline byte getTo() {return to; /*return (move & TO_PIECE_MASK)>>10;*/}
+inline byte getFrom() {return from; /*return (move & FROM_PIECE_MASK)>>4;*/}
+inline byte getEnPassanTarget(){ return enPassanTarget;}
+inline byte getBoardFlags(){return boardFlags;}
+inline byte getCapturedPiece(){return flags>>4;}
 
 };
 

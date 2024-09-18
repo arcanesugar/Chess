@@ -44,7 +44,7 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
       if(responses.moves[j].flags & (QUEENSIDE_BIT | KINGSIDE_BIT)){
         continue;
       }
-      if(responses.moves[j].to == kingSquare){
+      if(responses.moves[j].getTo() == kingSquare){
         isLegal = false;
         debug::Settings settings;
         break;
@@ -73,7 +73,7 @@ void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte f
   while (targets) {
     Move move;
     move.setTo(popls1b(targets));
-    move.setFrom(move.to + offset);
+    move.setFrom(move.getTo() + offset);
     move.flags = flags;
     moves.append(move);
   }
@@ -340,10 +340,10 @@ u64 Search::perftTest(Board &b, int depth, bool root){
     if(root){
       std::string fromStr = "";
       std::string toStr = "";
-      fromStr.push_back('h'-(moves.moves[i].from%8));
-      toStr.push_back('h'-(moves.moves[i].to%8));
-      fromStr.append(std::to_string((moves.moves[i].from/8)+1));
-      toStr.append(std::to_string((moves.moves[i].to/8)+1));
+      fromStr.push_back('h'-(moves.moves[i].getFrom()%8));
+      toStr.push_back('h'-(moves.moves[i].getTo()%8));
+      fromStr.append(std::to_string((moves.moves[i].getFrom()/8)+1));
+      toStr.append(std::to_string((moves.moves[i].getTo()/8)+1));
       
       std::cout<<"["<<fromStr<<"->"<<toStr<<"] : ";
       std::cout<<found<<std::endl;
