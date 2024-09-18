@@ -107,7 +107,7 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   addMovesFromOffset(moves, -9*dir, pawnDestinations);
 
   //En Passan
-  if(board.enPassanTarget != 255){
+  if(board.enPassanTarget != EN_PASSAN_NULL){
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
     pawnDestinations &= ~leftFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
@@ -152,7 +152,7 @@ void Search::addKnightMoves(Board board, MoveList &moves) {
 }
 
 void Search::addKingMoves(Board board, MoveList &moves) {
-  int square = popls1b(board.bitboards[color + KING]);
+  int square = bitScanForward(board.bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
   addMovesToSquares(moves, square, targets);
 }
