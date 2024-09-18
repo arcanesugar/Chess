@@ -72,8 +72,8 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
 void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
   while (targets) {
     Move move;
-    move.to = popls1b(targets);
-    move.from = move.to + offset;
+    move.setTo(popls1b(targets));
+    move.setFrom(move.to + offset);
     move.flags = flags;
     moves.append(move);
   }
@@ -123,8 +123,8 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
 void Search::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
   while (squares) {
     Move move;
-    move.to = popls1b(squares);
-    move.from = fromSquare;
+    move.setTo(popls1b(squares));
+    move.setFrom(fromSquare);
     moves.append(move);
   }
 }

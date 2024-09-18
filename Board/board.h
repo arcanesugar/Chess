@@ -37,9 +37,15 @@ enum piece{
 struct Move{
   byte from = 0;
   byte to = 0;
+public:
   byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
   byte enPassanTarget = 255; //the en passan target before the move was made
   byte boardFlags = 0;
+
+void setTo(byte to) { this->to = to; };
+void setFrom(byte from) { this->from = from; };
+byte getTo() { return to;};
+byte getFrom() { return from;};
 };
 
 int getSquareIndex(int file, int rank);
