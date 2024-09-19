@@ -21,13 +21,13 @@ void ConsoleInterface::run(Board &board, Search &search){
 
     if(input == "ks"){
       Move m;
-      m.flags |= KINGSIDE_BIT;
+      m.setSpecialMoveData(CASTLE_KINGSIDE);
       board.makeMove(m);
       last = m;
     }
     if(input == "qs"){
       Move m;
-      m.flags |= QUEENSIDE_BIT;
+      m.setSpecialMoveData(CASTLE_QUEENSIDE);
       board.makeMove(m);
       last = m;
     }
@@ -104,12 +104,14 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   c.output = "to:\n";
   getNextInput();
   int to = squareNameToIndex(c.lastInput);
-  Move move = {(byte)from, (byte)to};
+  Move move;
+  move.setFrom(from);
+  move.setTo(to);
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
   bool isLegal = false;
   for(int i  =0; i<legalMoves.end; i++){
-    if(move.from == legalMoves.moves[i].from && move.to == legalMoves.moves[i].to){
+    if(move.getFrom() == legalMoves.moves[i].getFrom() && move.getTo() == legalMoves.moves[i].getTo()){
       isLegal = true;
       move = legalMoves.moves[i];//assigns proporties like flags
     }

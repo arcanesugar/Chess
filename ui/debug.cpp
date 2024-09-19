@@ -51,22 +51,22 @@ std::string debug::printBoard(Settings settings, Board const &board){
 };
 
 std::string debug::printMove(Settings settings, Board const board, Move m){
-  if(m.flags&KINGSIDE_BIT){
-    m.from = 59;
-    m.to = 57;
+  if(m.isKingside()){
+    m.setFrom(59);
+    m.setTo(57);
   }
-  if(m.flags&QUEENSIDE_BIT){
-    m.from = 59;
-    m.to = 61;
+  if(m.isQueenside()){
+    m.setFrom(59);
+    m.setTo(61);
   }
-  if(m.flags & WHITE_TO_MOVE_BIT){
-    if(m.flags&KINGSIDE_BIT){
-      m.from = 3;
-      m.to = 1;
+  if(board.flags & WHITE_TO_MOVE_BIT){
+    if(m.isKingside()){
+      m.setFrom(3);
+      m.setTo(1);
     }
-    if(m.flags&QUEENSIDE_BIT){
-      m.from = 3;
-      m.to = 5;
+    if(m.isQueenside()){
+      m.setFrom(3);
+      m.setTo(5);
     }
   }
 
@@ -80,7 +80,7 @@ std::string debug::printMove(Settings settings, Board const board, Move m){
       }else{
         str.append(settings.darkColor);
       }
-      if(m.from == getSquareIndex(file,rank) || m.to == getSquareIndex(file,rank)){
+      if(m.getFrom() == getSquareIndex(file,rank) || m.getTo() == getSquareIndex(file,rank)){
         str.append("\x1b[45m");
       }
       std::string piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];

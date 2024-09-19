@@ -41,10 +41,10 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
     generateMoves(board, responses);
     bool isLegal = true;
     for(int j = 0; j < responses.end; j++){
-      if(responses.moves[j].flags & (QUEENSIDE_BIT | KINGSIDE_BIT)){
+      if(responses.moves[j].isKingside() || responses.moves[j].isQueenside()){
         continue;
       }
-      if(responses.moves[j].to == kingSquare){
+      if(responses.moves[j].getTo() == kingSquare){
         isLegal = false;
         debug::Settings settings;
         break;
@@ -72,9 +72,10 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
 void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
   while (targets) {
     Move move;
-    move.to = popls1b(targets);
-    move.from = move.to + offset;
-    move.flags = flags;
+    byte to = popls1b(targets);
+    move.setTo(to);
+    move.setFrom(to + offset);
+    move.setSpecialMoveData(flags);
     moves.append(move);
   }
 }
@@ -111,20 +112,20 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
     pawnDestinations &= ~leftFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    addMovesFromOffset(moves, -7*dir, pawnDestinations, EN_PASSAN_BIT);
+    addMovesFromOffset(moves, -7*dir, pawnDestinations, EN_PASSAN);
 
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
     pawnDestinations &= ~rightFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    addMovesFromOffset(moves, -9*dir, pawnDestinations,EN_PASSAN_BIT);
+    addMovesFromOffset(moves, -9*dir, pawnDestinations,EN_PASSAN);
   }
 }
 
 void Search::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
   while (squares) {
     Move move;
-    move.to = popls1b(squares);
-    move.from = fromSquare;
+    move.setTo(popls1b(squares));
+    move.setFrom(fromSquare);
     moves.append(move);
   }
 }
@@ -165,14 +166,14 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
     if(kingside){
       if(board.squares[2] == EMPTY && board.squares[1] == EMPTY){
         Move move;
-        move.flags |= KINGSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_KINGSIDE);
         moves.append(move);
       }
     }
     if(queenside){
       if(board.squares[4] == EMPTY && board.squares[5] == EMPTY && board.squares[6] == EMPTY){
         Move move;
-        move.flags |= QUEENSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_QUEENSIDE);
         moves.append(move);
       }
     }
@@ -183,14 +184,14 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
     if(kingside){
       if(board.squares[58] == EMPTY && board.squares[57] == EMPTY){
         Move move;
-        move.flags |= KINGSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_KINGSIDE);
         moves.append(move);
       }
     }
     if(queenside){
       if(board.squares[60] == EMPTY && board.squares[61] == EMPTY && board.squares[62] == EMPTY){
         Move move;
-        move.flags |= QUEENSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_QUEENSIDE);
         moves.append(move);
       }
     }
@@ -340,10 +341,10 @@ u64 Search::perftTest(Board &b, int depth, bool root){
     if(root){
       std::string fromStr = "";
       std::string toStr = "";
-      fromStr.push_back('h'-(moves.moves[i].from%8));
-      toStr.push_back('h'-(moves.moves[i].to%8));
-      fromStr.append(std::to_string((moves.moves[i].from/8)+1));
-      toStr.append(std::to_string((moves.moves[i].to/8)+1));
+      fromStr.push_back('h'-(moves.moves[i].getFrom()%8));
+      toStr.push_back('h'-(moves.moves[i].getTo()%8));
+      fromStr.append(std::to_string((moves.moves[i].getFrom()/8)+1));
+      toStr.append(std::to_string((moves.moves[i].getTo()/8)+1));
       
       std::cout<<"["<<fromStr<<"->"<<toStr<<"] : ";
       std::cout<<found<<std::endl;
@@ -391,10 +392,14 @@ void Search::runMoveGenerationSuite(){
     4,
     4
   };
+  std::cout<<"Starting"<<std::endl;
   debug::Settings settings;
+  u64 sum = 0;
+  auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<6; i++){
     board.loadFromFEN(positions[i]);
     u64 found = perftTest(board,depths[i],false);
+    sum += found;
     std::cout<<"Depth: "<<depths[i];
     std::cout<<" Found: ";
     if(found != expected[i]){
@@ -404,4 +409,8 @@ void Search::runMoveGenerationSuite(){
     }
     std::cout<<found<<"/"<<expected[i]<<"\x1b[0m"<<std::endl;
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = end-start;
+  std::cout<<"Searched "<< sum << " moves\n";
+  std::cout<<"Finished in "<<(float)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f<<"s"<<std::endl;
 }

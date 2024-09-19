@@ -58,12 +58,18 @@ void Board::loadFromFEN(std::string fen){
   if(parsed[2].find("Q") != parsed[2].npos) flags |= WHITE_QUEENSIDE_BIT;
   if(parsed[2].find("k") != parsed[2].npos) flags |= BLACK_KINGSIDE_BIT;
   if(parsed[2].find("q") != parsed[2].npos) flags |= BLACK_QUEENSIDE_BIT;
+
+  if(parsed[3] == "-"){
+    enPassanTarget = EN_PASSAN_NULL;
+  }else{
+    std::cout<<"En passan target from fen not yet implemented"<<std::endl;
+  }
 }
 
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  m.boardFlags = flags;
-  if(m.flags&KINGSIDE_BIT){
+  m.setCastlingRights(flags>>1);
+  if(m.isKingside()){
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -84,7 +90,7 @@ void Board::makeMove(Move &m){
     updateColorBitboards();
     return;
   }
-  if(m.flags&QUEENSIDE_BIT){
+  if(m.isQueenside()){
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -106,15 +112,17 @@ void Board::makeMove(Move &m){
     return;
   }
 
-  byte fromPiece = squares[m.from];
-  byte toPiece = squares[m.to];
-  squares[m.from] = EMPTY;
-  squares[m.to] = fromPiece;
+  byte to = m.getTo();
+  byte from = m.getFrom();
+  byte fromPiece = squares[from];
+  byte toPiece = squares[to];
+  squares[from] = EMPTY;
+  squares[to] = fromPiece;
 
-  resetBit(bitboards[fromPiece],m.from);
-  resetBit(bitboards[toPiece],m.to);
-  setBit(bitboards[fromPiece],m.to);
-  m.flags |= toPiece<<4;//store captured piece (if there is no piece it will just be empty)
+  resetBit(bitboards[fromPiece],from);
+  resetBit(bitboards[toPiece],to);
+  setBit(bitboards[fromPiece],to);
+  m.setCapturedPiece(toPiece);//store captured piece (if there is no piece it will just be empty)
   
   if(fromPiece == color+KING){
     if(flags&WHITE_TO_MOVE_BIT){
@@ -127,7 +135,7 @@ void Board::makeMove(Move &m){
   //update castling rights
   byte rookSquares[4] = {0,7,56,63};
   for(int i = 0; i<4; i++){
-    if(m.from == rookSquares[i] || m.to == rookSquares[i]){
+    if(from == rookSquares[i] || to == rookSquares[i]){
       flags &= ~(WHITE_KINGSIDE_BIT<<i);
     }
     if((u64(1)<<fromPiece) & castlingMasks[i]){
@@ -135,23 +143,23 @@ void Board::makeMove(Move &m){
     }
   }
 
-  //update en passan target
-  if(m.flags & EN_PASSAN_BIT){
+  //do en passan
+  if(m.isEnPassan()){
     if(flags&WHITE_TO_MOVE_BIT){
-      resetBit(bitboards[BLACK+PAWN],m.to-8);
-      squares[m.to-8] = EMPTY;
+      resetBit(bitboards[BLACK+PAWN],to-8);
+      squares[to-8] = EMPTY;
     }else{
-      resetBit(bitboards[WHITE+PAWN],m.to+8);
-      squares[m.to+8] = EMPTY;
+      resetBit(bitboards[WHITE+PAWN],to+8);
+      squares[to+8] = EMPTY;
     }
   }
-  m.enPassanTarget = enPassanTarget;
   
   //Update en passan target
+  m.setEnPassanTarget(enPassanTarget);
   enPassanTarget = EN_PASSAN_NULL;
   if(fromPiece == PAWN || fromPiece == BLACK+PAWN){
-    if(std::abs(m.to-m.from)>9){//double forward move
-      enPassanTarget = m.to;
+    if(std::abs(to-from)>9){//double forward move
+      enPassanTarget = to;
       if(flags&WHITE_TO_MOVE_BIT){
         enPassanTarget -= 8;
       }else{
@@ -166,7 +174,7 @@ void Board::makeMove(Move &m){
 
 void Board::unmakeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? BLACK : WHITE;
-  if(m.flags&KINGSIDE_BIT){
+  if(m.isKingside()){
     flags ^= WHITE_TO_MOVE_BIT;
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     //move king
@@ -180,12 +188,13 @@ void Board::unmakeMove(Move &m){
     squares[2+offset] = EMPTY;
     squares[0+offset] = color+ROOK;
 
-    enPassanTarget = m.enPassanTarget;
-    flags  = m.boardFlags;
+    enPassanTarget = m.getEnPassanTarget();
+    flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+    flags  |= m.getCastlingRights()<<1;
     updateColorBitboards();
     return;
   }
-  if(m.flags&QUEENSIDE_BIT){
+  if(m.isQueenside()){
     flags ^= WHITE_TO_MOVE_BIT;
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     //move king
@@ -199,33 +208,39 @@ void Board::unmakeMove(Move &m){
     squares[4+offset] = EMPTY;
     squares[7+offset] = color+ROOK;
 
-    enPassanTarget = m.enPassanTarget;
-    flags  = m.boardFlags;
+    enPassanTarget = m.getEnPassanTarget();
+    flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+    flags  |= m.getCastlingRights()<<1;
     updateColorBitboards();
     return;
   }
   
   //move piece back
-  byte pieceOnToSquare = squares[m.to];
-  squares[m.from] = squares[m.to];
-  setBit(bitboards[pieceOnToSquare],m.from);
-  resetBit(bitboards[pieceOnToSquare],m.to);
-  setBit(bitboards[m.flags>>4],m.to);
-  squares[m.to] = m.flags>>4;
+  byte to = m.getTo();
+  byte from = m.getFrom();
+  
+  byte pieceOnToSquare = squares[to];
+  squares[from] = squares[to];
+  setBit(bitboards[pieceOnToSquare],from);
+  resetBit(bitboards[pieceOnToSquare],to);
+  setBit(bitboards[m.getCapturedPiece()],to);
+  squares[to] = m.getCapturedPiece();
 
   //undo en passan
-  if(m.flags & EN_PASSAN_BIT){
+  if(m.isEnPassan()){
     if(flags&WHITE_TO_MOVE_BIT){
-      setBit(bitboards[WHITE+PAWN],m.to+8);
-      squares[m.to+8] = WHITE+PAWN;
+      setBit(bitboards[WHITE+PAWN],to+8);
+      squares[to+8] = WHITE+PAWN;
     }else{
-      setBit(bitboards[BLACK+PAWN],m.to-8);
-      squares[m.to-8] = BLACK+PAWN;
+      setBit(bitboards[BLACK+PAWN],to-8);
+      squares[to-8] = BLACK+PAWN;
     }
   }
 
   //restore board state
-  enPassanTarget = m.enPassanTarget;
-  flags  = m.boardFlags;
+  enPassanTarget = m.getEnPassanTarget();
+  flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+  flags  |= m.getCastlingRights()<<1;
+  flags ^= WHITE_TO_MOVE_BIT;
   updateColorBitboards();
 }
