@@ -68,7 +68,7 @@ void Board::loadFromFEN(std::string fen){
 
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  m.setBoardFlags(flags);
+  m.setCastlingRights(flags>>1);
   if(m.isKingside()){
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
@@ -189,7 +189,8 @@ void Board::unmakeMove(Move &m){
     squares[0+offset] = color+ROOK;
 
     enPassanTarget = m.getEnPassanTarget();
-    flags  = m.getBoardFlags();
+    flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+    flags  |= m.getCastlingRights()<<1;
     updateColorBitboards();
     return;
   }
@@ -208,7 +209,8 @@ void Board::unmakeMove(Move &m){
     squares[7+offset] = color+ROOK;
 
     enPassanTarget = m.getEnPassanTarget();
-    flags  = m.getBoardFlags();
+    flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+    flags  |= m.getCastlingRights()<<1;
     updateColorBitboards();
     return;
   }
@@ -237,6 +239,8 @@ void Board::unmakeMove(Move &m){
 
   //restore board state
   enPassanTarget = m.getEnPassanTarget();
-  flags  = m.getBoardFlags();
+  flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+  flags  |= m.getCastlingRights()<<1;
+  flags ^= WHITE_TO_MOVE_BIT;
   updateColorBitboards();
 }
