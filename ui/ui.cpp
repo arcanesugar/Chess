@@ -21,13 +21,13 @@ void ConsoleInterface::run(Board &board, Search &search){
 
     if(input == "ks"){
       Move m;
-      m.flags |= KINGSIDE_BIT;
+      m.setSpecialMoveData(CASTLE_KINGSIDE);
       board.makeMove(m);
       last = m;
     }
     if(input == "qs"){
       Move m;
-      m.flags |= QUEENSIDE_BIT;
+      m.setSpecialMoveData(CASTLE_QUEENSIDE);
       board.makeMove(m);
       last = m;
     }

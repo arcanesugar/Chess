@@ -51,20 +51,20 @@ std::string debug::printBoard(Settings settings, Board const &board){
 };
 
 std::string debug::printMove(Settings settings, Board const board, Move m){
-  if(m.flags&KINGSIDE_BIT){
+  if(m.isKingside()){
     m.setFrom(59);
     m.setTo(57);
   }
-  if(m.flags&QUEENSIDE_BIT){
+  if(m.isQueenside()){
     m.setFrom(59);
     m.setTo(61);
   }
   if(m.flags & WHITE_TO_MOVE_BIT){
-    if(m.flags&KINGSIDE_BIT){
+    if(m.isKingside()){
       m.setFrom(3);
       m.setTo(1);
     }
-    if(m.flags&QUEENSIDE_BIT){
+    if(m.isQueenside()){
       m.setFrom(3);
       m.setTo(5);
     }

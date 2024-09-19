@@ -41,7 +41,7 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
     generateMoves(board, responses);
     bool isLegal = true;
     for(int j = 0; j < responses.end; j++){
-      if(responses.moves[j].flags & (QUEENSIDE_BIT | KINGSIDE_BIT)){
+      if(responses.moves[j].isKingside() || responses.moves[j].isQueenside()){
         continue;
       }
       if(responses.moves[j].getTo() == kingSquare){
@@ -75,7 +75,7 @@ void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte f
     byte to = popls1b(targets);
     move.setTo(to);
     move.setFrom(to + offset);
-    move.flags = flags;
+    move.setSpecialMoveData(flags);
     moves.append(move);
   }
 }
@@ -112,12 +112,12 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
     pawnDestinations &= ~leftFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    addMovesFromOffset(moves, -7*dir, pawnDestinations, EN_PASSAN_BIT);
+    addMovesFromOffset(moves, -7*dir, pawnDestinations, EN_PASSAN);
 
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
     pawnDestinations &= ~rightFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    addMovesFromOffset(moves, -9*dir, pawnDestinations,EN_PASSAN_BIT);
+    addMovesFromOffset(moves, -9*dir, pawnDestinations,EN_PASSAN);
   }
 }
 
@@ -166,14 +166,14 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
     if(kingside){
       if(board.squares[2] == EMPTY && board.squares[1] == EMPTY){
         Move move;
-        move.flags |= KINGSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_KINGSIDE);
         moves.append(move);
       }
     }
     if(queenside){
       if(board.squares[4] == EMPTY && board.squares[5] == EMPTY && board.squares[6] == EMPTY){
         Move move;
-        move.flags |= QUEENSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_QUEENSIDE);
         moves.append(move);
       }
     }
@@ -184,14 +184,14 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
     if(kingside){
       if(board.squares[58] == EMPTY && board.squares[57] == EMPTY){
         Move move;
-        move.flags |= KINGSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_KINGSIDE);
         moves.append(move);
       }
     }
     if(queenside){
       if(board.squares[60] == EMPTY && board.squares[61] == EMPTY && board.squares[62] == EMPTY){
         Move move;
-        move.flags |= QUEENSIDE_BIT;
+        move.setSpecialMoveData(CASTLE_QUEENSIDE);
         moves.append(move);
       }
     }

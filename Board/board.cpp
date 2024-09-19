@@ -63,7 +63,7 @@ void Board::loadFromFEN(std::string fen){
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   m.setBoardFlags(flags);
-  if(m.flags&KINGSIDE_BIT){
+  if(m.isKingside()){
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -84,7 +84,7 @@ void Board::makeMove(Move &m){
     updateColorBitboards();
     return;
   }
-  if(m.flags&QUEENSIDE_BIT){
+  if(m.isQueenside()){
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -138,7 +138,7 @@ void Board::makeMove(Move &m){
   }
 
   //do en passan
-  if(m.flags & EN_PASSAN_BIT){
+  if(m.isEnPassan()){
     if(flags&WHITE_TO_MOVE_BIT){
       resetBit(bitboards[BLACK+PAWN],to-8);
       squares[to-8] = EMPTY;
@@ -168,7 +168,7 @@ void Board::makeMove(Move &m){
 
 void Board::unmakeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? BLACK : WHITE;
-  if(m.flags&KINGSIDE_BIT){
+  if(m.isKingside()){
     flags ^= WHITE_TO_MOVE_BIT;
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     //move king
@@ -187,7 +187,7 @@ void Board::unmakeMove(Move &m){
     updateColorBitboards();
     return;
   }
-  if(m.flags&QUEENSIDE_BIT){
+  if(m.isQueenside()){
     flags ^= WHITE_TO_MOVE_BIT;
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     //move king
@@ -219,7 +219,7 @@ void Board::unmakeMove(Move &m){
   squares[to] = m.getCapturedPiece();
 
   //undo en passan
-  if(m.flags & EN_PASSAN_BIT){
+  if(m.isEnPassan()){
     if(flags&WHITE_TO_MOVE_BIT){
       setBit(bitboards[WHITE+PAWN],to+8);
       squares[to+8] = WHITE+PAWN;

@@ -7,9 +7,6 @@
 #include "Bitboards/bitboard.h"
 
 #define CAPTURE_BIT       0b00000001
-#define KINGSIDE_BIT      0b00000010
-#define QUEENSIDE_BIT     0b00000100
-#define EN_PASSAN_BIT     0b00001000
 #define EN_PASSAN_NULL    0
 
 #define WHITE_TO_MOVE_BIT   0b00000001
@@ -21,10 +18,14 @@
 #define WHITE_CASTLING_RIGHTS 0b00000110
 #define BLACK_CASTLING_RIGHTS 0b00011000
 
-
+#define CASTLE_KINGSIDE  0b0000000000000001
+#define CASTLE_QUEENSIDE 0b0000000000000010
+#define EN_PASSAN        0b0000000000000011
 //masks
 #define TO_PIECE_MASK   0b1111110000000000
 #define FROM_PIECE_MASK 0b0000001111110000
+
+#define SPECIAL_MOVE_DATA_MASK 0b0000000000000011
 enum piece{
   PAWN = 0,
   BISHOP,
@@ -39,9 +40,11 @@ enum piece{
 
 #define WHITE_PIECES 12
 #define BLACK_PIECES 13
+
 struct Move{
 private:
-  unsigned short move = 0; //ttttttffffffrrcc  t = to f = from r = promotion c = castling
+  unsigned short move = 0; //ttttttffffffrrcc  t = to f = from r = promotion c = castling/en passan
+  //unsigned short unmakeData = 0; 
   byte enPassanTarget = EN_PASSAN_NULL; //the en passan target before the move was made
   byte boardFlags = 0;
 
@@ -49,12 +52,20 @@ public:
 byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
 inline void setTo(byte to) { move |= to<<10;}
 inline void setFrom(byte from) { move |= from<<4;}
-inline void setBoardFlags(byte flags){boardFlags = flags;}
+inline void setSpecialMoveData(byte smd) { move |= smd;}
+
 inline void setEnPassanTarget(byte target){ enPassanTarget = target;}
+inline void setBoardFlags(byte flags){boardFlags = flags;}
 inline void setCapturedPiece(byte piece){flags |= piece<<4;}
 
 inline byte getTo() {return (move & TO_PIECE_MASK)>>10;}
 inline byte getFrom() {return (move & FROM_PIECE_MASK)>>4;}
+inline byte getSpecialMoveData(){ return (move&SPECIAL_MOVE_DATA_MASK);}
+inline bool isEnPassan(){ return getSpecialMoveData() == EN_PASSAN;}
+inline bool isKingside(){ return getSpecialMoveData() == CASTLE_KINGSIDE;}
+inline bool isQueenside(){ return getSpecialMoveData() == CASTLE_QUEENSIDE;}
+
+
 inline byte getEnPassanTarget(){ return enPassanTarget;}
 inline byte getBoardFlags(){return boardFlags;}
 inline byte getCapturedPiece(){return flags>>4;}
