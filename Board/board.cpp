@@ -58,6 +58,12 @@ void Board::loadFromFEN(std::string fen){
   if(parsed[2].find("Q") != parsed[2].npos) flags |= WHITE_QUEENSIDE_BIT;
   if(parsed[2].find("k") != parsed[2].npos) flags |= BLACK_KINGSIDE_BIT;
   if(parsed[2].find("q") != parsed[2].npos) flags |= BLACK_QUEENSIDE_BIT;
+
+  if(parsed[3] == "-"){
+    enPassanTarget = EN_PASSAN_NULL;
+  }else{
+    std::cout<<"En passan target from fen not yet implemented"<<std::endl;
+  }
 }
 
 void Board::makeMove(Move &m){
