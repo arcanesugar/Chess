@@ -59,7 +59,7 @@ std::string debug::printMove(Settings settings, Board const board, Move m){
     m.setFrom(59);
     m.setTo(61);
   }
-  if(m.flags & WHITE_TO_MOVE_BIT){
+  if(board.flags & WHITE_TO_MOVE_BIT){
     if(m.isKingside()){
       m.setFrom(3);
       m.setTo(1);

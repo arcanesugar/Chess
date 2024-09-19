@@ -44,19 +44,18 @@ enum piece{
 struct Move{
 private:
   unsigned short move = 0; //ttttttffffffrrcc  t = to f = from r = promotion c = castling/en passan
-  //unsigned short unmakeData = 0; 
+  unsigned short unmakeData = 0; 
   byte enPassanTarget = EN_PASSAN_NULL; //the en passan target before the move was made
   byte boardFlags = 0;
 
 public:
-byte flags = 0; //last(leftmost) 4 bits are the ID of the captured piece, if there was a capture
 inline void setTo(byte to) { move |= to<<10;}
 inline void setFrom(byte from) { move |= from<<4;}
 inline void setSpecialMoveData(byte smd) { move |= smd;}
 
 inline void setEnPassanTarget(byte target){ enPassanTarget = target;}
 inline void setBoardFlags(byte flags){boardFlags = flags;}
-inline void setCapturedPiece(byte piece){flags |= piece<<4;}
+inline void setCapturedPiece(byte piece){unmakeData |= piece<<12;}
 
 inline byte getTo() {return (move & TO_PIECE_MASK)>>10;}
 inline byte getFrom() {return (move & FROM_PIECE_MASK)>>4;}
@@ -68,7 +67,7 @@ inline bool isQueenside(){ return getSpecialMoveData() == CASTLE_QUEENSIDE;}
 
 inline byte getEnPassanTarget(){ return enPassanTarget;}
 inline byte getBoardFlags(){return boardFlags;}
-inline byte getCapturedPiece(){return flags>>4;}
+inline byte getCapturedPiece(){return unmakeData>>12;}
 
 };
 

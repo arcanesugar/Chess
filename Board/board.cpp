@@ -215,7 +215,7 @@ void Board::unmakeMove(Move &m){
   squares[from] = squares[to];
   setBit(bitboards[pieceOnToSquare],from);
   resetBit(bitboards[pieceOnToSquare],to);
-  setBit(bitboards[m.flags>>4],to);
+  setBit(bitboards[m.getCapturedPiece()],to);
   squares[to] = m.getCapturedPiece();
 
   //undo en passan
