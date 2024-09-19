@@ -137,7 +137,7 @@ void Board::makeMove(Move &m){
     }
   }
 
-  //update en passan target
+  //do en passan
   if(m.flags & EN_PASSAN_BIT){
     if(flags&WHITE_TO_MOVE_BIT){
       resetBit(bitboards[BLACK+PAWN],to-8);
@@ -147,13 +147,13 @@ void Board::makeMove(Move &m){
       squares[to+8] = EMPTY;
     }
   }
-  m.setEnPassanTarget(enPassanTarget);
   
   //Update en passan target
+  m.setEnPassanTarget(enPassanTarget);
   enPassanTarget = EN_PASSAN_NULL;
   if(fromPiece == PAWN || fromPiece == BLACK+PAWN){
-    if(std::abs(m.getTo()-m.getFrom())>9){//double forward move
-      enPassanTarget = m.getTo();
+    if(std::abs(to-from)>9){//double forward move
+      enPassanTarget = to;
       if(flags&WHITE_TO_MOVE_BIT){
         enPassanTarget -= 8;
       }else{

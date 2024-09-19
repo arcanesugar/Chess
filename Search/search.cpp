@@ -72,8 +72,9 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
 void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
   while (targets) {
     Move move;
-    move.setTo(popls1b(targets));
-    move.setFrom(move.getTo() + offset);
+    byte to = popls1b(targets);
+    move.setTo(to);
+    move.setFrom(to + offset);
     move.flags = flags;
     moves.append(move);
   }
@@ -391,11 +392,14 @@ void Search::runMoveGenerationSuite(){
     4,
     4
   };
+  std::cout<<"Starting"<<std::endl;
   debug::Settings settings;
+  u64 sum = 0;
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<6; i++){
     board.loadFromFEN(positions[i]);
     u64 found = perftTest(board,depths[i],false);
+    sum += found;
     std::cout<<"Depth: "<<depths[i];
     std::cout<<" Found: ";
     if(found != expected[i]){
@@ -407,5 +411,6 @@ void Search::runMoveGenerationSuite(){
   }
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = end-start;
+  std::cout<<"Searched "<< sum << " moves\n";
   std::cout<<"Finished in "<<(float)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f<<"s"<<std::endl;
 }
