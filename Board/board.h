@@ -21,11 +21,12 @@
 #define CASTLE_KINGSIDE  0b0000000000000001
 #define CASTLE_QUEENSIDE 0b0000000000000010
 #define EN_PASSAN        0b0000000000000011
+
 //masks
 #define TO_PIECE_MASK   0b1111110000000000
 #define FROM_PIECE_MASK 0b0000001111110000
+#define SPECIAL_MOVE_DATA_MASK 0b0000000000001111
 #define EN_PASSAN_TARGET_MASK  0b0000111111000000
-#define SPECIAL_MOVE_DATA_MASK 0b0000000000000011
 #define CASTLING_RIGHTS_MASK   0b0000000000111100
 
 enum piece{
@@ -45,14 +46,14 @@ enum piece{
 
 struct Move{
 private:
-  unsigned short move = 0; //ttttttffffffrrcc  t = to f = from r = promotion c = castling/en passan
+  unsigned short move = 0; //ttttttffffffssss  t = to f = from s = special move data 
   unsigned short unmakeData = 0;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
-
+  byte promotionPiece = 0;
 public:
 inline void setTo(byte to) { move |= to<<10;}
 inline void setFrom(byte from) { move |= from<<4;}
 inline void setSpecialMoveData(byte smd) { move |= smd;}
-
+inline void setPromotion(byte piece) {promotionPiece = piece;}
 inline void setEnPassanTarget(byte target){ unmakeData |= target<<6;}
 inline void setCastlingRights(byte flags){unmakeData |= flags<<2;}
 inline void setCapturedPiece(byte piece){unmakeData |= piece<<12;}
@@ -63,6 +64,8 @@ inline byte getSpecialMoveData(){ return (move&SPECIAL_MOVE_DATA_MASK);}
 inline bool isEnPassan(){ return getSpecialMoveData() == EN_PASSAN;}
 inline bool isKingside(){ return getSpecialMoveData() == CASTLE_KINGSIDE;}
 inline bool isQueenside(){ return getSpecialMoveData() == CASTLE_QUEENSIDE;}
+inline bool isPromotion(){return promotionPiece > 0;}
+inline byte getPromotionPiece(){return promotionPiece;}
 
 
 inline byte getEnPassanTarget(){ return (unmakeData & EN_PASSAN_TARGET_MASK )>>6;}

@@ -46,7 +46,6 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
       }
       if(responses.moves[j].getTo() == kingSquare){
         isLegal = false;
-        debug::Settings settings;
         break;
       }
     }
@@ -71,8 +70,18 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
 
 void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
   while (targets) {
-    Move move;
     byte to = popls1b(targets);
+    if(to<8 || to>55){ 
+      for(int i = BISHOP; i<= QUEEN;i++){
+        Move move;
+        move.setTo(to);
+        move.setFrom(to + offset);
+        move.setPromotion(i);
+        moves.append(move);
+      }
+      continue;
+    }
+    Move move;
     move.setTo(to);
     move.setFrom(to + offset);
     move.setSpecialMoveData(flags);
@@ -358,7 +367,7 @@ u64 Search::perftTest(Board &b, int depth, bool root){
 void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
   debug::Settings settings;
-  for(int i = 1; i<5; i++){
+  for(int i = 1; i<6; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
     std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;

@@ -114,6 +114,11 @@ void Board::makeMove(Move &m){
 
   byte to = m.getTo();
   byte from = m.getFrom();
+  if(m.isPromotion()){
+    resetBit(bitboards[squares[from]], from);
+    setBit(bitboards[m.getPromotionPiece()],from);
+    squares[from] = m.getPromotionPiece();
+  }
   byte fromPiece = squares[from];
   byte toPiece = squares[to];
   squares[from] = EMPTY;
@@ -214,10 +219,15 @@ void Board::unmakeMove(Move &m){
     updateColorBitboards();
     return;
   }
-  
+  //color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   //move piece back
   byte to = m.getTo();
   byte from = m.getFrom();
+  if(m.isPromotion()){
+    resetBit(bitboards[squares[to]], to);
+    setBit(bitboards[PAWN+color],to);
+    squares[to] = PAWN + color; 
+  }
   
   byte pieceOnToSquare = squares[to];
   squares[from] = squares[to];
