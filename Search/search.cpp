@@ -168,43 +168,30 @@ void Search::addKingMoves(Board board, MoveList &moves) {
 }
 
 void Search::addCastlingMoves(Board board, MoveList &moves){
-  bool kingside,queenside;
-  if(board.flags&WHITE_TO_MOVE_BIT){
-    kingside = board.flags&WHITE_KINGSIDE_BIT;
-    queenside = board.flags&WHITE_QUEENSIDE_BIT;
-    if(kingside){
-      if(board.squares[2] == EMPTY && board.squares[1] == EMPTY){
-        Move move;
-        move.setSpecialMoveData(CASTLE_KINGSIDE);
-        moves.append(move);
+  int pathSquares[4][3] = {{5,6,6},{3,2,1},{57,58,59},{62,61,61}};
+  byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
+  int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
+  int max = i+2;
+  for(int j = i; j<max; j++){
+    bool legal = true; 
+    for(int s : pathSquares[j]){
+      if(board.squares[s] != EMPTY){
+        legal = false;
+        break;
       }
     }
-    if(queenside){
-      if(board.squares[4] == EMPTY && board.squares[5] == EMPTY && board.squares[6] == EMPTY){
-        Move move;
-        move.setSpecialMoveData(CASTLE_QUEENSIDE);
-        moves.append(move);
+    if(!legal) continue;
+    Move m;
+    if(board.flags&masks[j]){
+      if(j%2 == 1){
+        m.setSpecialMoveData(CASTLE_KINGSIDE); 
+      }else{
+        m.setSpecialMoveData(CASTLE_QUEENSIDE); 
       }
-    }
-  }
-  else{
-    kingside = board.flags&BLACK_KINGSIDE_BIT;
-    queenside = board.flags&BLACK_QUEENSIDE_BIT;
-    if(kingside){
-      if(board.squares[58] == EMPTY && board.squares[57] == EMPTY){
-        Move move;
-        move.setSpecialMoveData(CASTLE_KINGSIDE);
-        moves.append(move);
-      }
-    }
-    if(queenside){
-      if(board.squares[60] == EMPTY && board.squares[61] == EMPTY && board.squares[62] == EMPTY){
-        Move move;
-        move.setSpecialMoveData(CASTLE_QUEENSIDE);
-        moves.append(move);
-      }
+      moves.append(m);
     }
   }
+
 }
 // Generate Masks, Move Lookups, ect
 //Only need to run once, but should still be understandable
@@ -367,7 +354,7 @@ u64 Search::perftTest(Board &b, int depth, bool root){
 void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
   debug::Settings settings;
-  for(int i = 1; i<6; i++){
+  for(int i = 1; i<7; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
     std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;

@@ -11,7 +11,7 @@ int main() {
   std::cout<<"[creating board...]\n";
   Board board;
   //board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-  board.loadFromFEN("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+  board.loadFromFEN("r3k2r/8/3Q4/8/8/5q2/8/R3K2R b KQkq - 0 1");
   std::cout<<"[creating search...]\n";
   Search search;
   std::cout<<"[creating consoleInterface...]\n";
