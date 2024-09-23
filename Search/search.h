@@ -53,7 +53,8 @@ class Search{
   //move generation functions
   u64 friendlyBitboard;
   u64 enemyBitboard;
-  int color;//the color of the player whos turn it is
+  int color;
+  int threatenedIndex;//>:}
   void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares);
   void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags = 0);
   void addDiagonalMoves(Board board, int square, MoveList &moves);

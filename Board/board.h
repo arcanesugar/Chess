@@ -78,7 +78,8 @@ int getSquareIndex(int file, int rank);
 
 struct Board{
   u64 bitboards[14];
-  u64 occupancy;//1 if a piece is present
+  u64 occupancy; 
+  u64 threatened[2]; // squares threatened by white come first
   byte enPassanTarget = EN_PASSAN_NULL;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;

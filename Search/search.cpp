@@ -20,6 +20,8 @@ void Search::generateMoves(Board board, MoveList &moves) {
      : board.bitboards[WHITE_PIECES];
 
   color = (board.flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
+  threatenedIndex = (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 1;
+  board.threatened[threatenedIndex] = (u64)0;
   moves.end = 0;
   addPawnMoves(board, moves);
   addSlidingMoves(board, moves);
@@ -110,10 +112,12 @@ void Search::addPawnMoves(Board board, MoveList &moves) {
   // pawn captures
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
   pawnDestinations &= ~leftFileMask & enemyBitboard;
+  board.threatened[threatenedIndex] |= pawnDestinations;
   addMovesFromOffset(moves, -7*dir, pawnDestinations);
 
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
   pawnDestinations &= ~rightFileMask & enemyBitboard;
+  board.threatened[threatenedIndex] |= pawnDestinations;
   addMovesFromOffset(moves, -9*dir, pawnDestinations);
 
   //En Passan
@@ -142,6 +146,7 @@ void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & rookMasks[square];
   u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
   u64 destinations = rookMoves[square][hashed] & (~friendlyBitboard);
+  board.threatened[threatenedIndex] |= destinations;
   addMovesToSquares(moves, square, destinations);
 };
 
@@ -149,6 +154,7 @@ void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & bishopMasks[square];
   u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
   u64 destinations = bishopMoves[square][hashed] & (~friendlyBitboard);
+  board.threatened[threatenedIndex] |= destinations;
   addMovesToSquares(moves, square, destinations);
 };
 
@@ -157,6 +163,7 @@ void Search::addKnightMoves(Board board, MoveList &moves) {
   while (friendlyKnights) {
     int square = popls1b(friendlyKnights);
     u64 targets = knightMoves[square] & (~friendlyBitboard);
+    board.threatened[threatenedIndex] |= targets;
     addMovesToSquares(moves, square, targets);
   }
 }
@@ -164,6 +171,7 @@ void Search::addKnightMoves(Board board, MoveList &moves) {
 void Search::addKingMoves(Board board, MoveList &moves) {
   int square = bitScanForward(board.bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
+  board.threatened[threatenedIndex] |= targets;
   addMovesToSquares(moves, square, targets);
 }
 
@@ -176,6 +184,10 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
     bool legal = true; 
     for(int s : pathSquares[j]){
       if(board.squares[s] != EMPTY){
+        legal = false;
+        break;
+      }
+      if(getBit(board.threatened[!threatenedIndex],s)){
         legal = false;
         break;
       }
