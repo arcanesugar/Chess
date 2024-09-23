@@ -176,7 +176,7 @@ void Search::addKingMoves(Board board, MoveList &moves) {
 }
 
 void Search::addCastlingMoves(Board board, MoveList &moves){
-  int pathSquares[4][3] = {{5,6,6},{3,2,1},{57,58,59},{62,61,61}};
+  int pathSquares[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
   int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
   int max = i+2;
@@ -349,13 +349,16 @@ u64 Search::perftTest(Board &b, int depth, bool root){
     if(root){
       std::string fromStr = "";
       std::string toStr = "";
+      if(moves.moves[i].isKingside() || moves.moves[i].isQueenside()){
+        fromStr.append("\x1b[33m");
+      }
       fromStr.push_back('h'-(moves.moves[i].getFrom()%8));
       toStr.push_back('h'-(moves.moves[i].getTo()%8));
       fromStr.append(std::to_string((moves.moves[i].getFrom()/8)+1));
       toStr.append(std::to_string((moves.moves[i].getTo()/8)+1));
       
       std::cout<<"["<<fromStr<<"->"<<toStr<<"] : ";
-      std::cout<<found<<std::endl;
+      std::cout<<found<<"\x1b[0m"<<std::endl;
     }
     count += found;
     b.unmakeMove(moves.moves[i]);
