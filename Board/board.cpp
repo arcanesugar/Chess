@@ -58,11 +58,11 @@ void Board::loadFromFEN(std::string fen){
   if(parsed[2].find("Q") != parsed[2].npos) flags |= WHITE_QUEENSIDE_BIT;
   if(parsed[2].find("k") != parsed[2].npos) flags |= BLACK_KINGSIDE_BIT;
   if(parsed[2].find("q") != parsed[2].npos) flags |= BLACK_QUEENSIDE_BIT;
-
-  if(parsed[3] == "-"){
-    enPassanTarget = EN_PASSAN_NULL;
-  }else{
-    std::cout<<"En passan target from fen not yet implemented"<<std::endl;
+  enPassanTarget = EN_PASSAN_NULL;
+  if(!std::isdigit(parsed[3][0])){
+    if(parsed[3] != "-"){
+      std::cout<<"En passan target from fen not yet implemented"<<std::endl;
+    }
   }
 }
 
@@ -116,8 +116,8 @@ void Board::makeMove(Move &m){
   byte from = m.getFrom();
   if(m.isPromotion()){
     resetBit(bitboards[squares[from]], from);
-    setBit(bitboards[m.getPromotionPiece()],from);
-    squares[from] = m.getPromotionPiece();
+    setBit(bitboards[color+m.getPromotionPiece()],from);
+    squares[from] = color+m.getPromotionPiece();
   }
   byte fromPiece = squares[from];
   byte toPiece = squares[to];
