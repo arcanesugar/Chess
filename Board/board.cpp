@@ -143,7 +143,7 @@ void Board::makeMove(Move &m){
     if(from == rookSquares[i] || to == rookSquares[i]){
       flags &= ~(WHITE_KINGSIDE_BIT<<i);
     }
-    if((u64(1)<<fromPiece) & castlingMasks[i]){
+    if((u64(1)<<from) & castlingMasks[i]){
       flags &= ~(WHITE_KINGSIDE_BIT<<i);
     }
   }

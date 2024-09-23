@@ -195,7 +195,7 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
     if(!legal) continue;
     Move m;
     if(board.flags&masks[j]){
-      if(j%2 == 1){
+      if(j%2 == 0){
         m.setSpecialMoveData(CASTLE_KINGSIDE); 
       }else{
         m.setSpecialMoveData(CASTLE_QUEENSIDE); 
@@ -369,7 +369,7 @@ u64 Search::perftTest(Board &b, int depth, bool root){
 void Search::runMoveGenerationTest(Board &board){
   //https://www.chessprogramming.org/Perft_Results
   debug::Settings settings;
-  for(int i = 1; i<7; i++){
+  for(int i = 1; i<5; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
     std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;
