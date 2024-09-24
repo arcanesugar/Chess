@@ -147,8 +147,9 @@ void ConsoleInterface::displaySettings(){
     c.output.append("  1 - Use ASCII Pieces\n");
     c.output.append("  2 - Set dark color\n");
     c.output.append("  3 - Set light color\n");
-    c.output.append("  9 - Done\n");
+    c.output.append("  q - Done\n");
     getNextInput();
+    if(c.lastInput == "q") return;
     if(!std::isdigit(c.lastInput[0])) continue;
     switch(std::stoi(c.lastInput)){
       case 0:
@@ -170,11 +171,6 @@ void ConsoleInterface::displaySettings(){
         getNextInput();
         c.settings.lightColor = "\x1b[";
         c.settings.lightColor.append(c.lastInput + "m");
-      break;
-
-      case 9:
-        done = true;
-        c.output = "";
       break;
     }
   }

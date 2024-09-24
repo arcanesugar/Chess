@@ -21,7 +21,11 @@ std::string debug::testFormatting(bool highlightOnly){
     if(highlightOnly && p%2 == 0) continue;
     for(int i = 0; i<8; i++){
       std::string num = prefix[p] + std::to_string(i);
-      str.append("\x1b[" + num + "m" + num);
+      if(num.size()== 2){
+        str.append("\x1b[0m  " + num + "\x1b[" + num + "m  " );
+        continue;
+      }
+      str.append("\x1b[0m " + num + "\x1b[" + num + "m  " );
     }
     str.append("\x1b[0m\n");
   }
@@ -42,7 +46,7 @@ std::string debug::printBoard(Settings settings, Board const &board){
       
       std::string piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
       //std::string piece = std::to_string(board.squares[getSquareIndex(file,rank)]);
-      str.append(piece + " \x1b[0m");
+      str.append("\x1b[30m"+piece + " \x1b[0m");
     }
     str.append("\x1b[0m" + std::to_string(file+1)+ "\n");
   }
@@ -84,7 +88,7 @@ std::string debug::printMove(Settings settings, Board const board, Move m){
         str.append("\x1b[45m");
       }
       std::string piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
-      str.append(piece + " \x1b[0m");
+      str.append("\x1b[30m"+piece + " \x1b[0m");
     }
     str.append("\x1b[0m" + std::to_string(file+1)+ "\n");
   }
@@ -107,7 +111,7 @@ std::string debug::printBitboard(debug::Settings settings,Board board,u64 const 
         str.append("\x1b[45m");
       }
       std::string piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
-      str.append(piece + " \x1b[0m");
+      str.append("\x1b[30m"+piece + " \x1b[0m");
     }
     str.append("\x1b[0m" + std::to_string(file+1)+ "\n");
   }
