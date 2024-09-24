@@ -57,13 +57,13 @@ class Search{
   int threatenedIndex;//>:}
   void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares);
   void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags = 0);
-  void addDiagonalMoves(Board board, int square, MoveList &moves);
-  void addHorizontalMoves(Board board, int square, MoveList &moves);
-  void addPawnMoves(Board board, MoveList &moves);
-  void addSlidingMoves(Board board, MoveList &moves);
-  void addKnightMoves(Board board, MoveList &moves);
-  void addKingMoves(Board board, MoveList &moves);
-  void addCastlingMoves(Board board, MoveList &moves);
+  void addDiagonalMoves(Board &board, int square, MoveList &moves);
+  void addHorizontalMoves(Board &board, int square, MoveList &moves);
+  void addPawnMoves(Board &board, MoveList &moves);
+  void addSlidingMoves(Board &board, MoveList &moves);
+  void addKnightMoves(Board &board, MoveList &moves);
+  void addKingMoves(Board &board, MoveList &moves);
+  void addCastlingMoves(Board &board, MoveList &moves);
   void filterLegalMoves(Board board, MoveList &moves);
   //testing
   u64 perftTest(Board &b, int depth, bool root = true);
@@ -73,7 +73,7 @@ public:
   u64 rankMasks[8] = {};
   u64 fileMasks[8] = {};
 
-  void generateMoves(Board board, MoveList &moves);
+  void generateMoves(Board &board, MoveList &moves);
   void searchForMagics();
   void saveMagics();
   void loadMagics();

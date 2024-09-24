@@ -11,7 +11,14 @@ Search::Search() {
   fillBishopMoves();
 
 }
-void Search::generateMoves(Board board, MoveList &moves) {
+void Search::generateMoves(Board &board, MoveList &moves) {
+  if(!(board.flags&THREATENED_POPULATED)){
+    board.flags |= THREATENED_POPULATED;
+    generateMoves(board, moves);
+    board.flags ^= WHITE_TO_MOVE_BIT;
+    generateMoves(board, moves);
+    board.flags ^= WHITE_TO_MOVE_BIT;
+  }
   friendlyBitboard = (board.flags & WHITE_TO_MOVE_BIT)
      ? board.bitboards[WHITE_PIECES]
      : board.bitboards[BLACK_PIECES];
@@ -59,7 +66,7 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = false;
 }
 
-void Search::addSlidingMoves(Board board, MoveList &moves) {
+void Search::addSlidingMoves(Board &board, MoveList &moves) {
   u64 horizontalPieces = board.bitboards[color + ROOK] | board.bitboards[color + QUEEN];
   u64 diagonalPieces = board.bitboards[color + BISHOP] | board.bitboards[color + QUEEN];
   while (horizontalPieces) {
@@ -91,7 +98,7 @@ void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte f
   }
 }
 
-void Search::addPawnMoves(Board board, MoveList &moves) {
+void Search::addPawnMoves(Board &board, MoveList &moves) {
   int dir = board.flags & WHITE_TO_MOVE_BIT ? 1 : -1;
   u64 leftFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[7] : fileMasks[0];
   u64 rightFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[0] : fileMasks[7];
@@ -142,7 +149,7 @@ void Search::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
     moves.append(move);
   }
 }
-void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
+void Search::addHorizontalMoves(Board &board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & rookMasks[square];
   u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
   u64 destinations = rookMoves[square][hashed] & (~friendlyBitboard);
@@ -150,7 +157,7 @@ void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
   addMovesToSquares(moves, square, destinations);
 };
 
-void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
+void Search::addDiagonalMoves(Board &board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & bishopMasks[square];
   u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
   u64 destinations = bishopMoves[square][hashed] & (~friendlyBitboard);
@@ -158,7 +165,7 @@ void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
   addMovesToSquares(moves, square, destinations);
 };
 
-void Search::addKnightMoves(Board board, MoveList &moves) {
+void Search::addKnightMoves(Board &board, MoveList &moves) {
   u64 friendlyKnights = board.bitboards[color + KNIGHT];
   while (friendlyKnights) {
     int square = popls1b(friendlyKnights);
@@ -168,14 +175,14 @@ void Search::addKnightMoves(Board board, MoveList &moves) {
   }
 }
 
-void Search::addKingMoves(Board board, MoveList &moves) {
+void Search::addKingMoves(Board &board, MoveList &moves) {
   int square = bitScanForward(board.bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
   board.threatened[threatenedIndex] |= targets;
   addMovesToSquares(moves, square, targets);
 }
 
-void Search::addCastlingMoves(Board board, MoveList &moves){
+void Search::addCastlingMoves(Board &board, MoveList &moves){
   int pathSquares[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
   int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
@@ -193,8 +200,8 @@ void Search::addCastlingMoves(Board board, MoveList &moves){
       }
     }
     if(!legal) continue;
-    Move m;
     if(board.flags&masks[j]){
+      Move m;
       if(j%2 == 0){
         m.setSpecialMoveData(CASTLE_KINGSIDE); 
       }else{
@@ -300,7 +307,7 @@ void Search::fillRookMoves() {
       int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
       for (int direction = 0; direction < 4; direction++) {
         int x = i % 8;
-        int y = floor(i / 8);
+        int y = i / 8;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
           setBit(moves, (y * 8) + x);
           if (getBit(blocker, (y * 8) + x))
@@ -322,7 +329,7 @@ void Search::fillBishopMoves() {
       int directions[4][2] = {{-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
       for (int direction = 0; direction < 4; direction++) {
         int x = i % 8;
-        int y = floor(i / 8);
+        int y = i / 8;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
           setBit(moves, (y * 8) + x);
           if (getBit(blocker, (y * 8) + x))

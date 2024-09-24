@@ -1,4 +1,6 @@
 #include "ui.h"
+#include "debug.h"
+#include <string>
 
 void ConsoleInterface::run(Board &board, Search &search){
   bool quit = false;
@@ -110,13 +112,26 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
   bool isLegal = false;
+  MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){
     if(move.getFrom() == legalMoves.moves[i].getFrom() && move.getTo() == legalMoves.moves[i].getTo()){
       isLegal = true;
       move = legalMoves.moves[i];//assigns proporties like flags
+      variants.append(move);
     }
   }
   if(isLegal){
+    if(variants.end>1){
+      c.output = "This move has multiple variants, choose one\n";
+      for(int i = 0; i<4; i++){
+        Board copy = board;
+        copy.makeMove(variants.moves[i]);
+        c.output.append("\n" + std::to_string(i) + ")\n");
+        c.output.append(debug::printBoard(c.settings, copy));
+      }
+      getNextInput();
+      move = variants.moves[std::stoi(c.lastInput)];
+    }
     board.makeMove(move);
     last = move;
   }else{
