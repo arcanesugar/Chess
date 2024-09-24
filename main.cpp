@@ -1,10 +1,8 @@
 #include <iostream>
 #include <string>
-#include <random>
 
 #include "Board/board.h"
 #include "Search/search.h"
-#include "ui/debug.h"
 #include "ui/ui.h"
 
 int main() {
@@ -17,9 +15,6 @@ int main() {
   std::cout<<"[creating consoleInterface...]\n";
   ConsoleInterface consoleInterface;
   std::cout<<"[beginning consoleInterface...]\n";
-  for(int i = 0; i<4; i++){
-    std::cout<<debug::printBitboard(board.castlingMasks[i])<<std::endl;
-  }
   consoleInterface.run(board, search);
   return 0;
 }

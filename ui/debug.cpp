@@ -92,18 +92,25 @@ std::string debug::printMove(Settings settings, Board const board, Move m){
   return str;
 };
 
-std::string debug::printBitboard(u64 const &bb){
+std::string debug::printBitboard(debug::Settings settings,Board board,u64 const &bb){
   std::string str = "";
+  str.append(" a b c d e f g h\n");
   for(int file = 7; file>=0; file--){
+    str.append(std::to_string(file+1));
     for(int rank = 7; rank>=0; rank--){
-      if(getBit(bb,getSquareIndex(file,rank))){
-        str.append("\x1b[42m");
+      if((file+rank)% 2 == 0){
+        str.append(settings.lightColor);
       }else{
-        str.append("\x1b[41m");
+        str.append(settings.darkColor);
       }
-      str.append("  ");
+      if(getBit(bb, getSquareIndex(file,rank))){
+        str.append("\x1b[45m");
+      }
+      std::string piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
+      str.append(piece + " \x1b[0m");
     }
-    str.append("\x1b[0m\n");
+    str.append("\x1b[0m" + std::to_string(file+1)+ "\n");
   }
+  str.append(" a b c d e f g h\n");
   return str;
 };
