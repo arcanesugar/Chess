@@ -6,6 +6,11 @@ void Board::updateColorBitboards(){
   bitboards[BLACK_PIECES] = bitboards[BLACK+PAWN] | bitboards[BLACK+BISHOP] | bitboards[BLACK+KNIGHT] | bitboards[BLACK+ROOK] | bitboards[BLACK+QUEEN] | bitboards[BLACK+KING];
   occupancy = bitboards[WHITE_PIECES]|bitboards[BLACK_PIECES];
 }
+bool Board::validate(){
+  if(bitScanForward(bitboards[WHITE+KING]) == -1) return false;
+  if(bitScanForward(bitboards[BLACK+KING]) == -1) return false;
+  return true;
+}
 void Board::loadFromFEN(std::string fen){
   std::string parsed[6];
   int index = 0;
@@ -114,6 +119,9 @@ void Board::makeMove(Move &m){
 
   byte to = m.getTo();
   byte from = m.getFrom();
+  if(from < color){
+    //std::cout<<"WRONG COLOR\n";
+  }
   if(m.isPromotion()){
     resetBit(bitboards[squares[from]], from);
     setBit(bitboards[color+m.getPromotionPiece()],from);

@@ -192,7 +192,7 @@ void ConsoleInterface::displaySettings(){
 }
 
 void ConsoleInterface::showDebugView(Board &board){
-  c.output.append(debug::printBoard(c.settings,board));
+  c.printBoard = false;
   for(int i = 0; i<14; i++){
     c.output.append(debug::printBitboard(c.settings, board, board.bitboards[i]));
     c.output.append("\n");

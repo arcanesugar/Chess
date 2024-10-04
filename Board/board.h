@@ -90,4 +90,6 @@ struct Board{
   void unmakeMove(Move &m);
   void loadFromFEN(std::string fen);
   void updateColorBitboards();
+
+  bool validate();//checks if the position is valid
 };

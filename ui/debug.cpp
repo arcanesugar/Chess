@@ -7,7 +7,7 @@ void debug::Settings::setASCIIPieces(){
   }
 };
 void debug::Settings::setUnicodePieces(){
-  std::string u[13] = {"♙","♗","♘","♖","♕","♔","\x1b[1m♟","♝","♞","♜","♛","♚"," "};
+  std::string u[13] = {"♙","♗","♘","♖","♕","♔","♟","♝","♞","♜","♛","♚"," "};
   int i = 0; 
   for(std::string p : u){
     pieceCharacters[i++] = p;

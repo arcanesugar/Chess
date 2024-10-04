@@ -12,6 +12,10 @@ Search::Search() {
 
 }
 void Search::generateMoves(Board &board, MoveList &moves) {
+  if(!board.validate()) {
+    std::cout<<"Board is invalid"<<std::endl;
+    return;
+  }
   if(!(board.flags&THREATENED_POPULATED)){
     board.flags |= THREATENED_POPULATED;
     generateMoves(board, moves);
@@ -43,21 +47,11 @@ void Search::generateMoves(Board &board, MoveList &moves) {
 void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = true;
   byte friendlyColor = color;
+  byte opponentColor = (color == WHITE)? BLACK : WHITE;
   for(int i = moves.end-1; i>=0; i--){
     board.makeMove(moves.moves[i]);
     byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
-    MoveList responses;
-    generateMoves(board, responses);
-    bool isLegal = true;
-    for(int j = 0; j < responses.end; j++){
-      if(responses.moves[j].isKingside() || responses.moves[j].isQueenside()){
-        continue;
-      }
-      if(responses.moves[j].getTo() == kingSquare){
-        isLegal = false;
-        break;
-      }
-    }
+    bool isLegal = !isAttacked(board, kingSquare, opponentColor);
     board.unmakeMove(moves.moves[i]);
     if(!isLegal){
        moves.remove(i);
@@ -66,6 +60,40 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = false;
 }
 
+bool Search::isAttacked(Board const &board, byte square, byte opponentColor){
+  //attacked by knight
+  u64 possibleKnights = knightMoves[square];
+  if(possibleKnights&board.bitboards[KNIGHT+opponentColor]) return true;
+  
+  //attacked by king
+  u64 possibleKings = kingMoves[square];
+  if(possibleKings & board.bitboards[KING+opponentColor]) return true;
+  //attacked by sliders
+  u64 blockers = board.occupancy & rookMasks[square];
+  u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
+  u64 possibleRooks = rookMoves[square][hashed];
+  if(possibleRooks&board.bitboards[ROOK+opponentColor]) return true;
+
+  blockers = board.occupancy & bishopMasks[square];
+  hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
+  u64 possibleBishops = bishopMoves[square][hashed];
+  if(possibleBishops&board.bitboards[BISHOP+opponentColor]) return true;
+
+  if((possibleBishops|possibleRooks)&board.bitboards[QUEEN+opponentColor]) return true;
+  
+  //attacked by pawn
+  u64 possiblePawns = u64(0);
+  if(opponentColor == BLACK){
+    if(square%8 != 7)setBit(possiblePawns, square+9);
+    if(square%8 != 0)setBit(possiblePawns, square+7);
+  }else{
+    if(square%8 != 0)setBit(possiblePawns, square-9);
+    if(square%8 != 7)setBit(possiblePawns, square-7);
+  }
+  if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
+  
+  return false;
+}
 void Search::addSlidingMoves(Board &board, MoveList &moves) {
   u64 horizontalPieces = board.bitboards[color + ROOK] | board.bitboards[color + QUEEN];
   u64 diagonalPieces = board.bitboards[color + BISHOP] | board.bitboards[color + QUEEN];
@@ -183,6 +211,7 @@ void Search::addKingMoves(Board &board, MoveList &moves) {
 }
 
 void Search::addCastlingMoves(Board &board, MoveList &moves){
+  byte opponentColor = (color == WHITE)? BLACK : WHITE;
   int pathSquares[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
   int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
@@ -194,7 +223,7 @@ void Search::addCastlingMoves(Board &board, MoveList &moves){
         legal = false;
         break;
       }
-      if(getBit(board.threatened[!threatenedIndex],s)){
+      if(isAttacked(board, s, opponentColor)){
         legal = false;
         break;
       }
@@ -346,11 +375,13 @@ void Search::fillBishopMoves() {
 
 
 u64 Search::perftTest(Board &b, int depth, bool root){
+  if(!b.validate()) return 0;
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
   generateMoves(b, moves);
   for(byte i = 0; i<moves.end;i++){
+    
     b.makeMove(moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
     if(root){
