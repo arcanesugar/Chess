@@ -49,8 +49,11 @@ void ConsoleInterface::undoLastMove(Board &board){
   if(history.empty()){
     c.output = "No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m";
     return;
-  } 
-  board.unmakeMove(history.top());
+  }
+  Move m = history.top();
+  c.output.append(debug::printMove(c.settings,board, m));
+  c.printBoard = false;
+  board.unmakeMove(m);
   history.pop();
 }
 byte ConsoleInterface::squareNameToIndex(std::string squareName) {
