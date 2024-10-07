@@ -84,7 +84,6 @@ struct Board{
   byte enPassanTarget = EN_PASSAN_NULL;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
-  const u64 castlingMasks[4] = {1792U,57344U,1970324836974592U,63050394783186944U};
   
   void makeMove(Move &m);
   void unmakeMove(Move &m);

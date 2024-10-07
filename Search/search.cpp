@@ -245,9 +245,8 @@ void Search::addCastlingMoves(Board &board, MoveList &moves){
   }
 
 }
-// Generate Masks, Move Lookups, ect
-//Only need to run once, but should still be understandable
-
+//Generate Masks, Move Lookups, ect
+//Only need to run once
 
 void Search::generateRankMasks() {
   for (int i = 0; i < 8; i++) {
