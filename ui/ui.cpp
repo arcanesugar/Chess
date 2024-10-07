@@ -17,21 +17,21 @@ void ConsoleInterface::run(Board &board, Search &search){
     if(input == "sch") search.searchForMagics();
     if(input == "tst") search.runMoveGenerationTest(board);
     if(input == "mgs") search.runMoveGenerationSuite();
-    if(input == "und") board.unmakeMove(last);
+    if(input == "und") undoLastMove(board); 
     if(input == "dbg") showDebugView(board);
-    if(input == "q") quit = true;
+    if(input == "q" || input == "quit" || input == "exit") quit = true;
 
     if(input == "ks"){
       Move m;
       m.setSpecialMoveData(CASTLE_KINGSIDE);
       board.makeMove(m);
-      last = m;
+      history.push(m);
     }
     if(input == "qs"){
       Move m;
       m.setSpecialMoveData(CASTLE_QUEENSIDE);
       board.makeMove(m);
-      last = m;
+      history.push(m);
     }
   }
 }
@@ -45,6 +45,14 @@ void ConsoleInterface::getNextInput() {
   c.printBoard = true;
 }
 
+void ConsoleInterface::undoLastMove(Board &board){
+  if(history.empty()){
+    c.output = "No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m";
+    return;
+  } 
+  board.unmakeMove(history.top());
+  history.pop();
+}
 byte ConsoleInterface::squareNameToIndex(std::string squareName) {
   byte squareIndex =
       ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
@@ -86,7 +94,7 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
   board.makeMove(move);
-  last = move;
+  history.push(move);
   c.output = debug::printMove(c.settings, board, move);
   c.printBoard = false;
 }
@@ -133,13 +141,13 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
       move = variants.moves[std::stoi(c.lastInput)];
     }
     board.makeMove(move);
-    last = move;
+    history.push(move);
   }else{
     c.output = "This move is not legal, continue? (y/N)\n";
     getNextInput();
     if(c.lastInput == "y"){
       board.makeMove(move);
-      last = move;
+      history.push(move);
     }
   }
   c.output = debug::printMove(c.settings, board, move);

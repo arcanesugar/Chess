@@ -378,7 +378,7 @@ void Search::fillBishopMoves() {
 
 
 u64 Search::perftTest(Board &b, int depth, bool root){
-  if(!b.validate()) return 0;
+  if(!b.validate()) {debug::Settings s;std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;return 0;}
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;

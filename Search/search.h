@@ -20,7 +20,6 @@ struct MoveList{
 };
 
 class Search{
-  
   u64 rookMasks[64];
   u64 bishopMasks[64];
   u64 knightMoves[64];

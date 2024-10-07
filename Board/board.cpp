@@ -224,7 +224,6 @@ void Board::unmakeMove(Move &m){
     updateColorBitboards();
     return;
   }
-  //color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   //move piece back
   byte to = m.getTo();
   byte from = m.getFrom();
