@@ -212,17 +212,21 @@ void Search::addKingMoves(Board &board, MoveList &moves) {
 
 void Search::addCastlingMoves(Board &board, MoveList &moves){
   byte opponentColor = (color == WHITE)? BLACK : WHITE;
-  int pathSquares[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
+  int mustBeEmpty[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
+  int mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
   int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
   int max = i+2;
   for(int j = i; j<max; j++){
     bool legal = true; 
-    for(int s : pathSquares[j]){
+    for(int s : mustBeEmpty[j]){
       if(board.squares[s] != EMPTY){
         legal = false;
         break;
       }
+    }
+    if(!legal) continue;
+    for(int s : mustBeSafe[j]){
       if(isAttacked(board, s, opponentColor)){
         legal = false;
         break;
@@ -395,8 +399,25 @@ u64 Search::perftTest(Board &b, int depth, bool root){
       fromStr.append(std::to_string((moves.moves[i].getFrom()/8)+1));
       toStr.append(std::to_string((moves.moves[i].getTo()/8)+1));
       
-      std::cout<<"["<<fromStr<<"->"<<toStr<<"] : ";
-      std::cout<<found<<"\x1b[0m"<<std::endl;
+      std::cout<<"\x1b[0m"<<"["<<fromStr<<"->"<<toStr<<"]";
+      if(moves.moves[i].isPromotion()){
+        switch(moves.moves[i].getPromotionPiece()%6){
+          case BISHOP:
+            std::cout<<"b";
+          break;
+          case ROOK:
+            std::cout<<"r";
+          break;
+          case KNIGHT:
+            std::cout<<"n";
+          break;
+          case QUEEN:
+            std::cout<<"q";
+          break;
+        }
+      }else{std::cout<<" ";}//line everything up nicely
+      std::cout<<": ";
+      std::cout<<found<<std::endl;
     }
     count += found;
     b.unmakeMove(moves.moves[i]);
