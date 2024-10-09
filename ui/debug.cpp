@@ -105,13 +105,13 @@ std::string debug::moveToStr(Move m, bool expanded){
   return str;
 };
 std::string debug::printBoard(Settings settings, Board const &board, u64 highlighted){
-  if(board.enPassanTarget != EN_PASSAN_NULL){
-    std::cout<<"En Passan is possible at square "<<std::to_string(board.enPassanTarget)<<"\n";
-  }
-  if(!board.validate()){
-    std::cout<<"\x1b[31m[error]Board is invalid\x1b[0m"<<"\n";
-  }
   std::string str = "";
+  if(!board.validate()){
+    str.append("\x1b[31m[error]Board is invalid\x1b[0m\n");
+  }
+  if(board.enPassanTarget != EN_PASSAN_NULL){
+    str.append("En Passan is possible at square "+std::to_string(board.enPassanTarget)+"\n");
+  }
   str.append(" a b c d e f g h\n");
   for(int file = 7; file>=0; file--){
     str.append(std::to_string(file+1));

@@ -87,7 +87,7 @@ bool Search::isAttacked(Board const &board, byte square, byte opponentColor){
     if(square%8 != 7)setBit(possiblePawns, square+9);
     if(square%8 != 0)setBit(possiblePawns, square+7);
   }
-  //if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
+  if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
   
   return false;
 }
@@ -209,6 +209,7 @@ void Search::addKingMoves(Board &board, MoveList &moves) {
 
 void Search::addCastlingMoves(Board &board, MoveList &moves){
   byte opponentColor = (color == WHITE)? BLACK : WHITE;
+  if(isAttacked(board,(byte)bitScanForward(board.bitboards[color+KING]),opponentColor)) return;//cannot castle out of check
   int mustBeEmpty[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
   int mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
@@ -375,11 +376,11 @@ void Search::fillBishopMoves() {
 
 
 u64 Search::perftTest(Board &b, int depth, bool root){
-  if(!b.validate()) {
+  /*if(!b.validate()) {
     debug::Settings s;
     std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;
     return 0;
-  }
+  }*/
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
@@ -388,17 +389,8 @@ u64 Search::perftTest(Board &b, int depth, bool root){
     b.makeMove(moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
     b.unmakeMove(moves.moves[i]);
-    
-    if(found == 0){
-      debug::Settings s;
-      std::cout<<debug::moveToStr(moves.moves[i],true)<<"\n";
-      std::cout<<debug::printMove(s, b,moves.moves[i])<<"\n";
-      return 0;
-    }
     if(root){
-      std::cout<<debug::moveToStr(moves.moves[i]);
-      std::cout<<": ";
-      std::cout<<found<<std::endl;
+      std::cout<<debug::moveToStr(moves.moves[i])<<" : "<<found<<std::endl;
     }
     count += found;
   }

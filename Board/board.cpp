@@ -6,12 +6,10 @@ void Board::updateColorBitboards(){
   bitboards[BLACK_PIECES] = bitboards[BLACK+PAWN] | bitboards[BLACK+BISHOP] | bitboards[BLACK+KNIGHT] | bitboards[BLACK+ROOK] | bitboards[BLACK+QUEEN] | bitboards[BLACK+KING];
   occupancy = bitboards[WHITE_PIECES]|bitboards[BLACK_PIECES];
 }
-bool Board::validate() const{
+bool Board::validate() const{//Way too expensive to use ouside of debugging
   if(bitScanForward(bitboards[WHITE+KING]) == -1) return false;
   if(bitScanForward(bitboards[BLACK+KING]) == -1) return false;
-  //return true;
-  
-  //count pawns
+  if(enPassanTarget == 1) return false;
   int white = 0;
   u64 whitebb = bitboards[WHITE+PAWN];
   while(whitebb){
@@ -99,11 +97,10 @@ void Board::loadFromFEN(std::string fen){
 
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  m.setCastlingRights(flags>>1);
+  m.setCastlingRights((flags&(0b00011110))>>1);
+  m.setEnPassanTarget(enPassanTarget);
+  enPassanTarget = EN_PASSAN_NULL;
   if(m.isKingside()){
-    m.setEnPassanTarget(enPassanTarget);
-    enPassanTarget = EN_PASSAN_NULL;
-    
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -125,9 +122,6 @@ void Board::makeMove(Move &m){
     return;
   }
   if(m.isQueenside()){
-    m.setEnPassanTarget(enPassanTarget);
-    enPassanTarget = EN_PASSAN_NULL;
-    
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -197,8 +191,6 @@ void Board::makeMove(Move &m){
   }
   
   //Update en passan target
-  m.setEnPassanTarget(enPassanTarget);
-  enPassanTarget = EN_PASSAN_NULL;
   if(fromPiece == PAWN || fromPiece == BLACK+PAWN){
     if(std::abs(to-from)>9){//double forward move
       enPassanTarget = to;
@@ -216,6 +208,7 @@ void Board::makeMove(Move &m){
 
 void Board::unmakeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? BLACK : WHITE;
+  enPassanTarget = m.getEnPassanTarget();
   if(m.isKingside()){
     flags ^= WHITE_TO_MOVE_BIT;
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
@@ -230,7 +223,6 @@ void Board::unmakeMove(Move &m){
     squares[2+offset] = EMPTY;
     squares[0+offset] = color+ROOK;
 
-    enPassanTarget = m.getEnPassanTarget();
     flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     flags  |= m.getCastlingRights()<<1;
     updateColorBitboards();
@@ -250,21 +242,23 @@ void Board::unmakeMove(Move &m){
     squares[4+offset] = EMPTY;
     squares[7+offset] = color+ROOK;
 
-    enPassanTarget = m.getEnPassanTarget();
     flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     flags  |= m.getCastlingRights()<<1;
     updateColorBitboards();
     return;
   }
-  //move piece back
+
   byte to = m.getTo();
   byte from = m.getFrom();
+
+  //if piece was promoted, turn it back to a pawn
   if(m.isPromotion()){
     resetBit(bitboards[squares[to]], to);
     setBit(bitboards[PAWN+color],to);
     squares[to] = PAWN + color; 
   }
   
+  //move piece back
   byte pieceOnToSquare = squares[to];
   squares[from] = squares[to];
   setBit(bitboards[pieceOnToSquare],from);
@@ -284,7 +278,6 @@ void Board::unmakeMove(Move &m){
   }
 
   //restore board state
-  enPassanTarget = m.getEnPassanTarget();
   flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
   flags  |= m.getCastlingRights()<<1;
   flags ^= WHITE_TO_MOVE_BIT;
