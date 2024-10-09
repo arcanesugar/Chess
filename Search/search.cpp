@@ -12,10 +12,6 @@ Search::Search() {
 
 }
 void Search::generateMoves(Board &board, MoveList &moves) {
-  if(!board.validate()) {
-    std::cout<<"Board is invalid"<<std::endl;
-    return;
-  }
   if(!(board.flags&THREATENED_POPULATED)){
     board.flags |= THREATENED_POPULATED;
     generateMoves(board, moves);
@@ -53,6 +49,7 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
     byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
     bool isLegal = !isAttacked(board, kingSquare, opponentColor);
     board.unmakeMove(moves.moves[i]);
+    moves.moves[i].resetUnmakeData();
     if(!isLegal){
        moves.remove(i);
     }
@@ -83,14 +80,14 @@ bool Search::isAttacked(Board const &board, byte square, byte opponentColor){
   
   //attacked by pawn
   u64 possiblePawns = u64(0);
-  if(opponentColor == BLACK){
-    if(square%8 != 7)setBit(possiblePawns, square+9);
-    if(square%8 != 0)setBit(possiblePawns, square+7);
-  }else{
+  if(opponentColor == WHITE){
     if(square%8 != 0)setBit(possiblePawns, square-9);
     if(square%8 != 7)setBit(possiblePawns, square-7);
+  }else{
+    if(square%8 != 7)setBit(possiblePawns, square+9);
+    if(square%8 != 0)setBit(possiblePawns, square+7);
   }
-  if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
+  //if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
   
   return false;
 }
@@ -378,48 +375,32 @@ void Search::fillBishopMoves() {
 
 
 u64 Search::perftTest(Board &b, int depth, bool root){
-  if(!b.validate()) {debug::Settings s;std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;return 0;}
+  if(!b.validate()) {
+    debug::Settings s;
+    std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;
+    return 0;
+  }
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
   generateMoves(b, moves);
   for(byte i = 0; i<moves.end;i++){
-    
     b.makeMove(moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
+    b.unmakeMove(moves.moves[i]);
+    
+    if(found == 0){
+      debug::Settings s;
+      std::cout<<debug::moveToStr(moves.moves[i],true)<<"\n";
+      std::cout<<debug::printMove(s, b,moves.moves[i])<<"\n";
+      return 0;
+    }
     if(root){
-      std::string fromStr = "";
-      std::string toStr = "";
-      if(moves.moves[i].isKingside() || moves.moves[i].isQueenside()){
-        fromStr.append("\x1b[33m");
-      }
-      fromStr.push_back('h'-(moves.moves[i].getFrom()%8));
-      toStr.push_back('h'-(moves.moves[i].getTo()%8));
-      fromStr.append(std::to_string((moves.moves[i].getFrom()/8)+1));
-      toStr.append(std::to_string((moves.moves[i].getTo()/8)+1));
-      
-      std::cout<<"\x1b[0m"<<"["<<fromStr<<"->"<<toStr<<"]";
-      if(moves.moves[i].isPromotion()){
-        switch(moves.moves[i].getPromotionPiece()%6){
-          case BISHOP:
-            std::cout<<"b";
-          break;
-          case ROOK:
-            std::cout<<"r";
-          break;
-          case KNIGHT:
-            std::cout<<"n";
-          break;
-          case QUEEN:
-            std::cout<<"q";
-          break;
-        }
-      }else{std::cout<<" ";}//line everything up nicely
+      std::cout<<debug::moveToStr(moves.moves[i]);
       std::cout<<": ";
       std::cout<<found<<std::endl;
     }
     count += found;
-    b.unmakeMove(moves.moves[i]);
   }
   return count;
 }
@@ -430,6 +411,7 @@ void Search::runMoveGenerationTest(Board &board){
   for(int i = 1; i<5; i++){
     std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
     u64 found = perftTest(board,i);
+    if(found == 0) return;
     std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;
   }
 }

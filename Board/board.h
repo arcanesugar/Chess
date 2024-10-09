@@ -73,6 +73,9 @@ inline byte getEnPassanTarget(){ return (unmakeData & EN_PASSAN_TARGET_MASK )>>6
 inline byte getCastlingRights(){return (unmakeData & CASTLING_RIGHTS_MASK)>>2;}
 inline byte getCapturedPiece(){return unmakeData>>12;}
 
+unsigned short getUnmakeData(){return unmakeData;}
+unsigned short getMoveData(){return move;}
+inline void resetUnmakeData(){unmakeData = (unsigned short)0;}
 };
 
 int getSquareIndex(int file, int rank);
@@ -90,5 +93,5 @@ struct Board{
   void loadFromFEN(std::string fen);
   void updateColorBitboards();
 
-  bool validate();//checks if the position is valid
+  bool validate() const;//checks if the position is valid
 };

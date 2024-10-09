@@ -51,9 +51,11 @@ void ConsoleInterface::undoLastMove(Board &board){
     return;
   }
   Move m = history.top();
+  board.unmakeMove(m);
+  
   c.output.append(debug::printMove(c.settings,board, m));
   c.printBoard = false;
-  board.unmakeMove(m);
+  
   history.pop();
 }
 byte ConsoleInterface::squareNameToIndex(std::string squareName) {
@@ -78,7 +80,8 @@ void ConsoleInterface::showHelpMenu(){
       + "  hlp/help - Show this list\n"
       + "  tst - Run move generation test on current position\n"
       + "  mgs - Run move generation test suite\n"
-      + "  q - Quit\n");
+      + "  q - Quit\n"
+      + "Note that if no command is entered, the last command given is repeated");
 }
 void ConsoleInterface::whosTurnIsIt(Board &board){
   if (board.flags & WHITE_TO_MOVE_BIT) {
@@ -96,7 +99,9 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
     return;
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
+  std::cout<<debug::moveToStr(move,true)<<"\n";
   board.makeMove(move);
+  std::cout<<debug::moveToStr(move,true)<<"\n";
   history.push(move);
   c.output = debug::printMove(c.settings, board, move);
   c.printBoard = false;
@@ -134,7 +139,7 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   if(isLegal){
     if(variants.end>1){
       c.output = "This move has multiple variants, choose one\n";
-      for(int i = 0; i<4; i++){
+      for(int i = 0; i<variants.end; i++){
         Board copy = board;
         copy.makeMove(variants.moves[i]);
         c.output.append("\n" + std::to_string(i) + ")\n");

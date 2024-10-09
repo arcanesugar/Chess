@@ -6,9 +6,35 @@ void Board::updateColorBitboards(){
   bitboards[BLACK_PIECES] = bitboards[BLACK+PAWN] | bitboards[BLACK+BISHOP] | bitboards[BLACK+KNIGHT] | bitboards[BLACK+ROOK] | bitboards[BLACK+QUEEN] | bitboards[BLACK+KING];
   occupancy = bitboards[WHITE_PIECES]|bitboards[BLACK_PIECES];
 }
-bool Board::validate(){
+bool Board::validate() const{
   if(bitScanForward(bitboards[WHITE+KING]) == -1) return false;
   if(bitScanForward(bitboards[BLACK+KING]) == -1) return false;
+  //return true;
+  
+  //count pawns
+  int white = 0;
+  u64 whitebb = bitboards[WHITE+PAWN];
+  while(whitebb){
+    white++;
+    popls1b(whitebb);
+  }
+  int black = 0;
+  u64 blackbb = bitboards[BLACK+PAWN];
+  while(blackbb){
+    black++;
+    popls1b(blackbb);
+  }
+  if(white>8) return false;
+  if(black>8) return false;
+
+  //make sure piecewise lookup table is correct
+  for(int i = 0; i <64; i++){
+    for(int j = 0; j<= BLACK+KING;j++){
+      if(getBit(bitboards[j],i)){
+        if(squares[i] != j) return false;
+      }
+    }
+  }
   return true;
 }
 void Board::loadFromFEN(std::string fen){
@@ -75,6 +101,9 @@ void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   m.setCastlingRights(flags>>1);
   if(m.isKingside()){
+    m.setEnPassanTarget(enPassanTarget);
+    enPassanTarget = EN_PASSAN_NULL;
+    
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -96,6 +125,9 @@ void Board::makeMove(Move &m){
     return;
   }
   if(m.isQueenside()){
+    m.setEnPassanTarget(enPassanTarget);
+    enPassanTarget = EN_PASSAN_NULL;
+    
     //this side can no longer castle
     if(color == WHITE) flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
