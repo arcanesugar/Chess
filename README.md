@@ -3,7 +3,7 @@ A c++ chess program that runs in the console
 ## UI
 A list of commands can be accessed with "h" or "help"\
 If pieces are not displating properly, try switching to ASCII with ">>dsp"\
-Commands are case sensetive and must match exactly, or they will not be recognised\
+Commands are case sensetive\
 When no command is entered, the last is repeated
   
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
@@ -14,7 +14,7 @@ UCI is not supported yet
     - Move generator now functional
     - UI was refactored
     - Debug was refactored
-    - Move representation now only takes up 4 bytes
+    - Move representation changed
     - Added magic bitboards for sliding pieces
     - Perft functions added(tst, mgs)
     - Check detection no longer has to call a search
