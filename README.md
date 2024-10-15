@@ -14,7 +14,7 @@ UCI is not supported yet
     - Move generator now functional
     - UI was refactored
     - Debug was refactored
-    - Move representation changed
+    - Move representation changed to only use 4 bytes
     - Added magic bitboards for sliding pieces
     - Perft functions added(tst, mgs)
     - Check detection no longer has to call a search
