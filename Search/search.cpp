@@ -11,7 +11,14 @@ Search::Search() {
   fillBishopMoves();
 
 }
-void Search::generateMoves(Board board, MoveList &moves) {
+void Search::generateMoves(Board &board, MoveList &moves) {
+  if(!(board.flags&THREATENED_POPULATED)){
+    board.flags |= THREATENED_POPULATED;
+    generateMoves(board, moves);
+    board.flags ^= WHITE_TO_MOVE_BIT;
+    generateMoves(board, moves);
+    board.flags ^= WHITE_TO_MOVE_BIT;
+  }
   friendlyBitboard = (board.flags & WHITE_TO_MOVE_BIT)
      ? board.bitboards[WHITE_PIECES]
      : board.bitboards[BLACK_PIECES];
@@ -20,6 +27,8 @@ void Search::generateMoves(Board board, MoveList &moves) {
      : board.bitboards[WHITE_PIECES];
 
   color = (board.flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
+  threatenedIndex = (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 1;
+  board.threatened[threatenedIndex] = (u64)0;
   moves.end = 0;
   addPawnMoves(board, moves);
   addSlidingMoves(board, moves);
@@ -33,19 +42,14 @@ void Search::generateMoves(Board board, MoveList &moves) {
 
 void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = true;
-  for(int i = moves.end; i>=0; i--){
+  byte friendlyColor = color;
+  byte opponentColor = (color == WHITE)? BLACK : WHITE;
+  for(int i = moves.end-1; i>=0; i--){
     board.makeMove(moves.moves[i]);
-    byte kingSquare = popls1b(board.bitboards[color+KING]);
-    MoveList responses;
-    generateMoves(board, responses);
-    bool isLegal = true;
-    for(Move response : responses.moves){
-      if(response.to == kingSquare){
-        isLegal = false;
-        break;
-      }
-    }
+    byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
+    bool isLegal = !isAttacked(board, kingSquare, opponentColor);
     board.unmakeMove(moves.moves[i]);
+    moves.moves[i].resetUnmakeData();
     if(!isLegal){
        moves.remove(i);
     }
@@ -53,7 +57,41 @@ void Search::filterLegalMoves(Board board, MoveList &moves){
   inFilter = false;
 }
 
-void Search::addSlidingMoves(Board board, MoveList &moves) {
+bool Search::isAttacked(Board const &board, byte square, byte opponentColor){
+  //attacked by knight
+  u64 possibleKnights = knightMoves[square];
+  if(possibleKnights&board.bitboards[KNIGHT+opponentColor]) return true;
+  
+  //attacked by king
+  u64 possibleKings = kingMoves[square];
+  if(possibleKings & board.bitboards[KING+opponentColor]) return true;
+  //attacked by sliders
+  u64 blockers = board.occupancy & rookMasks[square];
+  u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
+  u64 possibleRooks = rookMoves[square][hashed];
+  if(possibleRooks&board.bitboards[ROOK+opponentColor]) return true;
+
+  blockers = board.occupancy & bishopMasks[square];
+  hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
+  u64 possibleBishops = bishopMoves[square][hashed];
+  if(possibleBishops&board.bitboards[BISHOP+opponentColor]) return true;
+
+  if((possibleBishops|possibleRooks)&board.bitboards[QUEEN+opponentColor]) return true;
+  
+  //attacked by pawn
+  u64 possiblePawns = u64(0);
+  if(opponentColor == WHITE){
+    if(square%8 != 0)setBit(possiblePawns, square-9);
+    if(square%8 != 7)setBit(possiblePawns, square-7);
+  }else{
+    if(square%8 != 7)setBit(possiblePawns, square+9);
+    if(square%8 != 0)setBit(possiblePawns, square+7);
+  }
+  if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
+  
+  return false;
+}
+void Search::addSlidingMoves(Board &board, MoveList &moves) {
   u64 horizontalPieces = board.bitboards[color + ROOK] | board.bitboards[color + QUEEN];
   u64 diagonalPieces = board.bitboards[color + BISHOP] | board.bitboards[color + QUEEN];
   while (horizontalPieces) {
@@ -64,159 +102,149 @@ void Search::addSlidingMoves(Board board, MoveList &moves) {
   }
 }
 
-void Search::addPawnMoves(Board board, MoveList &moves) {
+void Search::addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
+  while (targets) {
+    byte to = popls1b(targets);
+    if(to<8 || to>55){ 
+      for(int i = BISHOP; i<= QUEEN;i++){
+        Move move;
+        move.setTo(to);
+        move.setFrom(to + offset);
+        move.setPromotion(i);
+        moves.append(move);
+      }
+      continue;
+    }
+    Move move;
+    move.setTo(to);
+    move.setFrom(to + offset);
+    move.setSpecialMoveData(flags);
+    moves.append(move);
+  }
+}
+
+void Search::addPawnMoves(Board &board, MoveList &moves) {
   int dir = board.flags & WHITE_TO_MOVE_BIT ? 1 : -1;
+  u64 leftFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[7] : fileMasks[0];
+  u64 rightFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[0] : fileMasks[7];
+  u64 startRank = (board.flags & WHITE_TO_MOVE_BIT ? rankMasks[1] : rankMasks[6]);
   // forward pawn moves
   u64 pawnDestinations = signedShift(board.bitboards[color + PAWN], 8 * dir);
   pawnDestinations &= ~board.occupancy;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (8 * dir);
-    moves.append(move);
-  }
+  addMovesFromOffset(moves, -8*dir, pawnDestinations);
+  
   // double forward moves
-  pawnDestinations =
-      board.bitboards[color + PAWN] &
-      (board.flags & WHITE_TO_MOVE_BIT ? rankMasks[1] : rankMasks[6]);
-  pawnDestinations = signedShift(pawnDestinations, 16 * dir);
+  pawnDestinations = board.bitboards[color + PAWN] & startRank;
+  pawnDestinations = signedShift(pawnDestinations, 8 * dir);
   pawnDestinations &=  ~board.occupancy;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (16 * dir);
-    moves.append(move);
-  }
+  pawnDestinations = signedShift(pawnDestinations, 8 * dir);
+  pawnDestinations &=  ~board.occupancy;
+  addMovesFromOffset(moves, -16*dir, pawnDestinations);
 
   // pawn captures
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
-  pawnDestinations &=
-      (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[7] : ~fileMasks[0];
-  pawnDestinations &= enemyBitboard;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (7 * dir);
-    moves.append(move);
-  }
+  pawnDestinations &= ~leftFileMask & enemyBitboard;
+  board.threatened[threatenedIndex] |= pawnDestinations;
+  addMovesFromOffset(moves, -7*dir, pawnDestinations);
 
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
-  pawnDestinations &=
-      (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[0] : ~fileMasks[7];
-  pawnDestinations &= enemyBitboard;
-  while (pawnDestinations) {
-    Move move;
-    move.to = popls1b(pawnDestinations);
-    move.from = move.to - (9 * dir);
-    moves.append(move);
-  }
+  pawnDestinations &= ~rightFileMask & enemyBitboard;
+  board.threatened[threatenedIndex] |= pawnDestinations;
+  addMovesFromOffset(moves, -9*dir, pawnDestinations);
 
   //En Passan
-  if(board.enPassanTarget != 255){
-    pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
-    pawnDestinations &=
-        (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[0] : ~fileMasks[7];
-    pawnDestinations &= (u64)1<<board.enPassanTarget;
-    while (pawnDestinations) {
-      Move move;
-      move.flags |= EN_PASSAN_BIT;
-      move.to = popls1b(pawnDestinations);
-      move.from = move.to - (9 * dir);
-      moves.append(move);
-    }
-
+  if(board.enPassanTarget != EN_PASSAN_NULL){
     pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
-    pawnDestinations &=
-        (board.flags & WHITE_TO_MOVE_BIT) ? ~fileMasks[7] : ~fileMasks[0];
+    pawnDestinations &= ~leftFileMask;
     pawnDestinations &= (u64)1<<board.enPassanTarget;
-    while (pawnDestinations) {
-      Move move;
-      move.flags |= EN_PASSAN_BIT;
-      move.to = popls1b(pawnDestinations);
-      move.from = move.to - (7 * dir);
-      moves.append(move);
-    }
+    addMovesFromOffset(moves, -7*dir, pawnDestinations, EN_PASSAN);
+
+    pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
+    pawnDestinations &= ~rightFileMask;
+    pawnDestinations &= (u64)1<<board.enPassanTarget;
+    addMovesFromOffset(moves, -9*dir, pawnDestinations,EN_PASSAN);
   }
 }
 
 void Search::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
   while (squares) {
     Move move;
-    move.to = popls1b(squares);
-    move.from = fromSquare;
+    move.setTo(popls1b(squares));
+    move.setFrom(fromSquare);
     moves.append(move);
   }
 }
-void Search::addHorizontalMoves(Board board, int square, MoveList &moves) {
+void Search::addHorizontalMoves(Board &board, int square, MoveList &moves) {
   u64 blockers = board.occupancy & rookMasks[square];
   u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
   u64 destinations = rookMoves[square][hashed] & (~friendlyBitboard);
-  addMovesToSquares(moves, square, destinations);
-};
-void Search::addDiagonalMoves(Board board, int square, MoveList &moves) {
-  u64 blockers = board.occupancy & bishopMasks[square];
-  u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
-  u64 destinations = bishopMoves[square][hashed] & (~friendlyBitboard);
+  board.threatened[threatenedIndex] |= destinations;
   addMovesToSquares(moves, square, destinations);
 };
 
-void Search::addKnightMoves(Board board, MoveList &moves) {
+void Search::addDiagonalMoves(Board &board, int square, MoveList &moves) {
+  u64 blockers = board.occupancy & bishopMasks[square];
+  u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
+  u64 destinations = bishopMoves[square][hashed] & (~friendlyBitboard);
+  board.threatened[threatenedIndex] |= destinations;
+  addMovesToSquares(moves, square, destinations);
+};
+
+void Search::addKnightMoves(Board &board, MoveList &moves) {
   u64 friendlyKnights = board.bitboards[color + KNIGHT];
   while (friendlyKnights) {
     int square = popls1b(friendlyKnights);
     u64 targets = knightMoves[square] & (~friendlyBitboard);
+    board.threatened[threatenedIndex] |= targets;
     addMovesToSquares(moves, square, targets);
   }
 }
 
-void Search::addKingMoves(Board board, MoveList &moves) {
-  int square = popls1b(board.bitboards[color + KING]);
+void Search::addKingMoves(Board &board, MoveList &moves) {
+  int square = bitScanForward(board.bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
+  board.threatened[threatenedIndex] |= targets;
   addMovesToSquares(moves, square, targets);
 }
 
-void Search::addCastlingMoves(Board board, MoveList &moves){
-  bool kingside,queenside;
-  if(board.flags&WHITE_TO_MOVE_BIT){
-    kingside = board.flags&WHITE_KINGSIDE_BIT;
-    queenside = board.flags&WHITE_QUEENSIDE_BIT;
-    if(kingside){
-      if(board.squares[2] == EMPTY && board.squares[1] == EMPTY){
-        Move move;
-        move.flags |= KINGSIDE_BIT;
-        moves.append(move);
+void Search::addCastlingMoves(Board &board, MoveList &moves){
+  byte opponentColor = (color == WHITE)? BLACK : WHITE;
+  if(isAttacked(board,(byte)bitScanForward(board.bitboards[color+KING]),opponentColor)) return;//cannot castle out of check
+  int mustBeEmpty[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
+  int mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
+  byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
+  int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
+  int max = i+2;
+  for(int j = i; j<max; j++){
+    bool legal = true; 
+    for(int s : mustBeEmpty[j]){
+      if(board.squares[s] != EMPTY){
+        legal = false;
+        break;
       }
     }
-    if(queenside){
-      if(board.squares[4] == EMPTY && board.squares[5] == EMPTY && board.squares[6] == EMPTY){
-        Move move;
-        move.flags |= QUEENSIDE_BIT;
-        moves.append(move);
+    if(!legal) continue;
+    for(int s : mustBeSafe[j]){
+      if(isAttacked(board, s, opponentColor)){
+        legal = false;
+        break;
       }
     }
-  }
-  else{
-    kingside = board.flags&BLACK_KINGSIDE_BIT;
-    queenside = board.flags&BLACK_QUEENSIDE_BIT;
-    if(kingside){
-      if(board.squares[58] == EMPTY && board.squares[57] == EMPTY){
-        Move move;
-        move.flags |= KINGSIDE_BIT;
-        moves.append(move);
+    if(!legal) continue;
+    if(board.flags&masks[j]){
+      Move m;
+      if(j%2 == 0){
+        m.setSpecialMoveData(CASTLE_KINGSIDE); 
+      }else{
+        m.setSpecialMoveData(CASTLE_QUEENSIDE); 
       }
-    }
-    if(queenside){
-      if(board.squares[60] == EMPTY && board.squares[61] == EMPTY && board.squares[62] == EMPTY){
-        Move move;
-        move.flags |= QUEENSIDE_BIT;
-        moves.append(move);
-      }
+      moves.append(m);
     }
   }
-}
-// Generate Masks, Move Lookups, ect
-//Only need to run once, but should still be understandable
 
+}
+//Generate Masks, Move Lookups, ect
+//Only need to run once
 
 void Search::generateRankMasks() {
   for (int i = 0; i < 8; i++) {
@@ -309,7 +337,7 @@ void Search::fillRookMoves() {
       int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
       for (int direction = 0; direction < 4; direction++) {
         int x = i % 8;
-        int y = floor(i / 8);
+        int y = i / 8;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
           setBit(moves, (y * 8) + x);
           if (getBit(blocker, (y * 8) + x))
@@ -331,7 +359,7 @@ void Search::fillBishopMoves() {
       int directions[4][2] = {{-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
       for (int direction = 0; direction < 4; direction++) {
         int x = i % 8;
-        int y = floor(i / 8);
+        int y = i / 8;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
           setBit(moves, (y * 8) + x);
           if (getBit(blocker, (y * 8) + x))
@@ -347,41 +375,91 @@ void Search::fillBishopMoves() {
 }
 
 
-u64 Search::perftTest(Board &b, int depth){
+u64 Search::perftTest(Board &b, int depth, bool root){
+  /*if(!b.validate()) {
+    debug::Settings s;
+    std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;
+    return 0;
+  }*/
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
   generateMoves(b, moves);
   for(byte i = 0; i<moves.end;i++){
     b.makeMove(moves.moves[i]);
-    count += perftTest(b, depth-1);
+    u64 found = perftTest(b, depth-1,false);
     b.unmakeMove(moves.moves[i]);
+    if(root){
+      std::cout<<debug::moveToStr(moves.moves[i])<<" : "<<found<<std::endl;
+    }
+    count += found;
   }
   return count;
 }
 
-void Search::runMoveGenerationTest(){
+void Search::runMoveGenerationTest(Board &board){
+  //https://www.chessprogramming.org/Perft_Results
+  debug::Settings settings;
+  for(int i = 1; i<5; i++){
+    std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
+    u64 found = perftTest(board,i);
+    if(found == 0) return;
+    std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;
+  }
+}
+
+void Search::runMoveGenerationSuite(){
   Board board;
   //https://www.chessprogramming.org/Perft_Results
-  //position 6
-  u64 expected[8] = {
-  0,
-  20,
-  400,
-  8902,
-  197281,
-  4865609,
-  119060324,
-  3195901860
+  std::string positions[8] = {
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ",
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  ",
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 ",
+    "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1 ",
+    "8/3K4/2p5/p2b2r1/5k2/8/8/1q6 b - 1 67"
   };
-  board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-  for(int i = 1; i<8; i++){
-    u64 found = perftTest(board,i);
+  u64 expected[8] = {
+    4865609,
+    4085603,
+    674624,
+    422333,
+    2103487,
+    3894594,
+    3605103,
+    279
+  };
+  int depths[8] = {
+    5,
+    4,
+    5,
+    4,
+    4,
+    4,
+    5,
+    2
+  };
+  std::cout<<"Starting"<<std::endl;
+  debug::Settings settings;
+  u64 sum = 0;
+  auto start = std::chrono::high_resolution_clock::now();
+  for(int i = 0; i<8; i++){
+    board.loadFromFEN(positions[i]);
+    u64 found = perftTest(board,depths[i],false);
+    sum += found;
+    std::cout<<"Depth: "<<depths[i];
+    std::cout<<" Found: ";
     if(found != expected[i]){
       std::cout<<"\x1b[31m";
     }else{
       std::cout<<"\x1b[32m";
     }
-    std::cout<<"Depth: "<<i<<" Found: "<<found<<"/"<<expected[i]<<"\n";
+    std::cout<<found<<"/"<<expected[i]<<"\x1b[0m"<<std::endl;
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = end-start;
+  std::cout<<"Searched "<< sum << " moves\n";
+  std::cout<<"Finished in "<<(float)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f<<"s"<<std::endl;
 }

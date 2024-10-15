@@ -1,10 +1,8 @@
 #include <iostream>
 #include <string>
-#include <random>
 
 #include "Board/board.h"
 #include "Search/search.h"
-#include "ui/debug.h"
 #include "ui/ui.h"
 
 int main() {

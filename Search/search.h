@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include <fstream>
 #include <map>//temporary 
 #include <vector>
@@ -12,15 +13,13 @@ struct MoveList{
   byte end = 0;
   inline void append(Move const &m){moves[end] = m; end++;}
   void remove(byte index){
-    // delete 3 (index 2)
-    for (byte i = index; i < 8; ++i)
+    for (byte i = index; i < end; i++)
         moves[i] = moves[i + 1]; // copy next element left
     end-=1;
   }
 };
 
 class Search{
-  
   u64 rookMasks[64];
   u64 bishopMasks[64];
   u64 knightMoves[64];
@@ -53,28 +52,31 @@ class Search{
   //move generation functions
   u64 friendlyBitboard;
   u64 enemyBitboard;
-  int color;//the color of the player whos turn it is
+  int color;
+  int threatenedIndex;//>:}
   void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares);
-  void addDiagonalMoves(Board board, int square, MoveList &moves);
-  void addHorizontalMoves(Board board, int square, MoveList &moves);
-  void addPawnMoves(Board board, MoveList &moves);
-  void addSlidingMoves(Board board, MoveList &moves);
-  void addKnightMoves(Board board, MoveList &moves);
-  void addKingMoves(Board board, MoveList &moves);
-  void addCastlingMoves(Board board, MoveList &moves);
+  void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags = 0);
+  void addDiagonalMoves(Board &board, int square, MoveList &moves);
+  void addHorizontalMoves(Board &board, int square, MoveList &moves);
+  void addPawnMoves(Board &board, MoveList &moves);
+  void addSlidingMoves(Board &board, MoveList &moves);
+  void addKnightMoves(Board &board, MoveList &moves);
+  void addKingMoves(Board &board, MoveList &moves);
+  void addCastlingMoves(Board &board, MoveList &moves);
   void filterLegalMoves(Board board, MoveList &moves);
+  bool isAttacked(Board const &board, byte square, byte opponentColor);
   //testing
-  u64 perftTest(Board &b, int depth);
+  u64 perftTest(Board &b, int depth, bool root = true);
   
 public:
   Search();
   u64 rankMasks[8] = {};
   u64 fileMasks[8] = {};
 
-  void generateMoves(Board board, MoveList &moves);
+  void generateMoves(Board &board, MoveList &moves);
   void searchForMagics();
   void saveMagics();
   void loadMagics();
-  void runMoveGenerationTest();
-
+  void runMoveGenerationTest(Board &board);
+  void runMoveGenerationSuite();
 };

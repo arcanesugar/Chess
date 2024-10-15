@@ -1,4 +1,6 @@
 #include "ui.h"
+#include "debug.h"
+#include <string>
 
 void ConsoleInterface::run(Board &board, Search &search){
   bool quit = false;
@@ -13,19 +15,23 @@ void ConsoleInterface::run(Board &board, Search &search){
     if (input == "trn") whosTurnIsIt(board);
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") search.searchForMagics();
-    if(input == "tst") search.runMoveGenerationTest();
-    if(input == "und") board.unmakeMove(last);
-    if(input == "q") quit = true;
+    if(input == "tst") search.runMoveGenerationTest(board);
+    if(input == "mgs") search.runMoveGenerationSuite();
+    if(input == "und") undoLastMove(board); 
+    if(input == "dbg") showDebugView(board);
+    if(input == "q" || input == "quit" || input == "exit") quit = true;
 
     if(input == "ks"){
       Move m;
-      m.flags |= KINGSIDE_BIT;
+      m.setSpecialMoveData(CASTLE_KINGSIDE);
       board.makeMove(m);
+      history.push(m);
     }
     if(input == "qs"){
       Move m;
-      m.flags |= QUEENSIDE_BIT;
+      m.setSpecialMoveData(CASTLE_QUEENSIDE);
       board.makeMove(m);
+      history.push(m);
     }
   }
 }
@@ -39,6 +45,19 @@ void ConsoleInterface::getNextInput() {
   c.printBoard = true;
 }
 
+void ConsoleInterface::undoLastMove(Board &board){
+  if(history.empty()){
+    c.output = "No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m";
+    return;
+  }
+  Move m = history.top();
+  board.unmakeMove(m);
+  
+  c.output.append(debug::printMove(c.settings,board, m));
+  c.printBoard = false;
+  
+  history.pop();
+}
 byte ConsoleInterface::squareNameToIndex(std::string squareName) {
   byte squareIndex =
       ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
@@ -54,12 +73,15 @@ void ConsoleInterface::showHelpMenu(){
       + "  qs - Castle Queenside\n"
       + "  lgl - Show legal moves\n"
       + "  dsp - Display settings\n"
+      + "  dbg - Debug View\n"
       + "  rnd - Random move\n"
       + "  sch - \"Search\" for magic numbers\n"
       + "  und - Undo last move\n"
       + "  hlp/help - Show this list\n"
-      + "  tst - Run move generation test\n"
-      + "  q - Quit\n");
+      + "  tst - Run move generation test on current position\n"
+      + "  mgs - Run move generation test suite\n"
+      + "  q - Quit\n"
+      + "Note that if no command is entered, the last command given is repeated");
 }
 void ConsoleInterface::whosTurnIsIt(Board &board){
   if (board.flags & WHITE_TO_MOVE_BIT) {
@@ -77,7 +99,10 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
     return;
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
+  std::cout<<debug::moveToStr(move,true)<<"\n";
   board.makeMove(move);
+  std::cout<<debug::moveToStr(move,true)<<"\n";
+  history.push(move);
   c.output = debug::printMove(c.settings, board, move);
   c.printBoard = false;
 }
@@ -97,25 +122,40 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   c.output = "to:\n";
   getNextInput();
   int to = squareNameToIndex(c.lastInput);
-  Move move = {(byte)from, (byte)to};
+  Move move;
+  move.setFrom(from);
+  move.setTo(to);
   MoveList legalMoves;
   search.generateMoves(board, legalMoves);
   bool isLegal = false;
+  MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){
-    if(move.from == legalMoves.moves[i].from && move.to == legalMoves.moves[i].to){
+    if(move.getFrom() == legalMoves.moves[i].getFrom() && move.getTo() == legalMoves.moves[i].getTo()){
       isLegal = true;
       move = legalMoves.moves[i];//assigns proporties like flags
+      variants.append(move);
     }
   }
   if(isLegal){
+    if(variants.end>1){
+      c.output = "This move has multiple variants, choose one\n";
+      for(int i = 0; i<variants.end; i++){
+        Board copy = board;
+        copy.makeMove(variants.moves[i]);
+        c.output.append("\n" + std::to_string(i) + ")\n");
+        c.output.append(debug::printBoard(c.settings, copy));
+      }
+      getNextInput();
+      move = variants.moves[std::stoi(c.lastInput)];
+    }
     board.makeMove(move);
-    last = move;
+    history.push(move);
   }else{
     c.output = "This move is not legal, continue? (y/N)\n";
     getNextInput();
     if(c.lastInput == "y"){
       board.makeMove(move);
-      last = move;
+      history.push(move);
     }
   }
   c.output = debug::printMove(c.settings, board, move);
@@ -138,8 +178,9 @@ void ConsoleInterface::displaySettings(){
     c.output.append("  1 - Use ASCII Pieces\n");
     c.output.append("  2 - Set dark color\n");
     c.output.append("  3 - Set light color\n");
-    c.output.append("  9 - Done\n");
+    c.output.append("  q - Done\n");
     getNextInput();
+    if(c.lastInput == "q") return;
     if(!std::isdigit(c.lastInput[0])) continue;
     switch(std::stoi(c.lastInput)){
       case 0:
@@ -162,11 +203,22 @@ void ConsoleInterface::displaySettings(){
         c.settings.lightColor = "\x1b[";
         c.settings.lightColor.append(c.lastInput + "m");
       break;
-
-      case 9:
-        done = true;
-        c.output = "";
-      break;
     }
   }
+}
+
+void ConsoleInterface::showDebugView(Board &board){
+  c.printBoard = false;
+  for(int i = 0; i<14; i++){
+    c.output.append(debug::printBitboard(c.settings, board, board.bitboards[i]));
+    c.output.append("\n");
+  }
+  for(int i = 7; i>=0; i--){
+    if(board.flags>>i&1){
+      c.output.append("1");
+    }else{
+      c.output.append("0");
+    }
+  }
+  c.output.append("\n");
 }
