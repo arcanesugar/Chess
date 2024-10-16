@@ -82,6 +82,11 @@ inline void resetUnmakeData(){unmakeData = (unsigned short)0;}
 int getSquareIndex(int file, int rank);
 
 struct Board{
+  static u64 rankMasks[8];
+  static u64 fileMasks[8];
+  static void generateFileMasks();
+  static void generateRankMasks();
+  Board(){ generateRankMasks(); generateFileMasks();}
   u64 bitboards[14];
   u64 occupancy; 
   u64 threatened[2]; // squares threatened by white come first

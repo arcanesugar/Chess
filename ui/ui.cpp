@@ -1,7 +1,6 @@
 #include "ui.h"
 #include "debug.h"
 #include <string>
-
 void ConsoleInterface::run(Board &board, Search &search){
   bool quit = false;
   while (!quit) {
@@ -14,7 +13,7 @@ void ConsoleInterface::run(Board &board, Search &search){
     if (input == "rnd") makeRandomMove(board, search);
     if (input == "trn") whosTurnIsIt(board);
     if(input == "hlp" || input == "help") showHelpMenu();
-    if(input == "sch") search.searchForMagics();
+ //   if(input == "sch") search.searchForMagics();
     if(input == "tst") search.runMoveGenerationTest(board);
     if(input == "mgs") search.runMoveGenerationSuite();
     if(input == "und") undoLastMove(board); 
@@ -92,7 +91,7 @@ void ConsoleInterface::whosTurnIsIt(Board &board){
 }
 void ConsoleInterface::makeRandomMove(Board &board, Search &search){
   MoveList legalMoves;
-  search.generateMoves(board, legalMoves);
+  mg.generateMoves(board, legalMoves);
   if(legalMoves.end <= 0) {
     c.output = "No Legal Moves";
     c.printBoard = true;
@@ -108,7 +107,7 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
 }
 void ConsoleInterface::printLegalMoves(Board &board, Search &search){
   MoveList legalMoves;
-  search.generateMoves(board, legalMoves);
+  mg.generateMoves(board, legalMoves);
   c.output = std::to_string((int)legalMoves.end) + " moves printed\n";
   for (int i = 0; i < legalMoves.end; i++) {
     std::cout<<debug::printMove(c.settings, board, legalMoves.moves[i])<<std::endl;
@@ -126,7 +125,7 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   move.setFrom(from);
   move.setTo(to);
   MoveList legalMoves;
-  search.generateMoves(board, legalMoves);
+  mg.generateMoves(board, legalMoves);
   bool isLegal = false;
   MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){

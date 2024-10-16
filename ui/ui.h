@@ -13,6 +13,7 @@ struct ConsoleState {
   bool printBoard = true;
 };
 class ConsoleInterface{
+  MoveGenerator mg;
   ConsoleState c;
   std::stack<Move> history;
   byte squareNameToIndex(std::string squareName);

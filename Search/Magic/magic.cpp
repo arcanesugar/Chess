@@ -1,4 +1,103 @@
-#include "../search.h"
+#include "magic.h"
+MagicMan::MagicMan(){
+  loadMagics();
+  generateRookMasks();
+  generateBishopMasks();
+  fillRookMoves();
+  fillBishopMoves();
+}
+
+u64 MagicMan::rookLookup(u64 blockers, byte square){
+  blockers = blockers & rookMasks[square]; 
+  u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
+  return rookMoves[square][hashed];
+}
+
+u64 MagicMan::bishopLookup(u64 blockers, byte square){
+  blockers = blockers & bishopMasks[square]; 
+  u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
+  return bishopMoves[square][hashed];
+}
+
+
+//initialisation
+void MagicMan::generateRookMasks() {
+  for (int rank = 0; rank < 8; rank++) {   // y
+    for (int file = 0; file < 8; file++) { // x
+      u64 mask = (u64)0;
+      mask = Board::fileMasks[file] | Board::rankMasks[rank];
+      resetBit(mask, (rank * 8) + file);
+      rookMasks[(rank * 8) + file] = mask;
+    }
+  }
+}
+
+void MagicMan::generateBishopMasks() {
+  int directions[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+  for (int rank = 0; rank < 8; rank++) {   // y
+    for (int file = 0; file < 8; file++) { // x
+      u64 mask = (u64)0;
+      for (int i = 0; i < 4; i++) {
+        int x = file;
+        int y = rank;
+        while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
+          setBit(mask, (y * 8) + x);
+          x += directions[i][0];
+          y += directions[i][1];
+        }
+      }
+      resetBit(mask, (rank * 8) + file);
+      bishopMasks[(rank * 8) + file] = mask;
+    }
+  }
+}
+
+void MagicMan::fillRookMoves() {
+  generateRookBlockers();
+  for (int i = 0; i < 64; i++) {
+    for (u64 blocker : rookBlockers[i]) {
+      u64 moves = (u64)0;
+      int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+      for (int direction = 0; direction < 4; direction++) {
+        int x = i % 8;
+        int y = i / 8;
+        while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
+          setBit(moves, (y * 8) + x);
+          if (getBit(blocker, (y * 8) + x))
+            break;
+          x += directions[direction][0];
+          y += directions[direction][1];
+        }
+      }
+      rookMoves[i].insert({(blocker * rookMagics[i]) >> rookShifts[i], moves});
+    }
+  }
+}
+
+void MagicMan::fillBishopMoves() {
+  generateBishopBlockers();
+  for (int i = 0; i < 64; i++) {
+    for (u64 blocker : bishopBlockers[i]) {
+      u64 moves = (u64)0;
+      int directions[4][2] = {{-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
+      for (int direction = 0; direction < 4; direction++) {
+        int x = i % 8;
+        int y = i / 8;
+        while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
+          setBit(moves, (y * 8) + x);
+          if (getBit(blocker, (y * 8) + x))
+            break;
+          x += directions[direction][0];
+          y += directions[direction][1];
+        }
+      }
+      bishopMoves[i].insert(
+          {(blocker * bishopMagics[i]) >> bishopShifts[i], moves});
+    }
+  }
+}
+
+//Magic number search
 
 //random functions from https://www.chessprogramming.org/Looking_for_Magics
 //modified slightly to fit naming convention
@@ -13,19 +112,20 @@ u64 random_u64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
 }
 
-void Search::generateRookBlockers(){
+
+void MagicMan::generateRookBlockers(){
   for(int i = 0; i<64; i++){
     generateBlockersFromMask(rookMasks[i], rookBlockers[i]);
   }
 }
 
-void Search::generateBishopBlockers(){
+void MagicMan::generateBishopBlockers(){
   for(int i = 0; i<64; i++){
     generateBlockersFromMask(bishopMasks[i], bishopBlockers[i]);
   }
 }
 
-void Search::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
+void MagicMan::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
   target.clear();
   u64 bb = mask;
   int bc = bitcount(bb);
@@ -42,7 +142,7 @@ void Search::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
   }
 }
 
-bool Search::testMagic(std::vector<u64> *blockers, int square,u64 magic, int shift){
+bool MagicMan::testMagic(std::vector<u64> *blockers, int square,u64 magic, int shift){
   std::map<u64,bool> foundKeys;//map is probably not the best fit here
   for(u64 blocker : blockers[square]){
     u64 hashed = u64(blocker*magic)>>shift;
@@ -57,7 +157,7 @@ bool Search::testMagic(std::vector<u64> *blockers, int square,u64 magic, int shi
 //Search can be greatly improved
 // for example, just using the shift values is an innacurate way to estimate the lookup table size
 //and rand is never seeded
-void Search::searchForMagics(){
+void MagicMan::searchForMagics(){
   std::cout<<"[generating blockers]\n";
   generateRookBlockers();
   generateBishopBlockers();
@@ -128,7 +228,7 @@ void Search::searchForMagics(){
   loadMagics();
 };
 
-void Search::saveMagics(){
+void MagicMan::saveMagics(){
   std::ofstream file("Search/Magic/magics.txt",std::ofstream::out | std::ofstream::trunc);
   if(!file.is_open()){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;
@@ -145,7 +245,7 @@ void Search::saveMagics(){
   }
 };
 
-void Search::loadMagics(){
+void MagicMan::loadMagics(){
   std::ifstream file("Search/Magic/magics.txt");
   if(!file.is_open()){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;
