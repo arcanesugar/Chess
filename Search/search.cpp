@@ -1,9 +1,10 @@
 #include "search.h"
-Search::Search() {
-}
-Search::~Search(){
-}
+
 u64 Search::perftTest(Board &b, int depth, bool root){
+  if(moveGenerator == nullptr) {
+    std::cout<<"[Search error] No assigned move generator"<<std::endl;
+    return 0;
+  }
   /*if(!b.validate()) {
     debug::Settings s;
     std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;
@@ -12,14 +13,13 @@ u64 Search::perftTest(Board &b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
-  moveGenerator.generateMoves(b, moves);
+  moveGenerator->generateMoves(b, moves);
   for(byte i = 0; i<moves.end;i++){
     b.makeMove(moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
     b.unmakeMove(moves.moves[i]);
-    if(root){
+    if(root)
       std::cout<<debug::moveToStr(moves.moves[i])<<" : "<<found<<std::endl;
-    }
     count += found;
   }
   return count;
@@ -71,7 +71,7 @@ void Search::runMoveGenerationSuite(){
   };
   std::cout<<"Starting"<<std::endl;
   debug::Settings settings;
-  u64 sum = 0;
+  int sum = 0;
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<8; i++){
     board.loadFromFEN(positions[i]);
@@ -88,6 +88,8 @@ void Search::runMoveGenerationSuite(){
   }
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = end-start;
+  float durationf = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f;
   std::cout<<"Searched "<< sum << " moves\n";
-  std::cout<<"Finished in "<<(float)std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f<<"s"<<std::endl;
+  std::cout<<"Finished in "<<durationf<<"s"<<std::endl;
+  std::cout<<sum/(int)durationf<<" moves/second"<<std::endl;
 }

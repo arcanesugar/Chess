@@ -1,7 +1,11 @@
 #include "movegen.h"
 MoveGenerator::MoveGenerator(){
+  magicman.init();
   generateKnightMoves();
   generateKingMoves();
+}
+MoveGenerator::~MoveGenerator(){
+ magicman.cleanup();
 }
 void MoveGenerator::generateMoves(Board &board, MoveList &moves) {
   if(!(board.flags&THREATENED_POPULATED)){

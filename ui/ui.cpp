@@ -1,35 +1,38 @@
 #include "ui.h"
 #include "debug.h"
 #include <string>
-void ConsoleInterface::run(Board &board, Search &search){
+void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchptr){
+  this->boardptr = boardptr;
+  this->mgptr = mgptr;
+  this->searchptr = searchptr;
   bool quit = false;
   while (!quit) {
-    if(c.printBoard) c.output = "\n" + debug::printBoard(c.settings,board) + c.output;
+    if(c.printBoard) c.output = "\n" + debug::printBoard(c.settings,*boardptr) + c.output;
     getNextInput();
     std::string input = c.lastInput;
-    if (input == "mve") makeMoveFromConsole(board, search);
+    if (input == "mve") makeMoveFromConsole();
     if(input == "dsp")  displaySettings();
-    if (input == "lgl") printLegalMoves(board, search);
-    if (input == "rnd") makeRandomMove(board, search);
-    if (input == "trn") whosTurnIsIt(board);
+    if (input == "lgl") printLegalMoves();
+    if (input == "rnd") makeRandomMove();
+    if (input == "trn") whosTurnIsIt();
     if(input == "hlp" || input == "help") showHelpMenu();
- //   if(input == "sch") search.searchForMagics();
-    if(input == "tst") search.runMoveGenerationTest(board);
-    if(input == "mgs") search.runMoveGenerationSuite();
-    if(input == "und") undoLastMove(board); 
-    if(input == "dbg") showDebugView(board);
+    if(input == "sch") mgptr->searchForMagics();
+    if(input == "tst") searchptr->runMoveGenerationTest(*boardptr);
+    if(input == "mgs") searchptr->runMoveGenerationSuite();
+    if(input == "und") undoLastMove(); 
+    if(input == "dbg") showDebugView();
     if(input == "q" || input == "quit" || input == "exit") quit = true;
 
     if(input == "ks"){
       Move m;
       m.setSpecialMoveData(CASTLE_KINGSIDE);
-      board.makeMove(m);
+      boardptr->makeMove(m);
       history.push(m);
     }
     if(input == "qs"){
       Move m;
       m.setSpecialMoveData(CASTLE_QUEENSIDE);
-      board.makeMove(m);
+      boardptr->makeMove(m);
       history.push(m);
     }
   }
@@ -44,15 +47,15 @@ void ConsoleInterface::getNextInput() {
   c.printBoard = true;
 }
 
-void ConsoleInterface::undoLastMove(Board &board){
+void ConsoleInterface::undoLastMove(){
   if(history.empty()){
     c.output = "No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m";
     return;
   }
   Move m = history.top();
-  board.unmakeMove(m);
+  boardptr->unmakeMove(m);
   
-  c.output.append(debug::printMove(c.settings,board, m));
+  c.output.append(debug::printMove(c.settings,*boardptr, m));
   c.printBoard = false;
   
   history.pop();
@@ -82,16 +85,16 @@ void ConsoleInterface::showHelpMenu(){
       + "  q - Quit\n"
       + "Note that if no command is entered, the last command given is repeated");
 }
-void ConsoleInterface::whosTurnIsIt(Board &board){
-  if (board.flags & WHITE_TO_MOVE_BIT) {
+void ConsoleInterface::whosTurnIsIt(){
+  if (boardptr->flags & WHITE_TO_MOVE_BIT) {
     c.output = "White to move";
   } else {
     c.output = "Black to move";
   }
 }
-void ConsoleInterface::makeRandomMove(Board &board, Search &search){
+void ConsoleInterface::makeRandomMove(){
   MoveList legalMoves;
-  mg.generateMoves(board, legalMoves);
+  mgptr->generateMoves(*boardptr, legalMoves);
   if(legalMoves.end <= 0) {
     c.output = "No Legal Moves";
     c.printBoard = true;
@@ -99,22 +102,22 @@ void ConsoleInterface::makeRandomMove(Board &board, Search &search){
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
   std::cout<<debug::moveToStr(move,true)<<"\n";
-  board.makeMove(move);
+  boardptr->makeMove(move);
   std::cout<<debug::moveToStr(move,true)<<"\n";
   history.push(move);
-  c.output = debug::printMove(c.settings, board, move);
+  c.output = debug::printMove(c.settings, *boardptr, move);
   c.printBoard = false;
 }
-void ConsoleInterface::printLegalMoves(Board &board, Search &search){
+void ConsoleInterface::printLegalMoves(){
   MoveList legalMoves;
-  mg.generateMoves(board, legalMoves);
+  mgptr->generateMoves(*boardptr, legalMoves);
   c.output = std::to_string((int)legalMoves.end) + " moves printed\n";
   for (int i = 0; i < legalMoves.end; i++) {
-    std::cout<<debug::printMove(c.settings, board, legalMoves.moves[i])<<std::endl;
+    std::cout<<debug::printMove(c.settings, *boardptr, legalMoves.moves[i])<<std::endl;
   }
   c.printBoard = false;
 }
-void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
+void ConsoleInterface::makeMoveFromConsole(){
   c.output = "from:\n";
   getNextInput();
   int from = squareNameToIndex(c.lastInput);
@@ -125,7 +128,7 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
   move.setFrom(from);
   move.setTo(to);
   MoveList legalMoves;
-  mg.generateMoves(board, legalMoves);
+  mgptr->generateMoves(*boardptr, legalMoves);
   bool isLegal = false;
   MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){
@@ -139,7 +142,7 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
     if(variants.end>1){
       c.output = "This move has multiple variants, choose one\n";
       for(int i = 0; i<variants.end; i++){
-        Board copy = board;
+        Board copy = *boardptr;
         copy.makeMove(variants.moves[i]);
         c.output.append("\n" + std::to_string(i) + ")\n");
         c.output.append(debug::printBoard(c.settings, copy));
@@ -147,17 +150,17 @@ void ConsoleInterface::makeMoveFromConsole(Board &board, Search &search){
       getNextInput();
       move = variants.moves[std::stoi(c.lastInput)];
     }
-    board.makeMove(move);
+    boardptr->makeMove(move);
     history.push(move);
   }else{
     c.output = "This move is not legal, continue? (y/N)\n";
     getNextInput();
     if(c.lastInput == "y"){
-      board.makeMove(move);
+      boardptr->makeMove(move);
       history.push(move);
     }
   }
-  c.output = debug::printMove(c.settings, board, move);
+  c.output = debug::printMove(c.settings, *boardptr, move);
   c.printBoard = false;
 }
 
@@ -206,14 +209,14 @@ void ConsoleInterface::displaySettings(){
   }
 }
 
-void ConsoleInterface::showDebugView(Board &board){
+void ConsoleInterface::showDebugView(){
   c.printBoard = false;
   for(int i = 0; i<14; i++){
-    c.output.append(debug::printBitboard(c.settings, board, board.bitboards[i]));
+    c.output.append(debug::printBitboard(c.settings, *boardptr, boardptr->bitboards[i]));
     c.output.append("\n");
   }
   for(int i = 7; i>=0; i--){
-    if(board.flags>>i&1){
+    if(boardptr->flags>>i&1){
       c.output.append("1");
     }else{
       c.output.append("0");

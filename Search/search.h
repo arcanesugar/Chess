@@ -11,13 +11,11 @@
 
 
 class Search{
-  MoveGenerator moveGenerator;
+  MoveGenerator *moveGenerator = nullptr;
   //testing
   u64 perftTest(Board &b, int depth, bool root = true);
-  
 public:
-  Search();
-  ~Search();
+  void useMoveGenerator(MoveGenerator *mg) {moveGenerator = mg;};
   void runMoveGenerationTest(Board &board);
   void runMoveGenerationSuite();
 };

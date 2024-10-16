@@ -44,5 +44,7 @@ class MoveGenerator{
   void filterLegalMoves(Board board, MoveList &moves);
 public: 
   MoveGenerator();
+  ~MoveGenerator();
   void generateMoves(Board &board, MoveList &moves);
+  void searchForMagics() {magicman.searchForMagics();}
 };

@@ -25,13 +25,18 @@ class MagicMan{//magic manager, or at least thats my justification
   void generateBishopMasks();
   void fillRookMoves();
   void fillBishopMoves();
-  std::map<u64,u64> rookMoves[64];//key, moves bitboard 
-  std::map<u64,u64> bishopMoves[64];//key, moves bitboard 
+  u64 *rookMoves[64];//key, moves bitboard 
+  u64 *bishopMoves[64];//key, moves bitboard 
+  int rookMovesSizes[64];
+  int bishopMovesSizes[64];
   u64 rookMasks[64];
   u64 bishopMasks[64];
   
 public:
-  MagicMan();
+  //using init and cleanup instead of a constructor/deconstructor
+  //lets you do things like run a magic search without generating rook/bishop move lookups
+  void init();  
+  void cleanup();   
   void searchForMagics();
   void saveMagics();
   void loadMagics();
