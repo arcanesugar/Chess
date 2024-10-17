@@ -8,9 +8,14 @@ When no command is entered, the last is repeated
   
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
 UCI is not supported yet
-
 ## Changelog
-- 10/15/24 merged move-generation-bugfixes
+- move-gen-optimisation
+    - Split search into search, movegen, and magicman classes
+    - Ui now takes in various components as pointers, to avoid having multiple copies of the same thing
+    - Magic lookup now uses array instead of std::map
+    - Reformatted changelog slightly
+
+- move-generation-bugfixes (merged 10/15/24)
     - Move generator now functional
     - UI was refactored
     - Debug was refactored
