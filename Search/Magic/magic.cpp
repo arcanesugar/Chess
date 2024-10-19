@@ -1,4 +1,5 @@
 #include "magic.h"
+#include <unordered_set>
 void MagicMan::init(){
   generateRookMasks();
   generateBishopMasks();
@@ -18,15 +19,19 @@ void MagicMan::cleanup(){
     delete[] bishopMoves[i];
   }
 }
+
+u64 MagicMan::magicHash(Magic &magic, u64 blockers){
+  return (magic.magic*blockers)>>magic.shift;
+}
 u64 MagicMan::rookLookup(u64 blockers, byte square){
   blockers = blockers & rookMasks[square]; 
-  u64 hashed = (blockers * rookMagics[square].magic) >> rookMagics[square].shift;
+  u64 hashed = magicHash(rookMagics[square],blockers);
   return rookMoves[square][hashed];
 }
 
 u64 MagicMan::bishopLookup(u64 blockers, byte square){
   blockers = blockers & bishopMasks[square]; 
-  u64 hashed = (blockers * bishopMagics[square].magic) >> bishopMagics[square].shift;
+  u64 hashed = magicHash(bishopMagics[square], blockers);
   return bishopMoves[square][hashed];
 }
 
@@ -61,7 +66,7 @@ void MagicMan::fillRookMoves() {
           y += directions[direction][1];
         }
       }
-      rookMoves[i][(blocker * rookMagics[i].magic) >> rookMagics[i].shift] = moves;
+      rookMoves[i][magicHash(rookMagics[i], blocker)] = moves;
     }
   }
 }
@@ -91,7 +96,7 @@ void MagicMan::fillBishopMoves() {
           y += directions[direction][1];
         }
       }
-      bishopMoves[i][(blocker * bishopMagics[i].magic) >> bishopMagics[i].shift] = moves;
+      bishopMoves[i][magicHash(bishopMagics[i], blocker)] = moves;
     }
   }
 }
@@ -107,13 +112,6 @@ u64 random_uint64() {
 
 u64 random_u64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
-}
-
-
-void MagicMan::generateRookBlockers(){
-  for(int i = 0; i<64; i++){
-    generateBlockersFromMask(rookMasks[i], rookBlockers[i]);
-  }
 }
 
 void MagicMan::generateRookMasks() {
@@ -147,6 +145,11 @@ void MagicMan::generateBishopMasks() {
   }
 }
 
+void MagicMan::generateRookBlockers(){
+  for(int i = 0; i<64; i++){
+    generateBlockersFromMask(rookMasks[i], rookBlockers[i]);
+  }
+}
 void MagicMan::generateBishopBlockers(){
   for(int i = 0; i<64; i++){
     generateBlockersFromMask(bishopMasks[i], bishopBlockers[i]);
@@ -155,56 +158,39 @@ void MagicMan::generateBishopBlockers(){
 
 void MagicMan::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
   target.clear();
-  u64 bb = mask;
-  int bc = bitcount(bb);
-  std::vector<int> bitIndices;
-  while(bb){
-    bitIndices.push_back(popls1b(bb));
-  }
-  for(int j = 0; j<pow(2,bc);j++){
-    u64 blocker = (u64)0;
-    for(int f = 0; f<bc; f++){
-      blocker |= (((u64)j>>f)&1)<<bitIndices[f];
-    }
+  u64 blocker = 0;
+  for(int j = 0; j<pow(2,bitcount(mask));j++){
+    blocker |= ~mask;
+    blocker +=1;
+    blocker &= mask;
     target.push_back(blocker);
   }
 }
 
-bool MagicMan::testMagic(std::vector<u64> *blockers, int square,u64 magic, int shift){
-  std::map<u64,bool> foundKeys;//map is probably not the best fit here
-  for(u64 blocker : blockers[square]){
-    u64 hashed = u64(blocker*magic)>>shift;
-    if(foundKeys.find(hashed) != foundKeys.end()){
+bool MagicMan::testMagic(std::vector<u64> *blockers, Magic &magic){
+  std::unordered_set<u64> foundKeys;//map is probably not the best fit here
+  for(u64 blocker : *blockers){
+    u64 hashed = magicHash(magic,blocker);
+    if(foundKeys.count(hashed) != 0){
       return false;
     }
-    foundKeys.insert({hashed,true});
+    foundKeys.insert(hashed);
   }
   return true;
 }
 
-//Search can be greatly improved
-//for example, just using the shift values is an innacurate way to estimate the lookup table size
-//and rand is never seeded
 void MagicMan::magicSearch(){
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) return;
       Magic magic;
       magic.magic = random_u64_fewbits();
-      magic.shift = -999;
-      for(int s = 40; s<64; s++){
-        if(testMagic(rookBlockers, square,magic.magic,s)){magic.shift = s;}
-        else{break;}
-      }
-      if(magic.shift >rookMagics[square].shift){
+      magic.shift = 61-bitcount(rookMasks[square]); //64-bc would be a perfect magic number, 61 gives wiggle room
+      if(testMagic(&rookBlockers[square],magic)){
         rookMagics[square] = magic;
       }
-      magic.shift = -999;
-      for(int s = 40; s<64; s++){
-        if(testMagic(bishopBlockers, square,magic.magic,s)){magic.shift = s;}
-        else{break;}
-      }
-      if(magic.shift >bishopMagics[square].shift){
+      magic.shift = 61-bitcount(bishopMasks[square]);
+      if(testMagic(&bishopBlockers[square],magic)){
         bishopMagics[square] = magic;
       }
     }
@@ -231,6 +217,7 @@ void MagicMan::magicSearch(){
   }
 }
 void MagicMan::searchForMagics(){
+  srand(time(NULL));
   std::cout<<"[generating blockers]\n";
   generateRookBlockers();
   generateBishopBlockers();
