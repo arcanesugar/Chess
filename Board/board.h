@@ -14,7 +14,6 @@
 #define WHITE_QUEENSIDE_BIT  0b00000100
 #define BLACK_KINGSIDE_BIT   0b00001000
 #define BLACK_QUEENSIDE_BIT  0b00010000
-#define THREATENED_POPULATED 0b00100000
 
 #define WHITE_CASTLING_RIGHTS 0b00000110
 #define BLACK_CASTLING_RIGHTS 0b00011000
@@ -24,6 +23,7 @@
 #define EN_PASSAN        0b0000000000000011
 #define PROMOTION_BIT    0b0000000000001000
 #define PROMOTION_MASK   0b0000000000000111
+
 //masks
 #define TO_PIECE_MASK    0b1111110000000000
 #define FROM_PIECE_MASK  0b0000001111110000
@@ -69,7 +69,6 @@ inline bool isQueenside(){ return getSpecialMoveData() == CASTLE_QUEENSIDE;}
 inline bool isPromotion(){return move & PROMOTION_BIT;}
 inline byte getPromotionPiece(){return move & PROMOTION_MASK;}
 
-
 inline byte getEnPassanTarget(){ return (unmakeData & EN_PASSAN_TARGET_MASK )>>6;}
 inline byte getCastlingRights(){return (unmakeData & CASTLING_RIGHTS_MASK)>>2;}
 inline byte getCapturedPiece(){return unmakeData>>12;}
@@ -82,9 +81,13 @@ inline void resetUnmakeData(){unmakeData = (unsigned short)0;}
 int getSquareIndex(int file, int rank);
 
 struct Board{
+  static u64 rankMasks[8];
+  static u64 fileMasks[8];
+  static void generateFileMasks();
+  static void generateRankMasks();
+  Board(){ generateRankMasks(); generateFileMasks();}
   u64 bitboards[14];
   u64 occupancy; 
-  u64 threatened[2]; // squares threatened by white come first
   byte enPassanTarget = EN_PASSAN_NULL;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;

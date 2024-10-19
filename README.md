@@ -1,7 +1,7 @@
 A c++ chess program that runs in the console
 
 ## UI
-A list of commands can be accessed with "h" or "help"\
+A list of commands can be accessed with "hlp" or "help"\
 If pieces are not displating properly, try switching to ASCII with ">>dsp"\
 Commands are case sensetive\
 When no command is entered, the last is repeated
@@ -10,7 +10,20 @@ Loading a position from a fen string is supported, but currently requires editin
 UCI is not supported yet
 
 ## Changelog
-- 10/15/24 merged move-generation-bugfixes
+- move-gen-optimisation
+    - improved castling
+    - improved naming of some functions
+    - removed Board.threatened
+    - magic numbers store the maximum index they use, to save space
+    - magic number search improved
+    - magics stored in a struct
+    - sch command improved
+    - Split search into search, movegen, and magicman classes
+    - Ui now takes in various components as pointers, to avoid having multiple copies of the same thing
+    - Magic lookup now uses array instead of std::map
+    - Reformatted changelog slightly
+
+- move-generation-bugfixes (merged 10/15/24)
     - Move generator now functional
     - UI was refactored
     - Debug was refactored

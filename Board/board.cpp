@@ -1,6 +1,23 @@
 #include <cmath>
 #include "board.h"
+
+u64 Board::rankMasks[8];
+u64 Board::fileMasks[8];
+
 int getSquareIndex(int rank, int file){return (rank*8) + file;};
+void Board::generateRankMasks() {
+  for (int i = 0; i < 8; i++) {
+    rankMasks[i] = (u64)255 << (8 * i);
+  }
+}
+void Board::generateFileMasks() {
+  for (int i = 0; i < 8; i++) {
+    u64 mask = (u64)0;
+    for (int y = 0; y < 8; y++) 
+      setBit(mask, (y * 8) + i);
+    fileMasks[i] = mask;
+  }
+}
 void Board::updateColorBitboards(){
   bitboards[WHITE_PIECES] = bitboards[WHITE+PAWN] | bitboards[WHITE+BISHOP] | bitboards[WHITE+KNIGHT] | bitboards[WHITE+ROOK] | bitboards[WHITE+QUEEN] | bitboards[WHITE+KING];
   bitboards[BLACK_PIECES] = bitboards[BLACK+PAWN] | bitboards[BLACK+BISHOP] | bitboards[BLACK+KNIGHT] | bitboards[BLACK+ROOK] | bitboards[BLACK+QUEEN] | bitboards[BLACK+KING];

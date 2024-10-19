@@ -13,6 +13,9 @@ struct ConsoleState {
   bool printBoard = true;
 };
 class ConsoleInterface{
+  MoveGenerator *mgptr = nullptr;
+  Search *searchptr = nullptr;
+  Board *boardptr = nullptr;
   ConsoleState c;
   std::stack<Move> history;
   byte squareNameToIndex(std::string squareName);
@@ -22,12 +25,12 @@ class ConsoleInterface{
   void showHelpMenu();
   
   void displaySettings();
-  void whosTurnIsIt(Board &board);
-  void makeMoveFromConsole(Board &board, Search &search);
-  void undoLastMove(Board &board);
-  void makeRandomMove(Board &board, Search &search);
-  void printLegalMoves(Board &board, Search &search);
-  void showDebugView(Board &board);
+  void whosTurnIsIt();
+  void makeMoveFromConsole();
+  void undoLastMove();
+  void makeRandomMove();
+  void printLegalMoves();
+  void showDebugView();
 public:
-  void run(Board &board, Search &search);//run the console interface
+  void run(Board *boardptr,MoveGenerator *mgptr,Search *searchptr);//run the console interface
 };
