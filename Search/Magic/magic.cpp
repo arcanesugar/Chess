@@ -39,11 +39,6 @@ u64 MagicMan::bishopLookup(u64 blockers, byte square){
 
 //initialisation
 void MagicMan::fillRookMoves() {
-  //wastes a lot of memory, but it works. Ill fix it later maybe
-  //if I could find a fast way of calculating the max used index, I could
-  //improve the magic number search, and use less memory. using the highest possible blocker configuation
-  //doesnt work becuase the magic number calculation depends on overflow in many cases, so the actuall max result is
-  //somewere in the middle. This works for now, ~100MiB is like a chrome tab. Definitely less than ideal though
   int sum = 0;
   for(int i = 0; i<64; i++){
     rookMovesSizes[i] = rookMagics[i].max + 1;
@@ -73,7 +68,6 @@ void MagicMan::fillRookMoves() {
 }
 
 void MagicMan::fillBishopMoves() {
-  //see comment in fillRookMoves
   int sum = 0;
   for(int i = 0; i<64; i++){
     bishopMovesSizes[i] = bishopMagics[i].max + 1;
