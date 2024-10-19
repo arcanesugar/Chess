@@ -10,6 +10,7 @@ Loading a position from a fen string is supported, but currently requires editin
 UCI is not supported yet
 ## Changelog
 - move-gen-optimisation
+    - magics stored in a struct
     - sch command improved
     - Split search into search, movegen, and magicman classes
     - Ui now takes in various components as pointers, to avoid having multiple copies of the same thing

@@ -17,13 +17,13 @@ void MagicMan::cleanup(){
 }
 u64 MagicMan::rookLookup(u64 blockers, byte square){
   blockers = blockers & rookMasks[square]; 
-  u64 hashed = (blockers * rookMagics[square]) >> rookShifts[square];
+  u64 hashed = (blockers * rookMagics[square].magic) >> rookMagics[square].shift;
   return rookMoves[square][hashed];
 }
 
 u64 MagicMan::bishopLookup(u64 blockers, byte square){
   blockers = blockers & bishopMasks[square]; 
-  u64 hashed = (blockers * bishopMagics[square]) >> bishopShifts[square];
+  u64 hashed = (blockers * bishopMagics[square].magic) >> bishopMagics[square].shift;
   return bishopMoves[square][hashed];
 }
 
@@ -37,7 +37,7 @@ void MagicMan::fillRookMoves() {
   //somewere in the middle. This works for now, ~100MiB is like a chrome tab. Definitely less than ideal though
   int sum = 0;
   for(int i = 0; i<64; i++){
-    rookMovesSizes[i] = pow(2, 64-rookShifts[i]);
+    rookMovesSizes[i] = pow(2, 64-rookMagics[i].shift);
     sum += rookMovesSizes[i];
     rookMoves[i] = new u64[rookMovesSizes[i]];
   }
@@ -60,7 +60,7 @@ void MagicMan::fillRookMoves() {
           y += directions[direction][1];
         }
       }
-      rookMoves[i][(blocker * rookMagics[i]) >> rookShifts[i]] = moves;
+      rookMoves[i][(blocker * rookMagics[i].magic) >> rookMagics[i].shift] = moves;
     }
   }
 }
@@ -69,7 +69,7 @@ void MagicMan::fillBishopMoves() {
   //see comment in fillRookMoves
   int sum = 0;
   for(int i = 0; i<64; i++){
-    bishopMovesSizes[i] = pow(2, 64-bishopShifts[i]);
+    bishopMovesSizes[i] = pow(2, 64-bishopMagics[i].shift);
     sum += bishopMovesSizes[i];
     bishopMoves[i] = new u64[bishopMovesSizes[i]];
   }
@@ -90,7 +90,7 @@ void MagicMan::fillBishopMoves() {
           y += directions[direction][1];
         }
       }
-      bishopMoves[i][(blocker * bishopMagics[i]) >> bishopShifts[i]] = moves;
+      bishopMoves[i][(blocker * bishopMagics[i].magic) >> bishopMagics[i].shift] = moves;
     }
   }
 }
@@ -190,24 +190,23 @@ void MagicMan::magicSearch(){
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) return;
-      u64 magic = random_u64_fewbits();
-      int shift = -999;
+      Magic magic;
+      magic.magic = random_u64_fewbits();
+      magic.shift = -999;
       for(int s = 40; s<64; s++){
-        if(testMagic(rookBlockers, square,magic,s)){shift = s;}
+        if(testMagic(rookBlockers, square,magic.magic,s)){magic.shift = s;}
         else{break;}
       }
-      if(shift >rookShifts[square]){
+      if(magic.shift >rookMagics[square].shift){
         rookMagics[square] = magic;
-        rookShifts[square] = shift;
       }
-      shift = -999;
+      magic.shift = -999;
       for(int s = 40; s<64; s++){
-        if(testMagic(bishopBlockers, square,magic,s)){shift = s;}
+        if(testMagic(bishopBlockers, square,magic.magic,s)){magic.shift = s;}
         else{break;}
       }
-      if(shift >bishopShifts[square]){
+      if(magic.shift >bishopMagics[square].shift){
         bishopMagics[square] = magic;
-        bishopShifts[square] = shift;
       }
     }
 
@@ -217,13 +216,13 @@ void MagicMan::magicSearch(){
     int foundBishop = 0;
     int bishopTableSize= 0;
     for(int i= 0; i<64; i++){
-      if(rookShifts[i]!= -999){
+      if(rookMagics[i].shift != -999){
         foundRook++;
-        rookTableSize += pow(2,64-rookShifts[i]);
+        rookTableSize += pow(2,64-rookMagics[i].shift);
       }
-      if(bishopShifts[i]!= -999){
+      if(bishopMagics[i].shift!= -999){
         foundBishop++;
-        bishopTableSize += pow(2,64-bishopShifts[i]);
+        bishopTableSize += pow(2,64-bishopMagics[i].shift);
       }
     }
     std::cout<<"\x1b[3A";
@@ -241,11 +240,11 @@ void MagicMan::searchForMagics(){
   std::getline(std::cin, temp);
   loadMagics();
   if(temp == "n"){
-    for(int &i : rookShifts){
-      i = -999;
+    for(Magic &i : rookMagics){
+      i.shift = -999;
     }
-    for(int &i : bishopShifts){
-      i = -999;
+    for(Magic &i : bishopMagics){
+      i.shift = -999;
     }
   }
   quitSearch = false;
@@ -268,14 +267,13 @@ void MagicMan::saveMagics(){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;
     return;
   }
-  int i = 0;
-  for(u64 u : rookMagics){
-    file<<std::to_string(u)<<"\n"<<std::to_string(rookShifts[i++])<<"\n";
+  file<<"magicfile1.0\n";
+  for(Magic u : rookMagics){
+    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"\n";
   }
   file<<"Bishop\n";
-  i = 0;
-  for(u64 u : bishopMagics){
-    file<<std::to_string(u)<<"\n"<<std::to_string(bishopShifts[i++])<<"\n";
+  for(Magic u : bishopMagics){
+    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"\n";
   }
 };
 
@@ -299,9 +297,9 @@ void MagicMan::loadMagics(){
     if(shift){
       int val = std::stoi(line);
       if(rook){
-        rookShifts[index] = val;
+        rookMagics[index].shift = val;
       }else{
-        bishopShifts[index] = val;
+        bishopMagics[index].shift = val;
       }
       index+=1;
       shift = false;
@@ -309,9 +307,9 @@ void MagicMan::loadMagics(){
     }
     u64 val = std::stoull(line);
     if(rook){
-      rookMagics[index] = val;
+      rookMagics[index].magic = val;
     }else{
-      bishopMagics[index] = val;
+      bishopMagics[index].magic = val;
     }
     shift = true;
   }

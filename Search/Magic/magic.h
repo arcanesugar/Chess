@@ -5,12 +5,15 @@
 #include <thread>
 #include "../../Board/board.h"
 
+struct Magic{
+  u64 magic;
+  int shift;
+  int max;
+};
 class MagicMan{//magic manager, or at least thats my justification
   //the actual magic numbers
-  u64 rookMagics[64];
-  int rookShifts[64];
-  u64 bishopMagics[64];
-  int bishopShifts[64];
+  Magic rookMagics[64];
+  Magic bishopMagics[64];
 
   //used for generating magic numbers 
   bool quitSearch = false;
