@@ -1,10 +1,13 @@
 #include "magic.h"
 void MagicMan::init(){
-  loadMagics();
   generateRookMasks();
   generateBishopMasks();
-  fillRookMoves();
-  fillBishopMoves();
+  if(!loadMagics()){
+    fillRookMoves();
+    fillBishopMoves();
+  }else{
+    std::cout<<"[error] Could not create sliding move tables"<<std::endl;
+  }
 }
 void MagicMan::cleanup(){
   //deallocate memory
@@ -44,8 +47,6 @@ void MagicMan::fillRookMoves() {
   std::cout<<(sum*8)/1000<<"KiB required for rooks"<<std::endl;
   generateRookBlockers();
   for (int i = 0; i < 64; i++) {
-    //allocate memory
-
     for (u64 blocker : rookBlockers[i]) {
       u64 moves = (u64)0;
       int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
@@ -94,8 +95,6 @@ void MagicMan::fillBishopMoves() {
     }
   }
 }
-
-//Magic number search
 
 //random functions from https://www.chessprogramming.org/Looking_for_Magics
 //modified slightly to fit naming convention
@@ -277,40 +276,46 @@ void MagicMan::saveMagics(){
   }
 };
 
-void MagicMan::loadMagics(){
+int MagicMan::loadMagics(){
   std::ifstream file("Search/Magic/magics.txt");
   if(!file.is_open()){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;
-    return;
+    return -1;
   }
   std::string line;
+  getline(file,line);
+  if(line != "magicfile1.0"){
+    std::cout<<"Magic file unrecognised, try regenerating with sch";
+    return -1;
+  }
   int index = 0;
   bool rook = true;
-  bool shift = false;
   while(getline(file,line)){
     if(line == "Bishop"){
       index = 0;
-      shift = false;
       rook = false;
       continue;
     }
-    if(shift){
-      int val = std::stoi(line);
-      if(rook){
-        rookMagics[index].shift = val;
-      }else{
-        bishopMagics[index].shift = val;
+    std::vector<std::string> tokens;
+    int tokenIndex = 0;
+    tokens.push_back("");
+    for(int i = 0; i<line.length(); i++){
+      if(line[i] == '|'){
+        tokenIndex ++;
+        tokens.push_back("");
+        continue;
       }
-      index+=1;
-      shift = false;
-      continue;
+      tokens[tokenIndex].push_back(line[i]);
     }
-    u64 val = std::stoull(line);
+    Magic magic;
+    magic.magic = std::stoull(tokens[0]);
+    magic.shift = std::stoi(tokens[1]);
+    magic.max = 0;
     if(rook){
-      rookMagics[index].magic = val;
+      rookMagics[index++] = magic;
     }else{
-      bishopMagics[index].magic = val;
+      bishopMagics[index++] = magic;
     }
-    shift = true;
   }
+  return 0;
 };

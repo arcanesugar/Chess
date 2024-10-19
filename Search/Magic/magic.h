@@ -45,7 +45,7 @@ public:
   void cleanup();   
   void searchForMagics();
   void saveMagics();
-  void loadMagics();
+  int loadMagics();
 
   u64 rookLookup(u64 blockers, byte rookSquare);
   u64 bishopLookup(u64 blockers, byte bishopSquare);
