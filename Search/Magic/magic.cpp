@@ -1,4 +1,5 @@
 #include "magic.h"
+#include <climits>
 #include <unordered_set>
 void MagicMan::init(){
   generateRookMasks();
@@ -45,7 +46,7 @@ void MagicMan::fillRookMoves() {
   //somewere in the middle. This works for now, ~100MiB is like a chrome tab. Definitely less than ideal though
   int sum = 0;
   for(int i = 0; i<64; i++){
-    rookMovesSizes[i] = pow(2, 64-rookMagics[i].shift);
+    rookMovesSizes[i] = rookMagics[i].max + 1;
     sum += rookMovesSizes[i];
     rookMoves[i] = new u64[rookMovesSizes[i]];
   }
@@ -75,7 +76,7 @@ void MagicMan::fillBishopMoves() {
   //see comment in fillRookMoves
   int sum = 0;
   for(int i = 0; i<64; i++){
-    bishopMovesSizes[i] = pow(2, 64-bishopMagics[i].shift);
+    bishopMovesSizes[i] = bishopMagics[i].max + 1;
     sum += bishopMovesSizes[i];
     bishopMoves[i] = new u64[bishopMovesSizes[i]];
   }
@@ -169,13 +170,16 @@ void MagicMan::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
 
 bool MagicMan::testMagic(std::vector<u64> *blockers, Magic &magic){
   std::unordered_set<u64> foundKeys;//map is probably not the best fit here
+  u64 max = 0;
   for(u64 blocker : *blockers){
     u64 hashed = magicHash(magic,blocker);
+    max = std::max(hashed,max);
     if(foundKeys.count(hashed) != 0){
       return false;
     }
     foundKeys.insert(hashed);
   }
+  magic.max = (int)max;
   return true;
 }
 
@@ -187,11 +191,11 @@ void MagicMan::magicSearch(){
       magic.magic = random_u64_fewbits();
       magic.shift = 61-bitcount(rookMasks[square]); //64-bc would be a perfect magic number, 61 gives wiggle room
       if(testMagic(&rookBlockers[square],magic)){
-        rookMagics[square] = magic;
+        if(rookMagics[square].max > magic.max) rookMagics[square] = magic;
       }
       magic.shift = 61-bitcount(bishopMasks[square]);
       if(testMagic(&bishopBlockers[square],magic)){
-        bishopMagics[square] = magic;
+        if(bishopMagics[square].max > magic.max) bishopMagics[square] = magic;
       }
     }
 
@@ -201,13 +205,13 @@ void MagicMan::magicSearch(){
     int foundBishop = 0;
     int bishopTableSize= 0;
     for(int i= 0; i<64; i++){
-      if(rookMagics[i].shift != -999){
+      if(rookMagics[i].max != INT_MAX){
         foundRook++;
-        rookTableSize += pow(2,64-rookMagics[i].shift);
+        rookTableSize += rookMagics[i].max + 1;
       }
-      if(bishopMagics[i].shift!= -999){
+      if(bishopMagics[i].max != INT_MAX){
         foundBishop++;
-        bishopTableSize += pow(2,64-bishopMagics[i].shift);
+        bishopTableSize += bishopMagics[i].max + 1;
       }
     }
     std::cout<<"\x1b[3A";
@@ -227,10 +231,10 @@ void MagicMan::searchForMagics(){
   loadMagics();
   if(temp == "n"){
     for(Magic &i : rookMagics){
-      i.shift = -999;
+      i.max = INT_MAX;
     }
     for(Magic &i : bishopMagics){
-      i.shift = -999;
+      i.max = INT_MAX;
     }
   }
   quitSearch = false;
@@ -253,13 +257,13 @@ void MagicMan::saveMagics(){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;
     return;
   }
-  file<<"magicfile1.0\n";
+  file<<"magicfile2.0\n";
   for(Magic u : rookMagics){
-    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"\n";
+    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"|"<<std::to_string(u.max)<<"\n";
   }
   file<<"Bishop\n";
   for(Magic u : bishopMagics){
-    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"\n";
+    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"|"<<std::to_string(u.max)<<"\n";
   }
 };
 
@@ -271,7 +275,7 @@ int MagicMan::loadMagics(){
   }
   std::string line;
   getline(file,line);
-  if(line != "magicfile1.0"){
+  if(line != "magicfile2.0"){
     std::cout<<"Magic file unrecognised, try regenerating with sch";
     return -1;
   }
@@ -297,7 +301,7 @@ int MagicMan::loadMagics(){
     Magic magic;
     magic.magic = std::stoull(tokens[0]);
     magic.shift = std::stoi(tokens[1]);
-    magic.max = 0;
+    magic.max = std::stoi(tokens[2]);
     if(rook){
       rookMagics[index++] = magic;
     }else{
