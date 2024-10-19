@@ -1,12 +1,14 @@
 #include "movegen.h"
 MoveGenerator::MoveGenerator(){
   magicman.init();
-  generateKnightMoves();
-  generateKingMoves();
+  createKingTable();
+  createKnightTable();
 }
+
 MoveGenerator::~MoveGenerator(){
- magicman.cleanup();
+  magicman.cleanup();
 }
+
 void MoveGenerator::generateMoves(Board &board, MoveList &moves) {
   friendlyBitboard = (board.flags & WHITE_TO_MOVE_BIT)
      ? board.bitboards[WHITE_PIECES]
@@ -43,10 +45,11 @@ bool MoveGenerator::isAttacked(Board const &board, byte square, byte opponentCol
   //attacked by knight
   u64 possibleKnights = knightMoves[square];
   if(possibleKnights&board.bitboards[KNIGHT+opponentColor]) return true;
-  
+
   //attacked by king
   u64 possibleKings = kingMoves[square];
   if(possibleKings & board.bitboards[KING+opponentColor]) return true;
+
   //attacked by sliders
   u64 possibleRooks = magicman.rookLookup(board.occupancy, square);
   if(possibleRooks&board.bitboards[ROOK+opponentColor]) return true;
@@ -78,15 +81,6 @@ void MoveGenerator::addSlidingMoves(Board &board, MoveList &moves) {
   }
   while (diagonalPieces) {
     addDiagonalMoves(board, popls1b(diagonalPieces), moves);
-  }
-}
-
-void MoveGenerator::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
-  while (squares) {
-    Move move;
-    move.setTo(popls1b(squares));
-    move.setFrom(fromSquare);
-    moves.append(move);
   }
 }
 
@@ -162,6 +156,15 @@ void MoveGenerator::addPawnMoves(Board &board, MoveList &moves) {
   }
 }
 
+void MoveGenerator::addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
+  while (squares) {
+    Move move;
+    move.setTo(popls1b(squares));
+    move.setFrom(fromSquare);
+    moves.append(move);
+  }
+}
+
 void MoveGenerator::addKnightMoves(Board &board, MoveList &moves) {
   u64 friendlyKnights = board.bitboards[color + KNIGHT];
   while (friendlyKnights) {
@@ -205,7 +208,7 @@ void MoveGenerator::addCastlingMoves(Board &board, MoveList &moves){
 }
 
 //Initialisation
-void MoveGenerator::generateKnightMoves() {
+void MoveGenerator::createKnightTable() {
   int offsets[8][2] = {{1, -2}, {2, -1}, {2, 1},   {1, 2},
    {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}};
   for (int rank = 0; rank < 8; rank++) {   // y
@@ -224,7 +227,7 @@ void MoveGenerator::generateKnightMoves() {
   }
 }
 
-void MoveGenerator::generateKingMoves() {
+void MoveGenerator::createKingTable() {
   int offsets[8][2] = {{1, -1}, {-1, 1}, {-1, -1}, {1, 1},
    {1, 0},  {-1, 0}, {0, -1},  {0, 1}};
   for (int rank = 0; rank < 8; rank++) {   // y

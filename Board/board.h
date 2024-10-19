@@ -23,6 +23,7 @@
 #define EN_PASSAN        0b0000000000000011
 #define PROMOTION_BIT    0b0000000000001000
 #define PROMOTION_MASK   0b0000000000000111
+
 //masks
 #define TO_PIECE_MASK    0b1111110000000000
 #define FROM_PIECE_MASK  0b0000001111110000
@@ -67,7 +68,6 @@ inline bool isKingside(){ return getSpecialMoveData() == CASTLE_KINGSIDE;}
 inline bool isQueenside(){ return getSpecialMoveData() == CASTLE_QUEENSIDE;}
 inline bool isPromotion(){return move & PROMOTION_BIT;}
 inline byte getPromotionPiece(){return move & PROMOTION_MASK;}
-
 
 inline byte getEnPassanTarget(){ return (unmakeData & EN_PASSAN_TARGET_MASK )>>6;}
 inline byte getCastlingRights(){return (unmakeData & CASTLING_RIGHTS_MASK)>>2;}

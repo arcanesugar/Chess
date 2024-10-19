@@ -8,8 +8,11 @@ When no command is entered, the last is repeated
   
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
 UCI is not supported yet
+
 ## Changelog
 - move-gen-optimisation
+    - improved castling
+    - improved naming of some functions
     - removed Board.threatened
     - magic numbers store the maximum index they use, to save space
     - magic number search improved

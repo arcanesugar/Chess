@@ -25,8 +25,8 @@ class MoveGenerator{
   byte opponentColor;
   //
   //initialisation functions
-  void generateKnightMoves();//fills the knight moves array, does not do actual move generation
-  void generateKingMoves();//see above comment
+  void createKnightTable();//fills the knight moves array, does not do actual move generation
+  void createKingTable();//see above comment
 
   void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares);
   void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags = 0);
