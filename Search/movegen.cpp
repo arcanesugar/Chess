@@ -8,24 +8,16 @@ MoveGenerator::~MoveGenerator(){
  magicman.cleanup();
 }
 void MoveGenerator::generateMoves(Board &board, MoveList &moves) {
-  if(!(board.flags&THREATENED_POPULATED)){
-    board.flags |= THREATENED_POPULATED;
-    generateMoves(board, moves);
-    board.flags ^= WHITE_TO_MOVE_BIT;
-    generateMoves(board, moves);
-    board.flags ^= WHITE_TO_MOVE_BIT;
-  }
   friendlyBitboard = (board.flags & WHITE_TO_MOVE_BIT)
      ? board.bitboards[WHITE_PIECES]
      : board.bitboards[BLACK_PIECES];
   enemyBitboard = (board.flags & WHITE_TO_MOVE_BIT)
      ? board.bitboards[BLACK_PIECES]
      : board.bitboards[WHITE_PIECES];
-
   color = (board.flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  threatenedIndex = (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 1;
-  board.threatened[threatenedIndex] = (u64)0;
+  opponentColor = (color == WHITE)? BLACK : WHITE;
   moves.end = 0;
+
   addPawnMoves(board, moves);
   addSlidingMoves(board, moves);
   addKnightMoves(board, moves);
@@ -35,11 +27,9 @@ void MoveGenerator::generateMoves(Board &board, MoveList &moves) {
 }
 
 void MoveGenerator::filterLegalMoves(Board board, MoveList &moves){
-  byte friendlyColor = color;
-  byte opponentColor = (color == WHITE)? BLACK : WHITE;
   for(int i = moves.end-1; i>=0; i--){
     board.makeMove(moves.moves[i]);
-    byte kingSquare = bitScanForward(board.bitboards[friendlyColor+KING]);
+    byte kingSquare = bitScanForward(board.bitboards[color+KING]);
     bool isLegal = !isAttacked(board, kingSquare, opponentColor);
     board.unmakeMove(moves.moves[i]);
     moves.moves[i].resetUnmakeData();
@@ -81,10 +71,10 @@ bool MoveGenerator::isAttacked(Board const &board, byte square, byte opponentCol
 }
 
 void MoveGenerator::addSlidingMoves(Board &board, MoveList &moves) {
-  u64 horizontalPieces = board.bitboards[color + ROOK] | board.bitboards[color + QUEEN];
+  u64 orthogonalPieces = board.bitboards[color + ROOK] | board.bitboards[color + QUEEN];
   u64 diagonalPieces = board.bitboards[color + BISHOP] | board.bitboards[color + QUEEN];
-  while (horizontalPieces) {
-    addHorizontalMoves(board, popls1b(horizontalPieces), moves);
+  while (orthogonalPieces) {
+    addOrthogonalMoves(board, popls1b(orthogonalPieces), moves);
   }
   while (diagonalPieces) {
     addDiagonalMoves(board, popls1b(diagonalPieces), moves);
@@ -100,7 +90,7 @@ void MoveGenerator::addMovesToSquares(MoveList &moves, int fromSquare, u64 squar
   }
 }
 
-void MoveGenerator::addHorizontalMoves(Board &board, int square, MoveList &moves) {
+void MoveGenerator::addOrthogonalMoves(Board &board, int square, MoveList &moves) {
   u64 destinations = magicman.rookLookup(board.occupancy,square) & (~friendlyBitboard);
   addMovesToSquares(moves, square, destinations);
 };
@@ -152,12 +142,10 @@ void MoveGenerator::addPawnMoves(Board &board, MoveList &moves) {
   // pawn captures
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 7 * dir);
   pawnDestinations &= ~leftFileMask & enemyBitboard;
-  board.threatened[threatenedIndex] |= pawnDestinations;
   addMovesFromOffset(moves, -7*dir, pawnDestinations);
 
   pawnDestinations = signedShift(board.bitboards[color + PAWN], 9 * dir);
   pawnDestinations &= ~rightFileMask & enemyBitboard;
-  board.threatened[threatenedIndex] |= pawnDestinations;
   addMovesFromOffset(moves, -9*dir, pawnDestinations);
 
   //En Passan
@@ -179,35 +167,26 @@ void MoveGenerator::addKnightMoves(Board &board, MoveList &moves) {
   while (friendlyKnights) {
     int square = popls1b(friendlyKnights);
     u64 targets = knightMoves[square] & (~friendlyBitboard);
-    board.threatened[threatenedIndex] |= targets;
     addMovesToSquares(moves, square, targets);
   }
 }
-
 void MoveGenerator::addKingMoves(Board &board, MoveList &moves) {
   int square = bitScanForward(board.bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
-  board.threatened[threatenedIndex] |= targets;
   addMovesToSquares(moves, square, targets);
 }
 
 void MoveGenerator::addCastlingMoves(Board &board, MoveList &moves){
-  byte opponentColor = (color == WHITE)? BLACK : WHITE;
   if(isAttacked(board,(byte)bitScanForward(board.bitboards[color+KING]),opponentColor)) return;//cannot castle out of check
-  int mustBeEmpty[4][3] = {{2,2,1},{4,5,6},{57,58,58},{62,61,60}};
-  int mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
+  u64 mustBeEmpty[4] = {6ULL,112ULL,432345564227567616ULL,8070450532247928832ULL};
+  byte mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};
   int i = (board.flags&WHITE_TO_MOVE_BIT)? 0 : 2;
   int max = i+2;
   for(int j = i; j<max; j++){
+    if(!(board.flags&masks[j])) continue;
+    if(mustBeEmpty[j]&board.occupancy) continue;
     bool legal = true; 
-    for(int s : mustBeEmpty[j]){
-      if(board.squares[s] != EMPTY){
-        legal = false;
-        break;
-      }
-    }
-    if(!legal) continue;
     for(int s : mustBeSafe[j]){
       if(isAttacked(board, s, opponentColor)){
         legal = false;
@@ -215,15 +194,13 @@ void MoveGenerator::addCastlingMoves(Board &board, MoveList &moves){
       }
     }
     if(!legal) continue;
-    if(board.flags&masks[j]){
-      Move m;
-      if(j%2 == 0){
-        m.setSpecialMoveData(CASTLE_KINGSIDE); 
-      }else{
-        m.setSpecialMoveData(CASTLE_QUEENSIDE); 
-      }
-      moves.append(m);
+    Move m;
+    if(j%2 == 0){
+      m.setSpecialMoveData(CASTLE_KINGSIDE); 
+    }else{
+      m.setSpecialMoveData(CASTLE_QUEENSIDE); 
     }
+    moves.append(m);
   }
 }
 

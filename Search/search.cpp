@@ -1,15 +1,6 @@
 #include "search.h"
 
 u64 Search::perftTest(Board &b, int depth, bool root){
-  if(moveGenerator == nullptr) {
-    std::cout<<"[Search error] No assigned move generator"<<std::endl;
-    return 0;
-  }
-  /*if(!b.validate()) {
-    debug::Settings s;
-    std::cout<<"\x1b[31m[error] Invalid board, aborting branch [depth: "<<depth<<"]\x1b[0m\n"<<debug::printBoard(s,b)<<std::endl;
-    return 0;
-  }*/
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
@@ -26,13 +17,10 @@ u64 Search::perftTest(Board &b, int depth, bool root){
 }
 
 void Search::runMoveGenerationTest(Board &board){
-  //https://www.chessprogramming.org/Perft_Results
-  debug::Settings settings;
   for(int i = 1; i<5; i++){
-    std::cout<<"\x1b[0mDepth: "<<i<<"\x1b[30m \n";
+    std::cout<<"Depth: "<<i<<"\n";
     u64 found = perftTest(board,i);
-    if(found == 0) return;
-    std::cout<<"\x1b[0mFound: "<<found<<"\n"<<std::endl;
+    std::cout<<"Found: "<<found<<"\n"<<std::endl;
   }
 }
 
@@ -70,7 +58,6 @@ void Search::runMoveGenerationSuite(){
     2
   };
   std::cout<<"Starting"<<std::endl;
-  debug::Settings settings;
   int sum = 0;
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<8; i++){

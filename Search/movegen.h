@@ -21,8 +21,8 @@ class MoveGenerator{
 
   u64 friendlyBitboard;
   u64 enemyBitboard;
-  int color;
-  int threatenedIndex;//>:}
+  byte color;
+  byte opponentColor;
   //
   //initialisation functions
   void generateKnightMoves();//fills the knight moves array, does not do actual move generation
@@ -32,7 +32,7 @@ class MoveGenerator{
   void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags = 0);
 
   void addDiagonalMoves(Board &board, int square, MoveList &moves);
-  void addHorizontalMoves(Board &board, int square, MoveList &moves);
+  void addOrthogonalMoves(Board &board, int square, MoveList &moves);
 
   void addSlidingMoves(Board &board, MoveList &moves);
   void addPawnMoves(Board &board, MoveList &moves);

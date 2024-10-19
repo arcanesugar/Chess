@@ -14,7 +14,6 @@
 #define WHITE_QUEENSIDE_BIT  0b00000100
 #define BLACK_KINGSIDE_BIT   0b00001000
 #define BLACK_QUEENSIDE_BIT  0b00010000
-#define THREATENED_POPULATED 0b00100000
 
 #define WHITE_CASTLING_RIGHTS 0b00000110
 #define BLACK_CASTLING_RIGHTS 0b00011000
@@ -89,7 +88,6 @@ struct Board{
   Board(){ generateRankMasks(); generateFileMasks();}
   u64 bitboards[14];
   u64 occupancy; 
-  u64 threatened[2]; // squares threatened by white come first
   byte enPassanTarget = EN_PASSAN_NULL;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
