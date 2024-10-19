@@ -21,7 +21,7 @@ void MagicMan::cleanup(){
   }
 }
 
-u64 MagicMan::magicHash(Magic &magic, u64 blockers){
+u64 MagicMan::magicHash(Magic magic, u64 blockers){
   return (magic.magic*blockers)>>magic.shift;
 }
 u64 MagicMan::rookLookup(u64 blockers, byte square){
@@ -36,14 +36,13 @@ u64 MagicMan::bishopLookup(u64 blockers, byte square){
   return bishopMoves[square][hashed];
 }
 
-
 //initialisation
 void MagicMan::fillRookMoves() {
   int sum = 0;
   for(int i = 0; i<64; i++){
-    rookMovesSizes[i] = rookMagics[i].max + 1;
-    sum += rookMovesSizes[i];
-    rookMoves[i] = new u64[rookMovesSizes[i]];
+    int size = rookMagics[i].max + 1;
+    sum+=size;
+    rookMoves[i] = new u64[size];
   }
   std::cout<<(sum*8)/1000<<"KiB required for rooks"<<std::endl;
   generateRookBlockers();
@@ -65,14 +64,17 @@ void MagicMan::fillRookMoves() {
       rookMoves[i][magicHash(rookMagics[i], blocker)] = moves;
     }
   }
+  for(int i = 0; i<64; i++){
+    rookBlockers[i].clear();
+  }
 }
 
 void MagicMan::fillBishopMoves() {
   int sum = 0;
   for(int i = 0; i<64; i++){
-    bishopMovesSizes[i] = bishopMagics[i].max + 1;
-    sum += bishopMovesSizes[i];
-    bishopMoves[i] = new u64[bishopMovesSizes[i]];
+    int size = bishopMagics[i].max + 1;
+    sum += size;
+    bishopMoves[i] = new u64[size];
   }
   std::cout<<(sum*8)/1000<<"KiB required for bishops"<<std::endl;
   generateBishopBlockers();
@@ -93,6 +95,9 @@ void MagicMan::fillBishopMoves() {
       }
       bishopMoves[i][magicHash(bishopMagics[i], blocker)] = moves;
     }
+  }
+  for(int i = 0; i<64; i++){
+    bishopBlockers[i].clear();
   }
 }
 

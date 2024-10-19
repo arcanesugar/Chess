@@ -15,7 +15,7 @@ class MagicMan{//magic manager, or at least thats my justification
   //the actual magic numbers
   Magic rookMagics[64];
   Magic bishopMagics[64];
-  inline u64 magicHash(Magic &magic, u64 blockers);
+  inline u64 magicHash(Magic magic, u64 blockers);
   //used for generating magic numbers 
   bool quitSearch = false;
   std::vector<u64> rookBlockers[64];
@@ -37,8 +37,6 @@ class MagicMan{//magic manager, or at least thats my justification
   void fillBishopMoves();
   u64 *rookMoves[64];//key, moves bitboard 
   u64 *bishopMoves[64];//key, moves bitboard 
-  int rookMovesSizes[64];
-  int bishopMovesSizes[64];
  
 public:
   //using init and cleanup instead of a constructor/deconstructor
