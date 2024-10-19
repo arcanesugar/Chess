@@ -184,8 +184,54 @@ bool MagicMan::testMagic(std::vector<u64> *blockers, int square,u64 magic, int s
 }
 
 //Search can be greatly improved
-// for example, just using the shift values is an innacurate way to estimate the lookup table size
+//for example, just using the shift values is an innacurate way to estimate the lookup table size
 //and rand is never seeded
+void MagicMan::magicSearch(){
+  while(!quitSearch){
+    for(int square = 0;square<64;square++){
+      if(quitSearch) return;
+      u64 magic = random_u64_fewbits();
+      int shift = -999;
+      for(int s = 40; s<64; s++){
+        if(testMagic(rookBlockers, square,magic,s)){shift = s;}
+        else{break;}
+      }
+      if(shift >rookShifts[square]){
+        rookMagics[square] = magic;
+        rookShifts[square] = shift;
+      }
+      shift = -999;
+      for(int s = 40; s<64; s++){
+        if(testMagic(bishopBlockers, square,magic,s)){shift = s;}
+        else{break;}
+      }
+      if(shift >bishopShifts[square]){
+        bishopMagics[square] = magic;
+        bishopShifts[square] = shift;
+      }
+    }
+
+    //print information about search
+    int foundRook = 0;
+    int rookTableSize= 0;
+    int foundBishop = 0;
+    int bishopTableSize= 0;
+    for(int i= 0; i<64; i++){
+      if(rookShifts[i]!= -999){
+        foundRook++;
+        rookTableSize += pow(2,64-rookShifts[i]);
+      }
+      if(bishopShifts[i]!= -999){
+        foundBishop++;
+        bishopTableSize += pow(2,64-bishopShifts[i]);
+      }
+    }
+    std::cout<<"\x1b[3A";
+    std::cout<<"Press enter to quit search"<<std::endl;
+    std::cout<<"Rook magics   "<<foundRook  <<"/64 "<<(rookTableSize*8)/1000  <<"KiB "<< rookTableSize   <<" elements"<<std::endl;
+    std::cout<<"Bishop magics "<<foundBishop<<"/64 "<<(bishopTableSize*8)/1000<<"KiB "<< bishopTableSize <<" elements"<<std::endl;
+  }
+}
 void MagicMan::searchForMagics(){
   std::cout<<"[generating blockers]\n";
   generateRookBlockers();
@@ -202,57 +248,12 @@ void MagicMan::searchForMagics(){
       i = -999;
     }
   }
-  while(1){
-    for(int attempt = 0; attempt<100; attempt++){
-      for(int square = 0;square<64;square++){
-        u64 magic = random_u64_fewbits();
-        int shift = -999;
-        for(int s = 40; s<64; s++){
-          if(testMagic(rookBlockers, square,magic,s)){shift = s;}
-          else{break;}
-        }
-        if(shift >rookShifts[square]){
-          rookMagics[square] = magic;
-          rookShifts[square] = shift;
-        }
-        shift = -999;
-        for(int s = 40; s<64; s++){
-          if(testMagic(bishopBlockers, square,magic,s)){shift = s;}
-          else{break;}
-        }
-        if(shift >bishopShifts[square]){
-          bishopMagics[square] = magic;
-          bishopShifts[square] = shift;
-        }
-      }
+  quitSearch = false;
+  std::thread searchThread(&MagicMan::magicSearch, this);
+  std::cin.get();
+  quitSearch = true;
+  searchThread.join();
 
-      //print information about search
-      int foundRook = 0;
-      int rookTableSize= 0;
-      int foundBishop = 0;
-      int bishopTableSize= 0;
-      for(int i= 0; i<64; i++){
-        if(rookShifts[i]!= -999){
-          foundRook++;
-          rookTableSize += pow(2,64-rookShifts[i]);
-        }
-        if(bishopShifts[i]!= -999){
-          foundBishop++;
-          bishopTableSize += pow(2,64-bishopShifts[i]);
-        }
-      }
-      std::cout<<"\nRook magics found for "<<foundRook<<"/64 squares\n";
-      std::cout<<"Rook table ~"<<(rookTableSize*8)/1000<<"KiB\n";
-      std::cout<<"Bishop magics found for "<<foundBishop<<"/64 squares\n";
-      std::cout<<"Bishop table ~"<<(bishopTableSize*8)/1000<<"KiB\n";
-    }
-    std::string temp;
-    std::cout<<"Continue search?(Y/n)\n";
-    std::getline(std::cin, temp);
-    if(temp == "n"){
-      break;
-    }
-  }
   std::cout<<"Save magics?(y/N)\n";
   std::getline(std::cin, temp);
   if(temp == "y"){

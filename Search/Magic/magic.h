@@ -1,7 +1,8 @@
-#include "iostream"
-#include "fstream"
-#include "vector"
-#include "map"
+#include <iostream>
+#include <fstream>
+#include <vector> 
+#include <map> 
+#include <thread>
 #include "../../Board/board.h"
 
 class MagicMan{//magic manager, or at least thats my justification
@@ -12,10 +13,12 @@ class MagicMan{//magic manager, or at least thats my justification
   int bishopShifts[64];
 
   //used for generating magic numbers 
+  bool quitSearch = false;
   std::vector<u64> rookBlockers[64];
   std::vector<u64> bishopBlockers[64];
 
   bool testMagic(std::vector<u64> *blockers, int square, u64 magic, int shift);
+  void magicSearch();
   void generateBlockersFromMask(u64 mask,std::vector<u64> &target);
   void generateRookBlockers();
   void generateBishopBlockers();
