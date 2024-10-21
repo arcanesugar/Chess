@@ -1,6 +1,8 @@
 #include "ui.h"
 #include "debug.h"
+#include "../Search/eval.h"
 #include <string>
+
 void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchptr){
   this->boardptr = boardptr;
   this->mgptr = mgptr;
@@ -11,6 +13,7 @@ void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchpt
     getNextInput();
     std::string input = c.lastInput;
     if (input == "mve") makeMoveFromConsole();
+    if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
     if(input == "dsp")  displaySettings();
     if (input == "lgl") printLegalMoves();
     if (input == "rnd") makeRandomMove();
