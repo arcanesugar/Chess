@@ -10,6 +10,9 @@ Loading a position from a fen string is supported, but currently requires editin
 UCI is not supported yet
 
 ## Changelog
+- search
+    - added evaluation function
+
 - move-gen-optimisation (merged 10/19/24)
     - improved castling
     - improved naming of some functions
