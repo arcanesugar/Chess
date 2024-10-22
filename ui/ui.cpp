@@ -17,6 +17,7 @@ void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchpt
     if(input == "bst") {
       Move best = searchptr->search(*boardptr, 3);
       boardptr->makeMove(best);
+      history.push(best);
       c.printBoard = false;
       c.output = debug::printMove(c.settings, *boardptr, best);
     }

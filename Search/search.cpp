@@ -1,10 +1,12 @@
 #include "search.h"
+#include <float.h>
 
 double Search::nmax(Board &b, int depth){
   if(depth == 0) return evaluate(b);
   MoveList ml;
   moveGenerator->generateMoves(b, ml);
-  double bestEval = -99999;
+  if(ml.end == 0) return -DBL_MAX;//dbl_min is the smallest positive number
+  double bestEval = -DBL_MAX;
   for(int i = 0; i<ml.end; i++){
     b.makeMove(ml.moves[i]);
     double eval = -nmax(b,depth-1);
@@ -26,6 +28,9 @@ Move Search::search(Board b, int depth){
       bestMove = ml.moves[i];
     }
     b.unmakeMove(ml.moves[i]);
+  }
+  if(bestEval == DBL_MAX){
+    std::cout<<"Checkmate"<<std::endl;
   }
   return bestMove; 
 }
