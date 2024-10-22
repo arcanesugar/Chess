@@ -11,7 +11,10 @@ UCI is not supported yet
 
 ## Changelog
 - search
-    - added evaluation function
+    - added bst command (plays the "best" move)
+    - added nmax search
+    - added evl command (shows the evaluation)
+    - added evaluation function (currently just counts material)
 
 - move-gen-optimisation (merged 10/19/24)
     - improved castling

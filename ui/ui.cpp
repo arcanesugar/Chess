@@ -14,6 +14,12 @@ void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchpt
     std::string input = c.lastInput;
     if (input == "mve") makeMoveFromConsole();
     if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
+    if(input == "bst") {
+      Move best = searchptr->search(*boardptr, 3);
+      boardptr->makeMove(best);
+      c.printBoard = false;
+      c.output = debug::printMove(c.settings, *boardptr, best);
+    }
     if(input == "dsp")  displaySettings();
     if (input == "lgl") printLegalMoves();
     if (input == "rnd") makeRandomMove();

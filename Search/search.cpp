@@ -1,5 +1,34 @@
 #include "search.h"
 
+double Search::nmax(Board &b, int depth){
+  if(depth == 0) return evaluate(b);
+  MoveList ml;
+  moveGenerator->generateMoves(b, ml);
+  double bestEval = -99999;
+  for(int i = 0; i<ml.end; i++){
+    b.makeMove(ml.moves[i]);
+    double eval = -nmax(b,depth-1);
+    bestEval = std::max(bestEval,eval);
+    b.unmakeMove(ml.moves[i]);
+  }
+  return bestEval;
+}
+Move Search::search(Board b, int depth){
+  MoveList ml;
+  moveGenerator->generateMoves(b, ml);
+  double bestEval = -99999;
+  Move bestMove;
+  for(int i = 0; i<ml.end; i++){
+    b.makeMove(ml.moves[i]);
+    double eval = -nmax(b,depth-1);
+    if(eval>bestEval){
+      bestEval = eval;
+      bestMove = ml.moves[i];
+    }
+    b.unmakeMove(ml.moves[i]);
+  }
+  return bestMove; 
+}
 u64 Search::perftTest(Board &b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
