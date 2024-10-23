@@ -9,13 +9,9 @@ double material(Board &board){
   return material;
 }
 
-//a positive evaluation means the position is good for the current player
+//a positive evaluation means the position is good for white
 double evaluate(Board &board){
   double evaluation = 0.0;
-  if(board.flags & WHITE_TO_MOVE_BIT){
-    evaluation += material(board);
-  }else{
-    evaluation -= material(board);
-  }
+  evaluation += material(board);
   return evaluation;
 }

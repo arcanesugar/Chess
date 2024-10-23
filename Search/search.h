@@ -12,8 +12,7 @@
 
 class Search{
   MoveGenerator *moveGenerator = nullptr;
-
-  double nmax(Board &b, int depth);
+  double minimax(Board &b, int depth, bool maximiser);
   //testing
   u64 perftTest(Board &b, int depth, bool root = true);
 public:

@@ -12,7 +12,7 @@ UCI is not supported yet
 ## Changelog
 - search
     - added bst command (plays the "best" move)
-    - added nmax search
+    - added minimax search
     - added evl command (shows the evaluation)
     - added evaluation function (currently just counts material)
 

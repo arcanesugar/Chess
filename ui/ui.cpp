@@ -15,7 +15,7 @@ void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchpt
     if (input == "mve") makeMoveFromConsole();
     if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
     if(input == "bst") {
-      Move best = searchptr->search(*boardptr, 3);
+      Move best = searchptr->search(*boardptr, 2);
       boardptr->makeMove(best);
       history.push(best);
       c.printBoard = false;

@@ -1,38 +1,53 @@
 #include "search.h"
 #include <float.h>
+#define N_INF -9999999
+#define INF    9999999 
 
-double Search::nmax(Board &b, int depth){
+double Search::minimax(Board &b, int depth, bool maximiser){
   if(depth == 0) return evaluate(b);
   MoveList ml;
   moveGenerator->generateMoves(b, ml);
-  if(ml.end == 0) return -DBL_MAX;//dbl_min is the smallest positive number
-  double bestEval = -DBL_MAX;
+  if(ml.end == 0) return (maximiser) ? N_INF : INF;//checkmate is the worst possible outcome (for the side whos turn it is)
+
+  double bestEval = (maximiser) ? N_INF : INF;
   for(int i = 0; i<ml.end; i++){
     b.makeMove(ml.moves[i]);
-    double eval = -nmax(b,depth-1);
-    bestEval = std::max(bestEval,eval);
-    b.unmakeMove(ml.moves[i]);
-  }
-  return bestEval;
-}
-Move Search::search(Board b, int depth){
-  MoveList ml;
-  moveGenerator->generateMoves(b, ml);
-  double bestEval = -99999;
-  Move bestMove;
-  for(int i = 0; i<ml.end; i++){
-    b.makeMove(ml.moves[i]);
-    double eval = -nmax(b,depth-1);
-    if(eval>bestEval){
-      bestEval = eval;
-      bestMove = ml.moves[i];
+    double eval = minimax(b,depth-1,!maximiser);
+    if(maximiser){
+      bestEval = std::max(bestEval, eval);
+    }else{
+      bestEval = std::min(bestEval, eval);
     }
     b.unmakeMove(ml.moves[i]);
   }
-  if(bestEval == DBL_MAX){
-    std::cout<<"Checkmate"<<std::endl;
+  
+  return bestEval;
+}
+
+Move Search::search(Board b, int depth){
+  MoveList ml;
+  moveGenerator->generateMoves(b, ml);
+  bool maximiser = b.flags&WHITE_TO_MOVE_BIT;
+  double bestEval = (maximiser) ? N_INF : INF;
+  Move bestMove;
+  for(int i = 0; i<ml.end; i++){
+    b.makeMove(ml.moves[i]);
+    double eval = minimax(b,depth-1,!maximiser);
+    if(maximiser){
+      if(eval>bestEval){
+        bestEval = eval;
+        bestMove = ml.moves[i];
+      }
+    }else{
+      if(eval<bestEval){
+        bestEval = eval;
+        bestMove = ml.moves[i];
+      }
+    }
+    std::cout<<"Current Favorite: "<<debug::moveToStr(bestMove)<<" "<<bestEval<<std::endl;
+    b.unmakeMove(ml.moves[i]);
   }
-  return bestMove; 
+  return bestMove;
 }
 u64 Search::perftTest(Board &b, int depth, bool root){
   if(depth <= 0){return 1;}
