@@ -97,5 +97,6 @@ struct Board{
   void loadFromFEN(std::string fen);
   void updateColorBitboards();
 
+  void movePiece(byte fromSquare, byte toSquare, byte type, byte capturedPiece);
   bool validate() const;//checks if the position is valid
 };

@@ -111,7 +111,14 @@ void Board::loadFromFEN(std::string fen){
     }
   }
 }
+void Board::movePiece(byte fromSquare, byte toSquare, byte type, byte capturedPiece){
+  squares[fromSquare] = EMPTY;
+  squares[toSquare] = type;
 
+  resetBit(bitboards[type],fromSquare);
+  setBit(bitboards[type],toSquare);
+  resetBit(bitboards[capturedPiece],toSquare);
+}
 void Board::makeMove(Move &m){
   int color = (flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   m.setCastlingRights((flags&(0b00011110))>>1);
@@ -123,16 +130,8 @@ void Board::makeMove(Move &m){
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
     
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
-    //move king
-    resetBit(bitboards[color+KING],3+offset);
-    setBit(bitboards[color+KING],1+offset);
-    squares[3+offset] = EMPTY;
-    squares[1+offset] = color+KING;
-    //move rook
-    resetBit(bitboards[color+ROOK],0+offset);
-    setBit(bitboards[color+ROOK],2+offset);
-    squares[0+offset] = EMPTY;
-    squares[2+offset] = color+ROOK;
+    movePiece(3+offset, 1+offset, color+KING, EMPTY);
+    movePiece(0+offset, 2+offset, color+ROOK, EMPTY);
 
     flags ^= WHITE_TO_MOVE_BIT;
     updateColorBitboards();
@@ -144,16 +143,9 @@ void Board::makeMove(Move &m){
     if(color == BLACK) flags &= ~(BLACK_CASTLING_RIGHTS);
     
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
-    //move king
-    resetBit(bitboards[color+KING],3+offset);
-    setBit(bitboards[color+KING],5+offset);
-    squares[3+offset] = EMPTY;
-    squares[5+offset] = color+KING;
-    //move rook
-    resetBit(bitboards[color+ROOK],7+offset);
-    setBit(bitboards[color+ROOK],4+offset);
-    squares[7+offset] = EMPTY;
-    squares[4+offset] = color+ROOK;
+
+    movePiece(3+offset, 5+offset, color+KING, EMPTY);
+    movePiece(7+offset, 4+offset, color+ROOK, EMPTY);
 
     flags ^= WHITE_TO_MOVE_BIT;
     updateColorBitboards();
@@ -172,12 +164,7 @@ void Board::makeMove(Move &m){
   }
   byte fromPiece = squares[from];
   byte toPiece = squares[to];
-  squares[from] = EMPTY;
-  squares[to] = fromPiece;
-
-  resetBit(bitboards[fromPiece],from);
-  resetBit(bitboards[toPiece],to);
-  setBit(bitboards[fromPiece],to);
+  movePiece(from, to, fromPiece, toPiece);
   m.setCapturedPiece(toPiece);//store captured piece (if there is no piece it will just be empty)
   
   if(fromPiece == color+KING){
@@ -228,17 +215,10 @@ void Board::unmakeMove(Move &m){
   enPassanTarget = m.getEnPassanTarget();
   if(m.isKingside()){
     flags ^= WHITE_TO_MOVE_BIT;
+    
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
-    //move king
-    setBit(bitboards[color+KING],3+offset);
-    resetBit(bitboards[color+KING],1+offset);
-    squares[1+offset] = EMPTY;
-    squares[3+offset] = color+KING;
-    //move rook
-    setBit(bitboards[color+ROOK],0+offset);
-    resetBit(bitboards[color+ROOK],2+offset);
-    squares[2+offset] = EMPTY;
-    squares[0+offset] = color+ROOK;
+    movePiece(1+offset, 3+offset, color+KING, EMPTY);
+    movePiece(2+offset, 0+offset, color+ROOK, EMPTY);
 
     flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     flags  |= m.getCastlingRights()<<1;
@@ -247,17 +227,11 @@ void Board::unmakeMove(Move &m){
   }
   if(m.isQueenside()){
     flags ^= WHITE_TO_MOVE_BIT;
+    
     int offset= (flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
-    //move king
-    setBit(bitboards[color+KING],3+offset);
-    resetBit(bitboards[color+KING],5+offset);
-    squares[5+offset] = EMPTY;
-    squares[3+offset] = color+KING;
-    //move rook
-    setBit(bitboards[color+ROOK],7+offset);
-    resetBit(bitboards[color+ROOK],4+offset);
-    squares[4+offset] = EMPTY;
-    squares[7+offset] = color+ROOK;
+
+    movePiece(5+offset, 3+offset, color+KING, EMPTY);
+    movePiece(4+offset, 7+offset, color+ROOK, EMPTY);
 
     flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     flags  |= m.getCastlingRights()<<1;
