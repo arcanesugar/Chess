@@ -7,8 +7,8 @@
 
 int main() {
   std::cout<<"[creating board...]\n";
-  Board board;
-  board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  Board board = boardFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");;
+  generateBoardMasks();
   std::cout<<"[creating move generator]"<<std::endl;
   initMoveGenerator();
   std::cout<<"[creating consoleInterface...]\n";

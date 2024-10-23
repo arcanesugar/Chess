@@ -80,25 +80,20 @@ inline void resetUnmakeData(){unmakeData = (unsigned short)0;}
 
 int getSquareIndex(int file, int rank);
 
+extern u64 rankMasks[8];
+extern u64 fileMasks[8];
+void generateBoardMasks();
+
 struct Board{
-  static u64 rankMasks[8];
-  static u64 fileMasks[8];
-  static void generateFileMasks();
-  static void generateRankMasks();
-  Board(){ generateRankMasks(); generateFileMasks();}
   u64 bitboards[14];
   u64 occupancy; 
   byte enPassanTarget = EN_PASSAN_NULL;
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
-  
-
-  void loadFromFEN(std::string fen);
-  void updateColorBitboards();
-
-  void movePiece(byte fromSquare, byte toSquare, byte type, byte capturedPiece);
-  bool validate() const;//checks if the position is valid
 };
 
+Board boardFromFEN(std::string fen);
+bool validateBoard(Board board);
 void makeMove(Board &board, Move &m);
 void unmakeMove(Board &board, Move &m);
+

@@ -110,7 +110,7 @@ void runMoveGenerationSuite(){
   int sum = 0;
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<8; i++){
-    board.loadFromFEN(positions[i]);
+    board = boardFromFEN(positions[i]);
     u64 found = perftTest(board,depths[i],false);
     sum += found;
     std::cout<<"Depth: "<<depths[i];

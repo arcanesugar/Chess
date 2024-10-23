@@ -127,9 +127,9 @@ void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
 
 void addPawnMoves(Board &board, MoveList &moves) {
   int dir = board.flags & WHITE_TO_MOVE_BIT ? 1 : -1;
-  u64 leftFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? Board::fileMasks[7] : Board::fileMasks[0];
-  u64 rightFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? Board::fileMasks[0] : Board::fileMasks[7];
-  u64 startRank = (board.flags & WHITE_TO_MOVE_BIT ? Board::rankMasks[1] : Board::rankMasks[6]);
+  u64 leftFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[7] : fileMasks[0];
+  u64 rightFileMask = (board.flags & WHITE_TO_MOVE_BIT) ? fileMasks[0] : fileMasks[7];
+  u64 startRank = (board.flags & WHITE_TO_MOVE_BIT ? rankMasks[1] : rankMasks[6]);
   // forward pawn moves
   u64 pawnDestinations = signedShift(board.bitboards[color + PAWN], 8 * dir);
   pawnDestinations &= ~board.occupancy;

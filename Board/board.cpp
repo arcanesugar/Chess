@@ -1,16 +1,18 @@
 #include <cmath>
 #include "board.h"
 
-u64 Board::rankMasks[8];
-u64 Board::fileMasks[8];
+u64 rankMasks[8];
+u64 fileMasks[8];
 
 int getSquareIndex(int rank, int file){return (rank*8) + file;};
-void Board::generateRankMasks() {
+
+
+void generateRankMasks() {
   for (int i = 0; i < 8; i++) {
     rankMasks[i] = (u64)255 << (8 * i);
   }
 }
-void Board::generateFileMasks() {
+void generateFileMasks() {
   for (int i = 0; i < 8; i++) {
     u64 mask = (u64)0;
     for (int y = 0; y < 8; y++) 
@@ -18,24 +20,29 @@ void Board::generateFileMasks() {
     fileMasks[i] = mask;
   }
 }
-void Board::updateColorBitboards(){
-  Board &board = *this;//gross but temporary
+
+void generateBoardMasks(){
+  generateRankMasks();
+  generateFileMasks();
+}
+
+void updateColorBitboards(Board &board){
   board.bitboards[WHITE_PIECES] = board.bitboards[WHITE+PAWN] | board.bitboards[WHITE+BISHOP] | board.bitboards[WHITE+KNIGHT] | board.bitboards[WHITE+ROOK] | board.bitboards[WHITE+QUEEN] | board.bitboards[WHITE+KING];
   board.bitboards[BLACK_PIECES] = board.bitboards[BLACK+PAWN] | board.bitboards[BLACK+BISHOP] | board.bitboards[BLACK+KNIGHT] | board.bitboards[BLACK+ROOK] | board.bitboards[BLACK+QUEEN] | board.bitboards[BLACK+KING];
-  occupancy = board.bitboards[WHITE_PIECES]|board.bitboards[BLACK_PIECES];
+  board.occupancy = board.bitboards[WHITE_PIECES]|board.bitboards[BLACK_PIECES];
 }
-bool Board::validate() const{//Way too expensive to use ouside of debugging
-  if(bitScanForward(bitboards[WHITE+KING]) == -1) return false;
-  if(bitScanForward(bitboards[BLACK+KING]) == -1) return false;
-  if(enPassanTarget == 1) return false;
+bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
+  if(bitScanForward(board.bitboards[WHITE+KING]) == -1) return false;
+  if(bitScanForward(board.bitboards[BLACK+KING]) == -1) return false;
+  if(board.enPassanTarget == 1) return false;
   int white = 0;
-  u64 whitebb = bitboards[WHITE+PAWN];
+  u64 whitebb = board.bitboards[WHITE+PAWN];
   while(whitebb){
     white++;
     popls1b(whitebb);
   }
   int black = 0;
-  u64 blackbb = bitboards[BLACK+PAWN];
+  u64 blackbb = board.bitboards[BLACK+PAWN];
   while(blackbb){
     black++;
     popls1b(blackbb);
@@ -46,15 +53,15 @@ bool Board::validate() const{//Way too expensive to use ouside of debugging
   //make sure piecewise lookup table is correct
   for(int i = 0; i <64; i++){
     for(int j = 0; j<= BLACK+KING;j++){
-      if(getBit(bitboards[j],i)){
-        if(squares[i] != j) return false;
+      if(getBit(board.bitboards[j],i)){
+        if(board.squares[i] != j) return false;
       }
     }
   }
   return true;
 }
-void Board::loadFromFEN(std::string fen){
-  Board &board = *this;
+Board boardFromFEN(std::string fen){
+  Board board;
   std::string parsed[6];
   int index = 0;
   for(char c: fen){
@@ -95,7 +102,7 @@ void Board::loadFromFEN(std::string fen){
     }
     if(squareIndex<0){break;}
   }
-  updateColorBitboards();
+  updateColorBitboards(board);
 
   //set board.flags
   board.flags = (u64)0;
@@ -106,15 +113,15 @@ void Board::loadFromFEN(std::string fen){
   if(parsed[2].find("Q") != parsed[2].npos) board.flags |= WHITE_QUEENSIDE_BIT;
   if(parsed[2].find("k") != parsed[2].npos) board.flags |= BLACK_KINGSIDE_BIT;
   if(parsed[2].find("q") != parsed[2].npos) board.flags |= BLACK_QUEENSIDE_BIT;
-  enPassanTarget = EN_PASSAN_NULL;
+  board.enPassanTarget = EN_PASSAN_NULL;
   if(!std::isdigit(parsed[3][0])){
     if(parsed[3] != "-"){
       std::cout<<"En passan target from fen not yet implemented"<<std::endl;
     }
   }
+  return board;
 }
-void Board::movePiece(byte fromSquare, byte toSquare, byte type, byte capturedPiece){
-  Board &board = *this;
+void movePiece(Board &board, byte fromSquare, byte toSquare, byte type, byte capturedPiece){
   board.squares[fromSquare] = EMPTY;
   board.squares[toSquare] = type;
 
@@ -133,11 +140,11 @@ void makeMove(Board &board, Move &m){
     if(color == BLACK) board.flags &= ~(BLACK_CASTLING_RIGHTS);
     
     int offset= (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
-    board.movePiece(3+offset, 1+offset, color+KING, EMPTY);
-    board.movePiece(0+offset, 2+offset, color+ROOK, EMPTY);
+    movePiece(board, 3+offset, 1+offset, color+KING, EMPTY);
+    movePiece(board, 0+offset, 2+offset, color+ROOK, EMPTY);
 
     board.flags ^= WHITE_TO_MOVE_BIT;
-    board.updateColorBitboards();
+    updateColorBitboards(board);
     return;
   }
   if(m.isQueenside()){
@@ -147,11 +154,11 @@ void makeMove(Board &board, Move &m){
     
     int offset= (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
 
-    board.movePiece(3+offset, 5+offset, color+KING, EMPTY);
-    board.movePiece(7+offset, 4+offset, color+ROOK, EMPTY);
+    movePiece(board, 3+offset, 5+offset, color+KING, EMPTY);
+    movePiece(board, 7+offset, 4+offset, color+ROOK, EMPTY);
 
     board.flags ^= WHITE_TO_MOVE_BIT;
-    board.updateColorBitboards();
+    updateColorBitboards(board);
     return;
   }
 
@@ -167,7 +174,7 @@ void makeMove(Board &board, Move &m){
   }
   byte fromPiece = board.squares[from];
   byte toPiece = board.squares[to];
-  board.movePiece(from, to, fromPiece, toPiece);
+  movePiece(board, from, to, fromPiece, toPiece);
   m.setCapturedPiece(toPiece);//store captured piece (if there is no piece it will just be empty)
   
   if(fromPiece == color+KING){
@@ -210,7 +217,7 @@ void makeMove(Board &board, Move &m){
   }
 
   board.flags ^= WHITE_TO_MOVE_BIT;
-  board.updateColorBitboards();
+  updateColorBitboards(board);
 }
 
 void unmakeMove(Board &board, Move &m){
@@ -220,12 +227,12 @@ void unmakeMove(Board &board, Move &m){
     board.flags ^= WHITE_TO_MOVE_BIT;
     
     int offset= (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
-    board.movePiece(1+offset, 3+offset, color+KING, EMPTY);
-    board.movePiece(2+offset, 0+offset, color+ROOK, EMPTY);
+    movePiece(board, 1+offset, 3+offset, color+KING, EMPTY);
+    movePiece(board, 2+offset, 0+offset, color+ROOK, EMPTY);
 
     board.flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     board.flags  |= m.getCastlingRights()<<1;
-    board.updateColorBitboards();
+    updateColorBitboards(board);
     return;
   }
   if(m.isQueenside()){
@@ -233,12 +240,12 @@ void unmakeMove(Board &board, Move &m){
     
     int offset= (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
 
-    board.movePiece(5+offset, 3+offset, color+KING, EMPTY);
-    board.movePiece(4+offset, 7+offset, color+ROOK, EMPTY);
+    movePiece(board, 5+offset, 3+offset, color+KING, EMPTY);
+    movePiece(board, 4+offset, 7+offset, color+ROOK, EMPTY);
 
     board.flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     board.flags  |= m.getCastlingRights()<<1;
-    board.updateColorBitboards();
+    updateColorBitboards(board);
     return;
   }
 
@@ -275,5 +282,5 @@ void unmakeMove(Board &board, Move &m){
   board.flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
   board.flags  |= m.getCastlingRights()<<1;
   board.flags ^= WHITE_TO_MOVE_BIT;
-  board.updateColorBitboards();
+  updateColorBitboards(board);
 }

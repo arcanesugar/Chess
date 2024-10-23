@@ -106,7 +106,7 @@ std::string debug::moveToStr(Move m, bool expanded){
 };
 std::string debug::printBoard(Settings settings, Board const &board, u64 highlighted){
   std::string str = "";
-  if(!board.validate()){
+  if(!validateBoard(board)){
     str.append("\x1b[31m[error]Board is invalid\x1b[0m\n");
   }
   if(board.enPassanTarget != EN_PASSAN_NULL){

@@ -131,7 +131,7 @@ void generateRookMasks() {
   for (int rank = 0; rank < 8; rank++) {   // y
     for (int file = 0; file < 8; file++) { // x
       u64 mask = (u64)0;
-      mask = Board::fileMasks[file] | Board::rankMasks[rank];
+      mask = fileMasks[file] | rankMasks[rank];
       resetBit(mask, (rank * 8) + file);
       rookMasks[(rank * 8) + file] = mask;
     }
