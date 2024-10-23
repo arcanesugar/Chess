@@ -14,7 +14,7 @@ void ConsoleInterface::run(Board *boardptr){
     if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
     if(input == "bst") {
       Move best = search(*boardptr, 2);
-      boardptr->makeMove(best);
+      makeMove(*boardptr,best);
       history.push(best);
       c.printBoard = false;
       c.output = debug::printMove(c.settings, *boardptr, best);
@@ -34,13 +34,13 @@ void ConsoleInterface::run(Board *boardptr){
     if(input == "ks"){
       Move m;
       m.setSpecialMoveData(CASTLE_KINGSIDE);
-      boardptr->makeMove(m);
+      makeMove(*boardptr,m);
       history.push(m);
     }
     if(input == "qs"){
       Move m;
       m.setSpecialMoveData(CASTLE_QUEENSIDE);
-      boardptr->makeMove(m);
+      makeMove(*boardptr,m);
       history.push(m);
     }
   }
@@ -61,7 +61,7 @@ void ConsoleInterface::undoLastMove(){
     return;
   }
   Move m = history.top();
-  boardptr->unmakeMove(m);
+  unmakeMove(*boardptr,m);
   
   c.output.append(debug::printMove(c.settings,*boardptr, m));
   c.printBoard = false;
@@ -110,7 +110,7 @@ void ConsoleInterface::makeRandomMove(){
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
   std::cout<<debug::moveToStr(move,true)<<"\n";
-  boardptr->makeMove(move);
+  makeMove(*boardptr,move);
   std::cout<<debug::moveToStr(move,true)<<"\n";
   history.push(move);
   c.output = debug::printMove(c.settings, *boardptr, move);
@@ -151,20 +151,20 @@ void ConsoleInterface::makeMoveFromConsole(){
       c.output = "This move has multiple variants, choose one\n";
       for(int i = 0; i<variants.end; i++){
         Board copy = *boardptr;
-        copy.makeMove(variants.moves[i]);
+        makeMove(copy,variants.moves[i]);
         c.output.append("\n" + std::to_string(i) + ")\n");
         c.output.append(debug::printBoard(c.settings, copy));
       }
       getNextInput();
       move = variants.moves[std::stoi(c.lastInput)];
     }
-    boardptr->makeMove(move);
+    makeMove(*boardptr,move);
     history.push(move);
   }else{
     c.output = "This move is not legal, continue? (y/N)\n";
     getNextInput();
     if(c.lastInput == "y"){
-      boardptr->makeMove(move);
+      makeMove(*boardptr,move);
       history.push(move);
     }
   }
@@ -184,8 +184,7 @@ void ConsoleInterface::displaySettings(){
     c.output.append("\n  Dark: "+c.settings.darkColor + "  " + "\x1b[0m ");
     c.output.append("Light: "+c.settings.lightColor + "  " + "\x1b[0m");
     c.output.append("\n");
-    c.output.append("  0 - Use Unicode Pieces\n");
-    c.output.append("  1 - Use ASCII Pieces\n");
+    c.output.append("  0 - Use Unicode Pieces\n"); c.output.append("  1 - Use ASCII Pieces\n");
     c.output.append("  2 - Set dark color\n");
     c.output.append("  3 - Set light color\n");
     c.output.append("  q - Done\n");

@@ -40,10 +40,10 @@ void generateMoves(Board &board, MoveList &moves) {
 
 void filterLegalMoves(Board board, MoveList &moves){
   for(int i = moves.end-1; i>=0; i--){
-    board.makeMove(moves.moves[i]);
+    makeMove(board,moves.moves[i]);
     byte kingSquare = bitScanForward(board.bitboards[color+KING]);
     bool isLegal = !isAttacked(board, kingSquare, opponentColor);
-    board.unmakeMove(moves.moves[i]);
+    unmakeMove(board,moves.moves[i]);
     moves.moves[i].resetUnmakeData();
     if(!isLegal){
        moves.remove(i);

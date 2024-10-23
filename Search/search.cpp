@@ -11,14 +11,14 @@ double minimax(Board &b, int depth, bool maximiser){
 
   double bestEval = (maximiser) ? N_INF : INF;
   for(int i = 0; i<ml.end; i++){
-    b.makeMove(ml.moves[i]);
+    makeMove(b,ml.moves[i]);
     double eval = minimax(b,depth-1,!maximiser);
     if(maximiser){
       bestEval = std::max(bestEval, eval);
     }else{
       bestEval = std::min(bestEval, eval);
     }
-    b.unmakeMove(ml.moves[i]);
+    unmakeMove(b,ml.moves[i]);
   }
   
   return bestEval;
@@ -31,7 +31,7 @@ Move search(Board b, int depth){
   double bestEval = (maximiser) ? N_INF : INF;
   Move bestMove;
   for(int i = 0; i<ml.end; i++){
-    b.makeMove(ml.moves[i]);
+    makeMove(b, ml.moves[i]);
     double eval = minimax(b,depth-1,!maximiser);
     if(maximiser){
       if(eval>bestEval){
@@ -45,7 +45,7 @@ Move search(Board b, int depth){
       }
     }
     std::cout<<"Current Favorite: "<<debug::moveToStr(bestMove)<<" "<<bestEval<<std::endl;
-    b.unmakeMove(ml.moves[i]);
+    unmakeMove(b, ml.moves[i]);
   }
   return bestMove;
 }
@@ -55,9 +55,9 @@ u64 perftTest(Board &b, int depth, bool root){
   MoveList moves;
   generateMoves(b, moves);
   for(byte i = 0; i<moves.end;i++){
-    b.makeMove(moves.moves[i]);
+    makeMove(b,moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
-    b.unmakeMove(moves.moves[i]);
+    unmakeMove(b,moves.moves[i]);
     if(root)
       std::cout<<debug::moveToStr(moves.moves[i])<<" : "<<found<<std::endl;
     count += found;

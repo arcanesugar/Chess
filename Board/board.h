@@ -92,11 +92,13 @@ struct Board{
   byte squares[64];
   byte flags = 0 | WHITE_TO_MOVE_BIT;
   
-  void makeMove(Move &m);
-  void unmakeMove(Move &m);
+
   void loadFromFEN(std::string fen);
   void updateColorBitboards();
 
   void movePiece(byte fromSquare, byte toSquare, byte type, byte capturedPiece);
   bool validate() const;//checks if the position is valid
 };
+
+void makeMove(Board &board, Move &m);
+void unmakeMove(Board &board, Move &m);
