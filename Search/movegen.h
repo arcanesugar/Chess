@@ -14,8 +14,6 @@ struct MoveList{
 };
 
 class MoveGenerator{
-  MagicMan magicman;
-
   u64 knightMoves[64];
   u64 kingMoves[64];
 
@@ -46,5 +44,4 @@ public:
   MoveGenerator();
   ~MoveGenerator();
   void generateMoves(Board &board, MoveList &moves);
-  void searchForMagics() {magicman.searchForMagics();}
 };

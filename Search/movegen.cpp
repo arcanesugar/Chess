@@ -1,12 +1,12 @@
 #include "movegen.h"
 MoveGenerator::MoveGenerator(){
-  magicman.init();
+  init();
   createKingTable();
   createKnightTable();
 }
 
 MoveGenerator::~MoveGenerator(){
-  magicman.cleanup();
+  cleanup();
 }
 
 void MoveGenerator::generateMoves(Board &board, MoveList &moves) {
@@ -51,10 +51,10 @@ bool MoveGenerator::isAttacked(Board const &board, byte square, byte opponentCol
   if(possibleKings & board.bitboards[KING+opponentColor]) return true;
 
   //attacked by sliders
-  u64 possibleRooks = magicman.rookLookup(board.occupancy, square);
+  u64 possibleRooks = rookLookup(board.occupancy, square);
   if(possibleRooks&board.bitboards[ROOK+opponentColor]) return true;
 
-  u64 possibleBishops = magicman.bishopLookup(board.occupancy, square);
+  u64 possibleBishops = bishopLookup(board.occupancy, square);
   if(possibleBishops&board.bitboards[BISHOP+opponentColor]) return true;
 
   if((possibleBishops|possibleRooks)&board.bitboards[QUEEN+opponentColor]) return true;
@@ -85,12 +85,12 @@ void MoveGenerator::addSlidingMoves(Board &board, MoveList &moves) {
 }
 
 void MoveGenerator::addOrthogonalMoves(Board &board, int square, MoveList &moves) {
-  u64 destinations = magicman.rookLookup(board.occupancy,square) & (~friendlyBitboard);
+  u64 destinations = rookLookup(board.occupancy,square) & (~friendlyBitboard);
   addMovesToSquares(moves, square, destinations);
 };
 
 void MoveGenerator::addDiagonalMoves(Board &board, int square, MoveList &moves) {
-  u64 destinations = magicman.bishopLookup(board.occupancy,square) & (~friendlyBitboard);
+  u64 destinations = bishopLookup(board.occupancy,square) & (~friendlyBitboard);
   addMovesToSquares(moves, square, destinations);
 };
 

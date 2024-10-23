@@ -1,7 +1,20 @@
 #include "magic.h"
 #include <climits>
 #include <unordered_set>
-void MagicMan::init(){
+
+Magic rookMagics[64];
+Magic bishopMagics[64];
+u64 *rookMoves[64];//key, moves bitboard 
+u64 *bishopMoves[64];//key, moves bitboard 
+u64 rookMasks[64];
+u64 bishopMasks[64];
+
+std::vector<u64> rookBlockers[64];
+std::vector<u64> bishopBlockers[64];
+
+static bool quitSearch = false;
+
+void init(){
   generateRookMasks();
   generateBishopMasks();
   if(!loadMagics()){
@@ -11,7 +24,7 @@ void MagicMan::init(){
     std::cout<<"[error] Could not create sliding move tables"<<std::endl;
   }
 }
-void MagicMan::cleanup(){
+void cleanup(){
   //deallocate memory
   for(int i = 0; i<64; i++){
     delete[] rookMoves[i];
@@ -21,23 +34,23 @@ void MagicMan::cleanup(){
   }
 }
 
-u64 MagicMan::magicHash(Magic magic, u64 blockers){
+u64 magicHash(Magic magic, u64 blockers){
   return (magic.magic*blockers)>>magic.shift;
 }
-u64 MagicMan::rookLookup(u64 blockers, byte square){
+u64 rookLookup(u64 blockers, byte square){
   blockers = blockers & rookMasks[square]; 
   u64 hashed = magicHash(rookMagics[square],blockers);
   return rookMoves[square][hashed];
 }
 
-u64 MagicMan::bishopLookup(u64 blockers, byte square){
+u64 bishopLookup(u64 blockers, byte square){
   blockers = blockers & bishopMasks[square]; 
   u64 hashed = magicHash(bishopMagics[square], blockers);
   return bishopMoves[square][hashed];
 }
 
 //initialisation
-void MagicMan::fillRookMoves() {
+void fillRookMoves() {
   int sum = 0;
   for(int i = 0; i<64; i++){
     int size = rookMagics[i].max + 1;
@@ -69,7 +82,7 @@ void MagicMan::fillRookMoves() {
   }
 }
 
-void MagicMan::fillBishopMoves() {
+void fillBishopMoves() {
   int sum = 0;
   for(int i = 0; i<64; i++){
     int size = bishopMagics[i].max + 1;
@@ -114,7 +127,7 @@ u64 random_u64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
 }
 
-void MagicMan::generateRookMasks() {
+void generateRookMasks() {
   for (int rank = 0; rank < 8; rank++) {   // y
     for (int file = 0; file < 8; file++) { // x
       u64 mask = (u64)0;
@@ -125,7 +138,7 @@ void MagicMan::generateRookMasks() {
   }
 }
 
-void MagicMan::generateBishopMasks() {
+void generateBishopMasks() {
   int directions[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
   for (int rank = 0; rank < 8; rank++) {   // y
     for (int file = 0; file < 8; file++) { // x
@@ -145,18 +158,18 @@ void MagicMan::generateBishopMasks() {
   }
 }
 
-void MagicMan::generateRookBlockers(){
+void generateRookBlockers(){
   for(int i = 0; i<64; i++){
     generateBlockersFromMask(rookMasks[i], rookBlockers[i]);
   }
 }
-void MagicMan::generateBishopBlockers(){
+void generateBishopBlockers(){
   for(int i = 0; i<64; i++){
     generateBlockersFromMask(bishopMasks[i], bishopBlockers[i]);
   }
 }
 
-void MagicMan::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
+void generateBlockersFromMask(u64 mask,std::vector<u64> &target){
   target.clear();
   u64 blocker = 0;
   for(int j = 0; j<pow(2,bitcount(mask));j++){
@@ -167,7 +180,7 @@ void MagicMan::generateBlockersFromMask(u64 mask,std::vector<u64> &target){
   }
 }
 
-bool MagicMan::testMagic(std::vector<u64> *blockers, Magic &magic){
+bool testMagic(std::vector<u64> *blockers, Magic &magic){
   std::unordered_set<u64> foundKeys;//map is probably not the best fit here
   u64 max = 0;
   for(u64 blocker : *blockers){
@@ -182,7 +195,7 @@ bool MagicMan::testMagic(std::vector<u64> *blockers, Magic &magic){
   return true;
 }
 
-void MagicMan::magicSearch(){
+void magicSearch(){
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) return;
@@ -219,7 +232,7 @@ void MagicMan::magicSearch(){
     std::cout<<"Bishop magics "<<foundBishop<<"/64 "<<(bishopTableSize*8)/1000<<"KiB "<< bishopTableSize <<" elements"<<std::endl;
   }
 }
-void MagicMan::searchForMagics(){
+void searchForMagics(){
   srand(time(NULL));
   std::cout<<"[generating blockers]\n";
   generateRookBlockers();
@@ -237,7 +250,7 @@ void MagicMan::searchForMagics(){
     }
   }
   quitSearch = false;
-  std::thread searchThread(&MagicMan::magicSearch, this);
+  std::thread searchThread(magicSearch);
   std::cin.get();
   quitSearch = true;
   searchThread.join();
@@ -250,7 +263,7 @@ void MagicMan::searchForMagics(){
   loadMagics();
 };
 
-void MagicMan::saveMagics(){
+void saveMagics(){
   std::ofstream file("Search/Magic/magics.txt",std::ofstream::out | std::ofstream::trunc);
   if(!file.is_open()){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;
@@ -266,7 +279,7 @@ void MagicMan::saveMagics(){
   }
 };
 
-int MagicMan::loadMagics(){
+int loadMagics(){
   std::ifstream file("Search/Magic/magics.txt");
   if(!file.is_open()){
     std::cout<<"[error] Could not open magics.txt"<<std::endl;

@@ -1,4 +1,4 @@
-A c++ chess program that runs in the console
+A c chess program that runs in the console
 
 ## UI
 A list of commands can be accessed with "hlp" or "help"\
@@ -11,6 +11,7 @@ UCI is not supported yet
 
 ## Changelog
 - search
+    - **switched from c++ to c**
     - added bst command (plays the "best" move)
     - added minimax search
     - added evl command (shows the evaluation)

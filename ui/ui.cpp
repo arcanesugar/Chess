@@ -26,7 +26,7 @@ void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchpt
     if (input == "rnd") makeRandomMove();
     if (input == "trn") whosTurnIsIt();
     if(input == "hlp" || input == "help") showHelpMenu();
-    if(input == "sch") mgptr->searchForMagics();
+    if(input == "sch") searchForMagics();
     if(input == "tst") searchptr->runMoveGenerationTest(*boardptr);
     if(input == "mgs") searchptr->runMoveGenerationSuite();
     if(input == "und") undoLastMove(); 
