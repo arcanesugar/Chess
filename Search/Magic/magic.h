@@ -25,8 +25,8 @@ extern std::vector<u64> bishopBlockers[64];
 
 
 //initialisation/cleanup
-void init();  
-void cleanup();
+void initMagics();  
+void cleanupMagics();
 void saveMagics();
 int  loadMagics();
 

@@ -13,7 +13,6 @@ struct ConsoleState {
   bool printBoard = true;
 };
 class ConsoleInterface{
-  MoveGenerator *mgptr = nullptr;
   Search *searchptr = nullptr;
   Board *boardptr = nullptr;
   ConsoleState c;
@@ -32,5 +31,5 @@ class ConsoleInterface{
   void printLegalMoves();
   void showDebugView();
 public:
-  void run(Board *boardptr,MoveGenerator *mgptr,Search *searchptr);//run the console interface
+  void run(Board *boardptr,Search *searchptr);//run the console interface
 };

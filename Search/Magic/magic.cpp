@@ -14,7 +14,7 @@ std::vector<u64> bishopBlockers[64];
 
 static bool quitSearch = false;
 
-void init(){
+void initMagics(){
   generateRookMasks();
   generateBishopMasks();
   if(!loadMagics()){
@@ -24,7 +24,7 @@ void init(){
     std::cout<<"[error] Could not create sliding move tables"<<std::endl;
   }
 }
-void cleanup(){
+void cleanupMagics(){
   //deallocate memory
   for(int i = 0; i<64; i++){
     delete[] rookMoves[i];

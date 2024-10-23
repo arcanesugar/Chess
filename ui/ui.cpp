@@ -3,9 +3,8 @@
 #include "../Search/eval.h"
 #include <string>
 
-void ConsoleInterface::run(Board *boardptr,MoveGenerator *mgptr,Search *searchptr){
+void ConsoleInterface::run(Board *boardptr,Search *searchptr){
   this->boardptr = boardptr;
-  this->mgptr = mgptr;
   this->searchptr = searchptr;
   bool quit = false;
   while (!quit) {
@@ -104,7 +103,7 @@ void ConsoleInterface::whosTurnIsIt(){
 }
 void ConsoleInterface::makeRandomMove(){
   MoveList legalMoves;
-  mgptr->generateMoves(*boardptr, legalMoves);
+  generateMoves(*boardptr, legalMoves);
   if(legalMoves.end <= 0) {
     c.output = "No Legal Moves";
     c.printBoard = true;
@@ -120,7 +119,7 @@ void ConsoleInterface::makeRandomMove(){
 }
 void ConsoleInterface::printLegalMoves(){
   MoveList legalMoves;
-  mgptr->generateMoves(*boardptr, legalMoves);
+  generateMoves(*boardptr, legalMoves);
   c.output = std::to_string((int)legalMoves.end) + " moves printed\n";
   for (int i = 0; i < legalMoves.end; i++) {
     std::cout<<debug::printMove(c.settings, *boardptr, legalMoves.moves[i])<<std::endl;
@@ -138,7 +137,7 @@ void ConsoleInterface::makeMoveFromConsole(){
   move.setFrom(from);
   move.setTo(to);
   MoveList legalMoves;
-  mgptr->generateMoves(*boardptr, legalMoves);
+  generateMoves(*boardptr, legalMoves);
   bool isLegal = false;
   MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){

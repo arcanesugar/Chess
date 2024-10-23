@@ -11,12 +11,10 @@
 #include "eval.h"
 
 class Search{
-  MoveGenerator *moveGenerator = nullptr;
   double minimax(Board &b, int depth, bool maximiser);
   //testing
   u64 perftTest(Board &b, int depth, bool root = true);
 public:
-  void useMoveGenerator(MoveGenerator *mg) {moveGenerator = mg;};
   void runMoveGenerationTest(Board &board);
   void runMoveGenerationSuite();
   Move search(Board b, int depth);
