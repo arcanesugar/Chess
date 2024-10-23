@@ -11,11 +11,9 @@ int main() {
   board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   std::cout<<"[creating move generator]"<<std::endl;
   initMoveGenerator();
-  std::cout<<"[creating search...]\n";
-  Search search;
   std::cout<<"[creating consoleInterface...]\n";
   ConsoleInterface consoleInterface;
   std::cout<<"[beginning consoleInterface...]\n";
-  consoleInterface.run(&board,&search);
+  consoleInterface.run(&board);
   return 0;
 }

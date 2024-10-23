@@ -3,9 +3,8 @@
 #include "../Search/eval.h"
 #include <string>
 
-void ConsoleInterface::run(Board *boardptr,Search *searchptr){
+void ConsoleInterface::run(Board *boardptr){
   this->boardptr = boardptr;
-  this->searchptr = searchptr;
   bool quit = false;
   while (!quit) {
     if(c.printBoard) c.output = "\n" + debug::printBoard(c.settings,*boardptr) + c.output;
@@ -14,7 +13,7 @@ void ConsoleInterface::run(Board *boardptr,Search *searchptr){
     if (input == "mve") makeMoveFromConsole();
     if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
     if(input == "bst") {
-      Move best = searchptr->search(*boardptr, 2);
+      Move best = search(*boardptr, 2);
       boardptr->makeMove(best);
       history.push(best);
       c.printBoard = false;
@@ -26,8 +25,8 @@ void ConsoleInterface::run(Board *boardptr,Search *searchptr){
     if (input == "trn") whosTurnIsIt();
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") searchForMagics();
-    if(input == "tst") searchptr->runMoveGenerationTest(*boardptr);
-    if(input == "mgs") searchptr->runMoveGenerationSuite();
+    if(input == "tst") runMoveGenerationTest(*boardptr);
+    if(input == "mgs") runMoveGenerationSuite();
     if(input == "und") undoLastMove(); 
     if(input == "dbg") showDebugView();
     if(input == "q" || input == "quit" || input == "exit") quit = true;

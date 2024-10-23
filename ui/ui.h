@@ -13,7 +13,6 @@ struct ConsoleState {
   bool printBoard = true;
 };
 class ConsoleInterface{
-  Search *searchptr = nullptr;
   Board *boardptr = nullptr;
   ConsoleState c;
   std::stack<Move> history;
@@ -31,5 +30,5 @@ class ConsoleInterface{
   void printLegalMoves();
   void showDebugView();
 public:
-  void run(Board *boardptr,Search *searchptr);//run the console interface
+  void run(Board *boardptr);//run the console interface
 };

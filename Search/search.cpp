@@ -3,7 +3,7 @@
 #define N_INF -9999999
 #define INF    9999999 
 
-double Search::minimax(Board &b, int depth, bool maximiser){
+double minimax(Board &b, int depth, bool maximiser){
   if(depth == 0) return evaluate(b);
   MoveList ml;
   generateMoves(b, ml);
@@ -24,7 +24,7 @@ double Search::minimax(Board &b, int depth, bool maximiser){
   return bestEval;
 }
 
-Move Search::search(Board b, int depth){
+Move search(Board b, int depth){
   MoveList ml;
   generateMoves(b, ml);
   bool maximiser = b.flags&WHITE_TO_MOVE_BIT;
@@ -49,7 +49,7 @@ Move Search::search(Board b, int depth){
   }
   return bestMove;
 }
-u64 Search::perftTest(Board &b, int depth, bool root){
+u64 perftTest(Board &b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
@@ -65,7 +65,7 @@ u64 Search::perftTest(Board &b, int depth, bool root){
   return count;
 }
 
-void Search::runMoveGenerationTest(Board &board){
+void runMoveGenerationTest(Board &board){
   for(int i = 1; i<5; i++){
     std::cout<<"Depth: "<<i<<"\n";
     u64 found = perftTest(board,i);
@@ -73,7 +73,7 @@ void Search::runMoveGenerationTest(Board &board){
   }
 }
 
-void Search::runMoveGenerationSuite(){
+void runMoveGenerationSuite(){
   Board board;
   //https://www.chessprogramming.org/Perft_Results
   std::string positions[8] = {
