@@ -1,10 +1,9 @@
 #pragma once
 #include <stdio.h>
-#include <chrono>
-#include <cmath>
-#include <random>
+#include <math.h>
+#include <time.h>
 #include "../Board/board.h"
-#include "../ui/debug.h"
+#include "../ui/tostr.h"
 #include "movegen.h"
 #include "eval.h"
 

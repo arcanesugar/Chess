@@ -1,10 +1,10 @@
+#pragma once
 #include <stdio.h>
 #include <fstream>
 #include <vector> 
 #include <unordered_set>
 #include <thread>
 #include <climits>
-#include <unordered_set>
 #include "../../Board/board.h"
 
 struct Magic{

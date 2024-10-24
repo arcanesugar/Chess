@@ -1,4 +1,5 @@
 #include "search.h"
+#include <ctime>
 
 #define N_INF -9999999
 #define INF    9999999 
@@ -44,7 +45,6 @@ Move search(Board b, int depth){
         bestMove = ml.moves[i];
       }
     }
-    std::cout<<"Current Favorite: "<<debug::moveToStr(bestMove)<<" "<<bestEval<<std::endl;
     unmakeMove(b, ml.moves[i]);
   }
   return bestMove;
@@ -58,8 +58,11 @@ u64 perftTest(Board &b, int depth, bool root){
     makeMove(b,moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
     unmakeMove(b,moves.moves[i]);
-    if(root)
-      std::cout<<debug::moveToStr(moves.moves[i])<<" : "<<found<<std::endl;
+    if(root){
+      char movestr[21] = "";
+      moveToString(moves.moves[i],movestr);
+      printf("%s : %llu\n", movestr, found);
+    }
     count += found;
   }
   return count;
@@ -69,7 +72,7 @@ void runMoveGenerationTest(Board &board){
   for(int i = 1; i<5; i++){
     printf("Depth: %i\n", i);
     u64 found = perftTest(board,i);
-    printf("Found: %llu\n", found);
+    printf("Found: %llu\n\n", found);
   }
 }
 
@@ -108,7 +111,7 @@ void runMoveGenerationSuite(){
   };
   printf("Starting\n");
   int sum = 0;
-  auto start = std::chrono::high_resolution_clock::now();
+  clock_t start = clock();
   for(int i = 0; i<8; i++){
     board = boardFromFEN(positions[i]);
     u64 found = perftTest(board,depths[i],false);
@@ -121,9 +124,8 @@ void runMoveGenerationSuite(){
     }
     printf("%llu/%llu\x1b[0m\n", found, expected[i]);
   }
-  auto end = std::chrono::high_resolution_clock::now();
-  auto duration = end-start;
-  float durationf = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f;
+  clock_t end = clock();
+  float durationf = (end-start)/(float)CLOCKS_PER_SEC;
   printf("Searched %i moves\n", sum);
   printf("Finished in %fs\n",durationf);
   printf("%i moves/second", sum/(int)durationf);
