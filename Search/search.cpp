@@ -67,9 +67,9 @@ u64 perftTest(Board &b, int depth, bool root){
 
 void runMoveGenerationTest(Board &board){
   for(int i = 1; i<5; i++){
-    std::cout<<"Depth: "<<i<<"\n";
+    printf("Depth: %i\n", i);
     u64 found = perftTest(board,i);
-    std::cout<<"Found: "<<found<<"\n"<<std::endl;
+    printf("Found: %llu\n", found);
   }
 }
 
@@ -106,26 +106,25 @@ void runMoveGenerationSuite(){
     5,
     2
   };
-  std::cout<<"Starting"<<std::endl;
+  printf("Starting\n");
   int sum = 0;
   auto start = std::chrono::high_resolution_clock::now();
   for(int i = 0; i<8; i++){
     board = boardFromFEN(positions[i]);
     u64 found = perftTest(board,depths[i],false);
     sum += found;
-    std::cout<<"Depth: "<<depths[i];
-    std::cout<<" Found: ";
+    printf("Depth: %i Found: ",depths[i]);
     if(found != expected[i]){
-      std::cout<<"\x1b[31m";
+      printf("\x1b[31m");
     }else{
-      std::cout<<"\x1b[32m";
+      printf("\x1b[32m");
     }
-    std::cout<<found<<"/"<<expected[i]<<"\x1b[0m"<<std::endl;
+    printf("%llu/%llu\x1b[0m\n", found, expected[i]);
   }
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = end-start;
   float durationf = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()/1000.f;
-  std::cout<<"Searched "<< sum << " moves\n";
-  std::cout<<"Finished in "<<durationf<<"s"<<std::endl;
-  std::cout<<sum/(int)durationf<<" moves/second"<<std::endl;
+  printf("Searched %i moves\n", sum);
+  printf("Finished in %fs\n",durationf);
+  printf("%i moves/second", sum/(int)durationf);
 }

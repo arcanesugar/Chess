@@ -114,7 +114,7 @@ Board boardFromFEN(std::string fen){
   board.enPassanTarget = EN_PASSAN_NULL;
   if(!std::isdigit(parsed[3][0])){
     if(parsed[3] != "-"){
-      std::cout<<"En passan target from fen not yet implemented"<<std::endl;
+      printf("En passan target from fen not yet implemented");
     }
   }
   return board;

@@ -43,7 +43,7 @@ int bitScanForward(u64 bb) {
 
 int popls1b(u64 &bb){
   int index = bitScanForward(bb);
-  if(index == -1) std::cout<<"Cannot pop from empty bitboard"<<std::endl;
+  if(index == -1) printf("Cannot pop from empty bitboard");
   resetBit(bb,index);
   return index;
 }

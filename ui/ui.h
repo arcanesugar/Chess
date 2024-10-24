@@ -7,12 +7,14 @@
 #include "../Search/search.h"
 #include "../Search/eval.h"
 #include "debug.h"
+
 struct ConsoleState {
   debug::Settings settings;
   std::string lastInput = "";
   std::string output = "";
   bool printBoard = true;
 };
+
 class ConsoleInterface{
   Board *boardptr = nullptr;
   ConsoleState c;
