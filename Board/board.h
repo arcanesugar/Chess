@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include "Bitboards/bitboard.h"
 #include "../types.h"
@@ -92,7 +93,7 @@ struct Board{
   byte flags = 0 | WHITE_TO_MOVE_BIT;
 };
 
-Board boardFromFEN(std::string fen);
+Board boardFromFEN(char* fen);
 bool validateBoard(Board board);
 
 void makeMove(Board &board, Move &m);

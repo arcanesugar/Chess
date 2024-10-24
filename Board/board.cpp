@@ -5,7 +5,6 @@ u64 fileMasks[8];
 
 int getSquareIndex(int rank, int file){return (rank*8) + file;};
 
-
 void generateRankMasks() {
   for (int i = 0; i < 8; i++) {
     rankMasks[i] = (u64)255 << (8 * i);
@@ -54,16 +53,20 @@ bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
   }
   return true;
 }
-Board boardFromFEN(std::string fen){
+
+Board boardFromFEN(char *fen){
   Board board;
-  std::string parsed[6];
+  char parsed[6][100];
   int index = 0;
-  for(char c: fen){
-    if(c == ' '){
-      index++;
+  parsed[0][0] = '\0';
+  for(int i = 0; i<strlen(fen); i++){
+    if(fen[i] == ' '){
+      parsed[++index][0] = '\0';
       continue;
     }
-    parsed[index].push_back(c);
+    char temp[2] = "";
+    temp[0] = fen[i];
+    strcat(parsed[index], temp);
   }
   for(u64 &bb : board.bitboards){
     bb = (u64)0;
@@ -73,7 +76,8 @@ Board boardFromFEN(std::string fen){
     b = EMPTY;
   }
   int squareIndex = 63;
-  for(char c: parsed[0]){
+  for(int i = 0; i<strlen(parsed[0]); i++){
+    char c = parsed[0][i];
     if(c == '/') continue;
     if(isdigit(c)){
       for(int i = 0; i<c-'0'; i++){
@@ -104,19 +108,15 @@ Board boardFromFEN(std::string fen){
   }
   //set board.flags
   board.flags = (u64)0;
-  if(parsed[1] == "w")
+  if(strcmp(parsed[1],"w") == 0)
     board.flags |= WHITE_TO_MOVE_BIT;
 
-  if(parsed[2].find("K") != parsed[2].npos) board.flags |= WHITE_KINGSIDE_BIT;
-  if(parsed[2].find("Q") != parsed[2].npos) board.flags |= WHITE_QUEENSIDE_BIT;
-  if(parsed[2].find("k") != parsed[2].npos) board.flags |= BLACK_KINGSIDE_BIT;
-  if(parsed[2].find("q") != parsed[2].npos) board.flags |= BLACK_QUEENSIDE_BIT;
+  if(strchr(parsed[2], 'K')) board.flags |= WHITE_KINGSIDE_BIT;
+  if(strchr(parsed[2], 'Q')) board.flags |= WHITE_QUEENSIDE_BIT;
+  if(strchr(parsed[2], 'k')) board.flags |= BLACK_KINGSIDE_BIT;
+  if(strchr(parsed[2], 'q')) board.flags |= BLACK_QUEENSIDE_BIT;
+
   board.enPassanTarget = EN_PASSAN_NULL;
-  if(!std::isdigit(parsed[3][0])){
-    if(parsed[3] != "-"){
-      printf("En passan target from fen not yet implemented");
-    }
-  }
   return board;
 }
 
