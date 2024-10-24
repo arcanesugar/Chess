@@ -94,6 +94,6 @@ struct Board{
 
 Board boardFromFEN(std::string fen);
 bool validateBoard(Board board);
+
 void makeMove(Board &board, Move &m);
 void unmakeMove(Board &board, Move &m);
-

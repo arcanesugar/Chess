@@ -11,7 +11,10 @@ UCI is not supported yet
 
 ## Changelog
 - search
-    - **switched from c++ to c**
+    - C-migration
+        - added movePiece function
+        - removed all standard library dependencies
+        - moved everything out of classes
     - added bst command (plays the "best" move)
     - added minimax search
     - added evl command (shows the evaluation)

@@ -26,11 +26,6 @@ void generateBoardMasks(){
   generateFileMasks();
 }
 
-void updateColorBitboards(Board &board){
-  board.bitboards[WHITE_PIECES] = board.bitboards[WHITE+PAWN] | board.bitboards[WHITE+BISHOP] | board.bitboards[WHITE+KNIGHT] | board.bitboards[WHITE+ROOK] | board.bitboards[WHITE+QUEEN] | board.bitboards[WHITE+KING];
-  board.bitboards[BLACK_PIECES] = board.bitboards[BLACK+PAWN] | board.bitboards[BLACK+BISHOP] | board.bitboards[BLACK+KNIGHT] | board.bitboards[BLACK+ROOK] | board.bitboards[BLACK+QUEEN] | board.bitboards[BLACK+KING];
-  board.occupancy = board.bitboards[WHITE_PIECES]|board.bitboards[BLACK_PIECES];
-}
 bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
   if(bitScanForward(board.bitboards[WHITE+KING]) == -1) return false;
   if(bitScanForward(board.bitboards[BLACK+KING]) == -1) return false;
@@ -74,6 +69,7 @@ Board boardFromFEN(std::string fen){
   for(u64 &bb : board.bitboards){
     bb = (u64)0;
   }
+  board.occupancy = (u64)0;
   for(byte &b : board.squares){
     b = EMPTY;
   }
@@ -97,13 +93,16 @@ Board boardFromFEN(std::string fen){
         case 'q': piece = QUEEN; break;
       }
       setBit(board.bitboards[color+piece],squareIndex);
+      setBit(board.occupancy, squareIndex);
+      if(color == WHITE)
+        setBit(board.bitboards[WHITE_PIECES],squareIndex);
+      else
+        setBit(board.bitboards[BLACK_PIECES],squareIndex);
       board.squares[squareIndex] = color+piece;
       squareIndex-=1;
     }
     if(squareIndex<0){break;}
   }
-  updateColorBitboards(board);
-
   //set board.flags
   board.flags = (u64)0;
   if(parsed[1] == "w")
@@ -121,6 +120,7 @@ Board boardFromFEN(std::string fen){
   }
   return board;
 }
+
 void movePiece(Board &board, byte fromSquare, byte toSquare, byte type, byte capturedPiece){
   board.squares[fromSquare] = EMPTY;
   board.squares[toSquare] = type;
@@ -128,7 +128,18 @@ void movePiece(Board &board, byte fromSquare, byte toSquare, byte type, byte cap
   resetBit(board.bitboards[type],fromSquare);
   setBit(board.bitboards[type],toSquare);
   resetBit(board.bitboards[capturedPiece],toSquare);
+
+  if(type>=BLACK){
+    resetBit(board.bitboards[BLACK_PIECES], fromSquare);
+    setBit(board.bitboards[BLACK_PIECES], toSquare);
+    resetBit(board.bitboards[WHITE_PIECES], toSquare);
+  }else{
+    resetBit(board.bitboards[WHITE_PIECES], fromSquare);
+    setBit(board.bitboards[WHITE_PIECES], toSquare);
+    resetBit(board.bitboards[BLACK_PIECES], toSquare);
+  }
 }
+
 void makeMove(Board &board, Move &m){
   int color = (board.flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   m.setCastlingRights((board.flags&(0b00011110))>>1);
@@ -144,7 +155,7 @@ void makeMove(Board &board, Move &m){
     movePiece(board, 0+offset, 2+offset, color+ROOK, EMPTY);
 
     board.flags ^= WHITE_TO_MOVE_BIT;
-    updateColorBitboards(board);
+    board.occupancy = board.bitboards[WHITE_PIECES] | board.bitboards[BLACK_PIECES];
     return;
   }
   if(m.isQueenside()){
@@ -158,7 +169,7 @@ void makeMove(Board &board, Move &m){
     movePiece(board, 7+offset, 4+offset, color+ROOK, EMPTY);
 
     board.flags ^= WHITE_TO_MOVE_BIT;
-    updateColorBitboards(board);
+    board.occupancy = board.bitboards[WHITE_PIECES] | board.bitboards[BLACK_PIECES];
     return;
   }
 
@@ -197,9 +208,11 @@ void makeMove(Board &board, Move &m){
   if(m.isEnPassan()){
     if(board.flags&WHITE_TO_MOVE_BIT){
       resetBit(board.bitboards[BLACK+PAWN],to-8);
+      resetBit(board.bitboards[BLACK_PIECES],to-8);
       board.squares[to-8] = EMPTY;
     }else{
       resetBit(board.bitboards[WHITE+PAWN],to+8);
+      resetBit(board.bitboards[WHITE_PIECES],to+8);
       board.squares[to+8] = EMPTY;
     }
   }
@@ -217,27 +230,24 @@ void makeMove(Board &board, Move &m){
   }
 
   board.flags ^= WHITE_TO_MOVE_BIT;
-  updateColorBitboards(board);
+  board.occupancy = board.bitboards[WHITE_PIECES] | board.bitboards[BLACK_PIECES];
 }
 
 void unmakeMove(Board &board, Move &m){
-  int color = (board.flags & WHITE_TO_MOVE_BIT) ? BLACK : WHITE;
+  board.flags ^= WHITE_TO_MOVE_BIT;
+  int color = (board.flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   board.enPassanTarget = m.getEnPassanTarget();
   if(m.isKingside()){
-    board.flags ^= WHITE_TO_MOVE_BIT;
-    
     int offset= (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     movePiece(board, 1+offset, 3+offset, color+KING, EMPTY);
     movePiece(board, 2+offset, 0+offset, color+ROOK, EMPTY);
 
     board.flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     board.flags  |= m.getCastlingRights()<<1;
-    updateColorBitboards(board);
+    board.occupancy = board.bitboards[WHITE_PIECES] | board.bitboards[BLACK_PIECES];
     return;
   }
   if(m.isQueenside()){
-    board.flags ^= WHITE_TO_MOVE_BIT;
-    
     int offset= (board.flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
 
     movePiece(board, 5+offset, 3+offset, color+KING, EMPTY);
@@ -245,7 +255,7 @@ void unmakeMove(Board &board, Move &m){
 
     board.flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     board.flags  |= m.getCastlingRights()<<1;
-    updateColorBitboards(board);
+    board.occupancy = board.bitboards[WHITE_PIECES] | board.bitboards[BLACK_PIECES];
     return;
   }
 
@@ -261,19 +271,34 @@ void unmakeMove(Board &board, Move &m){
   
   //move piece back
   byte pieceOnToSquare = board.squares[to];
-  board.squares[from] = board.squares[to];
   setBit(board.bitboards[pieceOnToSquare],from);
   resetBit(board.bitboards[pieceOnToSquare],to);
-  setBit(board.bitboards[m.getCapturedPiece()],to);
-  board.squares[to] = m.getCapturedPiece();
+  board.squares[from] = pieceOnToSquare;
 
+  //undo capture
+  byte capturedPiece = m.getCapturedPiece();
+  if(capturedPiece != EMPTY)
+    setBit(board.bitboards[capturedPiece],to);
+  
+  board.squares[to] = capturedPiece;
+  if(color == BLACK){
+    resetBit(board.bitboards[BLACK_PIECES], to);
+    setBit(board.bitboards[BLACK_PIECES], from);
+    if(capturedPiece != EMPTY) setBit(board.bitboards[WHITE_PIECES], to);
+  }else{
+    resetBit(board.bitboards[WHITE_PIECES], to);
+    setBit(board.bitboards[WHITE_PIECES], from);
+    if(capturedPiece != EMPTY) setBit(board.bitboards[BLACK_PIECES], to);
+  }
   //undo en passan
   if(m.isEnPassan()){
-    if(board.flags&WHITE_TO_MOVE_BIT){
+    if(color == BLACK){
       setBit(board.bitboards[WHITE+PAWN],to+8);
+      setBit(board.bitboards[WHITE_PIECES], to+8);
       board.squares[to+8] = WHITE+PAWN;
     }else{
       setBit(board.bitboards[BLACK+PAWN],to-8);
+      setBit(board.bitboards[BLACK_PIECES], to-8);
       board.squares[to-8] = BLACK+PAWN;
     }
   }
@@ -281,6 +306,5 @@ void unmakeMove(Board &board, Move &m){
   //restore board state
   board.flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
   board.flags  |= m.getCastlingRights()<<1;
-  board.flags ^= WHITE_TO_MOVE_BIT;
-  updateColorBitboards(board);
+  board.occupancy = board.bitboards[WHITE_PIECES]|board.bitboards[BLACK_PIECES];
 }
