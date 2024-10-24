@@ -15,7 +15,7 @@ void generateFileMasks() {
   for (int i = 0; i < 8; i++) {
     u64 mask = (u64)0;
     for (int y = 0; y < 8; y++) 
-      setBit(mask, (y * 8) + i);
+      setBit(&mask, (y * 8) + i);
     fileMasks[i] = mask;
   }
 }
@@ -33,13 +33,13 @@ bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
   u64 whitebb = board.bitboards[WHITE+PAWN];
   while(whitebb){
     white++;
-    popls1b(whitebb);
+    popls1b(&whitebb);
   }
   int black = 0;
   u64 blackbb = board.bitboards[BLACK+PAWN];
   while(blackbb){
     black++;
-    popls1b(blackbb);
+    popls1b(&blackbb);
   }
   if(white>8) return false;
   if(black>8) return false;
@@ -96,12 +96,12 @@ Board boardFromFEN(char *fen){
         case 'k': piece = KING; break;
         case 'q': piece = QUEEN; break;
       }
-      setBit(board.bitboards[color+piece],squareIndex);
-      setBit(board.occupancy, squareIndex);
+      setBit(&board.bitboards[color+piece],squareIndex);
+      setBit(&board.occupancy, squareIndex);
       if(color == WHITE)
-        setBit(board.bitboards[WHITE_PIECES],squareIndex);
+        setBit(&board.bitboards[WHITE_PIECES],squareIndex);
       else
-        setBit(board.bitboards[BLACK_PIECES],squareIndex);
+        setBit(&board.bitboards[BLACK_PIECES],squareIndex);
       board.squares[squareIndex] = color+piece;
       squareIndex-=1;
     }
@@ -125,18 +125,18 @@ void movePiece(Board &board, byte fromSquare, byte toSquare, byte type, byte cap
   board.squares[fromSquare] = EMPTY;
   board.squares[toSquare] = type;
 
-  resetBit(board.bitboards[type],fromSquare);
-  setBit(board.bitboards[type],toSquare);
-  resetBit(board.bitboards[capturedPiece],toSquare);
+  resetBit(&board.bitboards[type],fromSquare);
+  setBit(&board.bitboards[type],toSquare);
+  resetBit(&board.bitboards[capturedPiece],toSquare);
 
   if(type>=BLACK){
-    resetBit(board.bitboards[BLACK_PIECES], fromSquare);
-    setBit(board.bitboards[BLACK_PIECES], toSquare);
-    resetBit(board.bitboards[WHITE_PIECES], toSquare);
+    resetBit(&board.bitboards[BLACK_PIECES], fromSquare);
+    setBit(&board.bitboards[BLACK_PIECES], toSquare);
+    resetBit(&board.bitboards[WHITE_PIECES], toSquare);
   }else{
-    resetBit(board.bitboards[WHITE_PIECES], fromSquare);
-    setBit(board.bitboards[WHITE_PIECES], toSquare);
-    resetBit(board.bitboards[BLACK_PIECES], toSquare);
+    resetBit(&board.bitboards[WHITE_PIECES], fromSquare);
+    setBit(&board.bitboards[WHITE_PIECES], toSquare);
+    resetBit(&board.bitboards[BLACK_PIECES], toSquare);
   }
 }
 
@@ -179,8 +179,8 @@ void makeMove(Board &board, Move &m){
     //std::cout<<"WRONG COLOR\n";
   }
   if(m.isPromotion()){
-    resetBit(board.bitboards[board.squares[from]], from);
-    setBit(board.bitboards[color+m.getPromotionPiece()],from);
+    resetBit(&board.bitboards[board.squares[from]], from);
+    setBit(&board.bitboards[color+m.getPromotionPiece()],from);
     board.squares[from] = color+m.getPromotionPiece();
   }
   byte fromPiece = board.squares[from];
@@ -207,12 +207,12 @@ void makeMove(Board &board, Move &m){
   //do en passan
   if(m.isEnPassan()){
     if(board.flags&WHITE_TO_MOVE_BIT){
-      resetBit(board.bitboards[BLACK+PAWN],to-8);
-      resetBit(board.bitboards[BLACK_PIECES],to-8);
+      resetBit(&board.bitboards[BLACK+PAWN],to-8);
+      resetBit(&board.bitboards[BLACK_PIECES],to-8);
       board.squares[to-8] = EMPTY;
     }else{
-      resetBit(board.bitboards[WHITE+PAWN],to+8);
-      resetBit(board.bitboards[WHITE_PIECES],to+8);
+      resetBit(&board.bitboards[WHITE+PAWN],to+8);
+      resetBit(&board.bitboards[WHITE_PIECES],to+8);
       board.squares[to+8] = EMPTY;
     }
   }
@@ -264,41 +264,41 @@ void unmakeMove(Board &board, Move &m){
 
   //if piece was promoted, turn it back to a pawn
   if(m.isPromotion()){
-    resetBit(board.bitboards[board.squares[to]], to);
-    setBit(board.bitboards[PAWN+color],to);
+    resetBit(&board.bitboards[board.squares[to]], to);
+    setBit(&board.bitboards[PAWN+color],to);
     board.squares[to] = PAWN + color; 
   }
   
   //move piece back
   byte pieceOnToSquare = board.squares[to];
-  setBit(board.bitboards[pieceOnToSquare],from);
-  resetBit(board.bitboards[pieceOnToSquare],to);
+  setBit(&board.bitboards[pieceOnToSquare],from);
+  resetBit(&board.bitboards[pieceOnToSquare],to);
   board.squares[from] = pieceOnToSquare;
 
   //undo capture
   byte capturedPiece = m.getCapturedPiece();
   if(capturedPiece != EMPTY)
-    setBit(board.bitboards[capturedPiece],to);
+    setBit(&board.bitboards[capturedPiece],to);
   
   board.squares[to] = capturedPiece;
   if(color == BLACK){
-    resetBit(board.bitboards[BLACK_PIECES], to);
-    setBit(board.bitboards[BLACK_PIECES], from);
-    if(capturedPiece != EMPTY) setBit(board.bitboards[WHITE_PIECES], to);
+    resetBit(&board.bitboards[BLACK_PIECES], to);
+    setBit(&board.bitboards[BLACK_PIECES], from);
+    if(capturedPiece != EMPTY) setBit(&board.bitboards[WHITE_PIECES], to);
   }else{
-    resetBit(board.bitboards[WHITE_PIECES], to);
-    setBit(board.bitboards[WHITE_PIECES], from);
-    if(capturedPiece != EMPTY) setBit(board.bitboards[BLACK_PIECES], to);
+    resetBit(&board.bitboards[WHITE_PIECES], to);
+    setBit(&board.bitboards[WHITE_PIECES], from);
+    if(capturedPiece != EMPTY) setBit(&board.bitboards[BLACK_PIECES], to);
   }
   //undo en passan
   if(m.isEnPassan()){
     if(color == BLACK){
-      setBit(board.bitboards[WHITE+PAWN],to+8);
-      setBit(board.bitboards[WHITE_PIECES], to+8);
+      setBit(&board.bitboards[WHITE+PAWN],to+8);
+      setBit(&board.bitboards[WHITE_PIECES], to+8);
       board.squares[to+8] = WHITE+PAWN;
     }else{
-      setBit(board.bitboards[BLACK+PAWN],to-8);
-      setBit(board.bitboards[BLACK_PIECES], to-8);
+      setBit(&board.bitboards[BLACK+PAWN],to-8);
+      setBit(&board.bitboards[BLACK_PIECES], to-8);
       board.squares[to-8] = BLACK+PAWN;
     }
   }

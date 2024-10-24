@@ -72,11 +72,11 @@ bool isAttacked(Board const &board, byte square, byte opponentColor){
   //attacked by pawn
   u64 possiblePawns = u64(0);
   if(opponentColor == WHITE){
-    if(square%8 != 0)setBit(possiblePawns, square-9);
-    if(square%8 != 7)setBit(possiblePawns, square-7);
+    if(square%8 != 0)setBit(&possiblePawns, square-9);
+    if(square%8 != 7)setBit(&possiblePawns, square-7);
   }else{
-    if(square%8 != 7)setBit(possiblePawns, square+9);
-    if(square%8 != 0)setBit(possiblePawns, square+7);
+    if(square%8 != 7)setBit(&possiblePawns, square+9);
+    if(square%8 != 0)setBit(&possiblePawns, square+7);
   }
   if(possiblePawns & board.bitboards[PAWN + opponentColor]) return true;
   
@@ -87,10 +87,10 @@ void addSlidingMoves(Board &board, MoveList &moves) {
   u64 orthogonalPieces = board.bitboards[color + ROOK] | board.bitboards[color + QUEEN];
   u64 diagonalPieces = board.bitboards[color + BISHOP] | board.bitboards[color + QUEEN];
   while (orthogonalPieces) {
-    addOrthogonalMoves(board, popls1b(orthogonalPieces), moves);
+    addOrthogonalMoves(board, popls1b(&orthogonalPieces), moves);
   }
   while (diagonalPieces) {
-    addDiagonalMoves(board, popls1b(diagonalPieces), moves);
+    addDiagonalMoves(board, popls1b(&diagonalPieces), moves);
   }
 }
 
@@ -106,7 +106,7 @@ void addDiagonalMoves(Board &board, int square, MoveList &moves) {
 
 void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
   while (targets) {
-    byte to = popls1b(targets);
+    byte to = popls1b(&targets);
     if(to<8 || to>55){ 
       for(int i = BISHOP; i<= QUEEN;i++){
         Move move;
@@ -169,7 +169,7 @@ void addPawnMoves(Board &board, MoveList &moves) {
 void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
   while (squares) {
     Move move;
-    move.setTo(popls1b(squares));
+    move.setTo(popls1b(&squares));
     move.setFrom(fromSquare);
     moves.append(move);
   }
@@ -178,7 +178,7 @@ void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
 void addKnightMoves(Board &board, MoveList &moves) {
   u64 friendlyKnights = board.bitboards[color + KNIGHT];
   while (friendlyKnights) {
-    int square = popls1b(friendlyKnights);
+    int square = popls1b(&friendlyKnights);
     u64 targets = knightMoves[square] & (~friendlyBitboard);
     addMovesToSquares(moves, square, targets);
   }
@@ -229,7 +229,7 @@ void createKnightTable() {
         int y = rank + offsets[i][1];
         if (x >= 0 && x < 8 && y >= 0 && y < 8) {
           int destination = (y * 8) + x;
-          setBit(moves, destination);
+          setBit(&moves, destination);
         }
       }
       knightMoves[(rank * 8) + file] = moves;
@@ -248,7 +248,7 @@ void createKingTable() {
         int y = rank + offsets[i][1];
         if (x >= 0 && x < 8 && y >= 0 && y < 8) {
           int destination = (y * 8) + x;
-          setBit(moves, destination);
+          setBit(&moves, destination);
         }
       }
       kingMoves[(rank * 8) + file] = moves;

@@ -135,30 +135,30 @@ std::string debug::printBoard(Settings settings, Board const &board, u64 highlig
 
 std::string debug::printMove(Settings settings, Board const board, Move m){
   u64 highlightedSquares = (u64)0;
-  setBit(highlightedSquares,m.getTo());
-  setBit(highlightedSquares,m.getFrom());
+  setBit(&highlightedSquares,m.getTo());
+  setBit(&highlightedSquares,m.getFrom());
   if(!(board.flags & WHITE_TO_MOVE_BIT)){
     if(m.isKingside()){
       highlightedSquares = (u64)0;
-      setBit(highlightedSquares,59);
-      setBit(highlightedSquares,57);
+      setBit(&highlightedSquares,59);
+      setBit(&highlightedSquares,57);
     }
     if(m.isQueenside()){
       highlightedSquares = (u64)0;
-      setBit(highlightedSquares,59);
-      setBit(highlightedSquares,61);
+      setBit(&highlightedSquares,59);
+      setBit(&highlightedSquares,61);
     } 
   }
   else {
     if(m.isKingside()){
       highlightedSquares = (u64)0;
-      setBit(highlightedSquares,3);
-      setBit(highlightedSquares,1);
+      setBit(&highlightedSquares,3);
+      setBit(&highlightedSquares,1);
     }
     if(m.isQueenside()){
       highlightedSquares = (u64)0;
-      setBit(highlightedSquares,3);
-      setBit(highlightedSquares,5);
+      setBit(&highlightedSquares,3);
+      setBit(&highlightedSquares,5);
     }
   }
   return printBoard(settings,board,highlightedSquares);

@@ -66,7 +66,7 @@ void fillRookMoves() {
         int x = i % 8;
         int y = i / 8;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
-          setBit(moves, (y * 8) + x);
+          setBit(&moves, (y * 8) + x);
           if (getBit(blocker, (y * 8) + x))
             break;
           x += directions[direction][0];
@@ -98,7 +98,7 @@ void fillBishopMoves() {
         int x = i % 8;
         int y = i / 8;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
-          setBit(moves, (y * 8) + x);
+          setBit(&moves, (y * 8) + x);
           if (getBit(blocker, (y * 8) + x))
             break;
           x += directions[direction][0];
@@ -131,7 +131,7 @@ void generateRookMasks() {
     for (int file = 0; file < 8; file++) { // x
       u64 mask = (u64)0;
       mask = fileMasks[file] | rankMasks[rank];
-      resetBit(mask, (rank * 8) + file);
+      resetBit(&mask, (rank * 8) + file);
       rookMasks[(rank * 8) + file] = mask;
     }
   }
@@ -146,12 +146,12 @@ void generateBishopMasks() {
         int x = file;
         int y = rank;
         while ((x >= 0 && x < 8) && (y >= 0 && y < 8)) {
-          setBit(mask, (y * 8) + x);
+          setBit(&mask, (y * 8) + x);
           x += directions[i][0];
           y += directions[i][1];
         }
       }
-      resetBit(mask, (rank * 8) + file);
+      resetBit(&mask, (rank * 8) + file);
       bishopMasks[(rank * 8) + file] = mask;
     }
   }

@@ -6,7 +6,7 @@
 
 namespace debug{
   struct Settings{
-    std::string pieceCharacters[13] = {"♙","♗","♘","♖","♕","♔","\x1b[1m♟","♝","♞","♜","♛","♚"," "};
+    std::string pieceCharacters[13] = {"♙","♗","♘","♖","♕","♔","♟","♝","♞","♜","♛","♚"," "};
     std::string darkColor  = "\x1b[103m";
     std::string lightColor = "\x1b[47m";
     void setASCIIPieces();
