@@ -5,7 +5,7 @@
 #define INF    9999999 
 
 double minimax(Board *b, int depth, bool maximiser){
-  if(depth == 0) return evaluate(*b);
+  if(depth == 0) return evaluate(b);
   MoveList ml;
   generateMoves(b, &ml);
   if(ml.end == 0) return (maximiser) ? N_INF : INF;//checkmate is the worst possible outcome (for the side whos turn it is)

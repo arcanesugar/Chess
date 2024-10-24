@@ -9,7 +9,7 @@ void ConsoleInterface::run(Board *boardptr){
     getNextInput();
     std::string input = c.lastInput;
     if (input == "mve") makeMoveFromConsole();
-    if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
+    if (input == "evl") c.output = std::to_string(evaluate(boardptr)) + "\n";
     if(input == "bst") {
       Move best = search(*boardptr, 2);
       makeMove(boardptr,&best);
