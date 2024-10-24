@@ -23,7 +23,7 @@ void ConsoleInterface::run(Board *boardptr){
     if (input == "trn") whosTurnIsIt();
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") searchForMagics();
-    if(input == "tst") runMoveGenerationTest(*boardptr);
+    if(input == "tst") runMoveGenerationTest(boardptr);
     if(input == "mgs") runMoveGenerationSuite();
     if(input == "und") undoLastMove(); 
     if(input == "dbg") showDebugView();

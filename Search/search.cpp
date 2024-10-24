@@ -4,22 +4,22 @@
 #define N_INF -9999999
 #define INF    9999999 
 
-double minimax(Board &b, int depth, bool maximiser){
-  if(depth == 0) return evaluate(b);
+double minimax(Board *b, int depth, bool maximiser){
+  if(depth == 0) return evaluate(*b);
   MoveList ml;
-  generateMoves(&b, &ml);
+  generateMoves(b, &ml);
   if(ml.end == 0) return (maximiser) ? N_INF : INF;//checkmate is the worst possible outcome (for the side whos turn it is)
 
   double bestEval = (maximiser) ? N_INF : INF;
   for(int i = 0; i<ml.end; i++){
-    makeMove(&b,&ml.moves[i]);
+    makeMove(b,&ml.moves[i]);
     double eval = minimax(b,depth-1,!maximiser);
     if(maximiser){
       bestEval = std::max(bestEval, eval);
     }else{
       bestEval = std::min(bestEval, eval);
     }
-    unmakeMove(&b,&ml.moves[i]);
+    unmakeMove(b,&ml.moves[i]);
   }
   
   return bestEval;
@@ -33,7 +33,7 @@ Move search(Board b, int depth){
   Move bestMove;
   for(int i = 0; i<ml.end; i++){
     makeMove(&b, &ml.moves[i]);
-    double eval = minimax(b,depth-1,!maximiser);
+    double eval = minimax(&b,depth-1,!maximiser);
     if(maximiser){
       if(eval>bestEval){
         bestEval = eval;
@@ -49,15 +49,15 @@ Move search(Board b, int depth){
   }
   return bestMove;
 }
-u64 perftTest(Board &b, int depth, bool root){
+u64 perftTest(Board *b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves;
-  generateMoves(&b, &moves);
+  generateMoves(b, &moves);
   for(byte i = 0; i<moves.end;i++){
-    makeMove(&b,&moves.moves[i]);
+    makeMove(b,&moves.moves[i]);
     u64 found = perftTest(b, depth-1,false);
-    unmakeMove(&b,&moves.moves[i]);
+    unmakeMove(b,&moves.moves[i]);
     if(root){
       char movestr[21] = "";
       moveToString(moves.moves[i],movestr);
@@ -68,7 +68,7 @@ u64 perftTest(Board &b, int depth, bool root){
   return count;
 }
 
-void runMoveGenerationTest(Board &board){
+void runMoveGenerationTest(Board *board){
   for(int i = 1; i<5; i++){
     printf("Depth: %i\n", i);
     u64 found = perftTest(board,i);
@@ -114,7 +114,7 @@ void runMoveGenerationSuite(){
   Board board;
   for(int i = 0; i<8; i++){
     board = boardFromFEN(positions[i]);
-    u64 found = perftTest(board,depths[i],false);
+    u64 found = perftTest(&board,depths[i],false);
     sum += found;
     printf("Depth: %i Found: ",depths[i]);
     if(found != expected[i]){
