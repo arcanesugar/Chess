@@ -12,8 +12,7 @@ int main() {
   printf("[creating move generator]\n");
   initMoveGenerator();
   printf("[creating consoleInterface...]\n");
-  ConsoleInterface consoleInterface;
   printf("[beginning consoleInterface...]\n");
-  consoleInterface.run(&board);
+  runConsoleInterface(&board);
   return 0;
 }
