@@ -1,4 +1,5 @@
 #include "board.h"
+#include <ctype.h>
 
 u64 rankMasks[8];
 u64 fileMasks[8];
@@ -87,7 +88,7 @@ Board boardFromFEN(char *fen){
     }else{
       int color = isupper(c) ? WHITE : BLACK;
       int piece = 0;
-      switch(std::tolower(c)){
+      switch(tolower(c)){
         case 'p': piece = PAWN; break;
         case 'b': piece = BISHOP; break;
         case 'n': piece = KNIGHT; break;
