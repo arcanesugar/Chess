@@ -47,35 +47,32 @@ enum piece{
 #define BLACK_PIECES 13
 
 struct Move{
-private:
   unsigned short move = 0; //ttttttffffffssss  t = to f = from s = special move data 
   unsigned short unmakeData = 0;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
-public:
-inline void setTo(byte to) { move |= to<<10;}
-inline void setFrom(byte from) { move |= from<<4;}
-inline void setSpecialMoveData(byte smd) { move |= smd;}
-inline void setPromotion(byte piece) {move |= piece | PROMOTION_BIT;}
-inline void setEnPassanTarget(byte target){ unmakeData |= target<<6;}
-inline void setCastlingRights(byte flags){unmakeData |= flags<<2;}
-inline void setCapturedPiece(byte piece){unmakeData |= piece<<12;}
-
-inline byte getTo() {return (move & TO_PIECE_MASK)>>10;}
-inline byte getFrom() {return (move & FROM_PIECE_MASK)>>4;}
-inline byte getSpecialMoveData(){ return (move&SPECIAL_MOVE_DATA_MASK);}
-inline bool isEnPassan(){ return getSpecialMoveData() == EN_PASSAN;}
-inline bool isKingside(){ return getSpecialMoveData() == CASTLE_KINGSIDE;}
-inline bool isQueenside(){ return getSpecialMoveData() == CASTLE_QUEENSIDE;}
-inline bool isPromotion(){return move & PROMOTION_BIT;}
-inline byte getPromotionPiece(){return move & PROMOTION_MASK;}
-
-inline byte getEnPassanTarget(){ return (unmakeData & EN_PASSAN_TARGET_MASK )>>6;}
-inline byte getCastlingRights(){return (unmakeData & CASTLING_RIGHTS_MASK)>>2;}
-inline byte getCapturedPiece(){return unmakeData>>12;}
-
-unsigned short getUnmakeData(){return unmakeData;}
-unsigned short getMoveData(){return move;}
-inline void resetUnmakeData(){unmakeData = (unsigned short)0;}
 };
+
+inline void setTo(Move *move, byte to) { move->move |= to<<10;}
+inline void setFrom(Move *move, byte from) { move->move |= from<<4;}
+inline void setSpecialMoveData(Move *move, byte smd) { move->move |= smd;}
+inline void setPromotion(Move *move, byte piece) {move->move |= piece | PROMOTION_BIT;}
+inline void setEnPassanTarget(Move *move, byte target){ move->unmakeData |= target<<6;}
+inline void setCastlingRights(Move *move, byte flags){move->unmakeData |= flags<<2;}
+inline void setCapturedPiece(Move *move, byte piece){move->unmakeData |= piece<<12;}
+
+inline byte getTo(Move *move) {return (move->move & TO_PIECE_MASK)>>10;}
+inline byte getFrom(Move *move) {return (move->move & FROM_PIECE_MASK)>>4;}
+inline byte getSpecialMoveData(Move *move){ return (move->move&SPECIAL_MOVE_DATA_MASK);}
+inline bool isEnPassan(Move *move){ return getSpecialMoveData(move) == EN_PASSAN;}
+inline bool isKingside(Move *move){ return getSpecialMoveData(move) == CASTLE_KINGSIDE;}
+inline bool isQueenside(Move *move){ return getSpecialMoveData(move) == CASTLE_QUEENSIDE;}
+inline bool isPromotion(Move *move){return move->move & PROMOTION_BIT;}
+inline byte getPromotionPiece(Move *move){return move->move & PROMOTION_MASK;}
+
+inline byte getEnPassanTarget(Move *move){return (move->unmakeData & EN_PASSAN_TARGET_MASK )>>6;}
+inline byte getCastlingRights(Move *move){return (move->unmakeData & CASTLING_RIGHTS_MASK)>>2;}
+inline byte getCapturedPiece(Move *move) {return move->unmakeData>>12;}
+
+inline void resetUnmakeData(Move *move){move->unmakeData = (unsigned short)0;}
 
 int getSquareIndex(int file, int rank);
 
@@ -94,5 +91,5 @@ struct Board{
 Board boardFromFEN(char* fen);
 bool validateBoard(Board board);
 
-void makeMove(Board &board, Move &m);
-void unmakeMove(Board &board, Move &m);
+void makeMove(Board *board, Move *m);
+void unmakeMove(Board *board, Move *m);

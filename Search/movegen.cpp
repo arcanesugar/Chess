@@ -40,11 +40,11 @@ void generateMoves(Board &board, MoveList &moves) {
 
 void filterLegalMoves(Board board, MoveList &moves){
   for(int i = moves.end-1; i>=0; i--){
-    makeMove(board,moves.moves[i]);
+    makeMove(&board,&moves.moves[i]);
     byte kingSquare = bitScanForward(board.bitboards[color+KING]);
     bool isLegal = !isAttacked(board, kingSquare, opponentColor);
-    unmakeMove(board,moves.moves[i]);
-    moves.moves[i].resetUnmakeData();
+    unmakeMove(&board,&moves.moves[i]);
+    moves.moves[i].unmakeData = 0;
     if(!isLegal){
        moves.remove(i);
     }
@@ -110,17 +110,17 @@ void addMovesFromOffset(MoveList &moves, int offset, u64 targets, byte flags){
     if(to<8 || to>55){ 
       for(int i = BISHOP; i<= QUEEN;i++){
         Move move;
-        move.setTo(to);
-        move.setFrom(to + offset);
-        move.setPromotion(i);
+        setTo(&move, to);
+        setFrom(&move, to + offset);
+        setPromotion(&move, i);
         moves.append(move);
       }
       continue;
     }
     Move move;
-    move.setTo(to);
-    move.setFrom(to + offset);
-    move.setSpecialMoveData(flags);
+    setTo(&move, to);
+    setFrom(&move, to + offset);
+    setSpecialMoveData(&move, flags);
     moves.append(move);
   }
 }
@@ -169,8 +169,8 @@ void addPawnMoves(Board &board, MoveList &moves) {
 void addMovesToSquares(MoveList &moves, int fromSquare, u64 squares){
   while (squares) {
     Move move;
-    move.setTo(popls1b(&squares));
-    move.setFrom(fromSquare);
+    setTo(&move, popls1b(&squares));
+    setFrom(&move, fromSquare);
     moves.append(move);
   }
 }
@@ -209,9 +209,9 @@ void addCastlingMoves(Board &board, MoveList &moves){
     if(!legal) continue;
     Move m;
     if(j%2 == 0){
-      m.setSpecialMoveData(CASTLE_KINGSIDE); 
+      setSpecialMoveData(&m,CASTLE_KINGSIDE); 
     }else{
-      m.setSpecialMoveData(CASTLE_QUEENSIDE); 
+      setSpecialMoveData(&m,CASTLE_QUEENSIDE); 
     }
     moves.append(m);
   }

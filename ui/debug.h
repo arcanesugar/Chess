@@ -16,7 +16,6 @@ namespace debug{
   std::string printBoard(Settings settings, Board const &board, u64 highlighted = u64(0));
 
   std::string printMove(Settings settings, Board const board, Move m);
-  std::string moveToStr(Move m, bool expanded = false);
   std::string printBitboard(debug::Settings settings,Board board,u64 const &bb);
 
   void runMoveGenerationTest();

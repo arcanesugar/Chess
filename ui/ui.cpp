@@ -12,7 +12,7 @@ void ConsoleInterface::run(Board *boardptr){
     if (input == "evl") c.output = std::to_string(evaluate(*boardptr)) + "\n";
     if(input == "bst") {
       Move best = search(*boardptr, 2);
-      makeMove(*boardptr,best);
+      makeMove(boardptr,&best);
       history.push(best);
       c.printBoard = false;
       c.output = debug::printMove(c.settings, *boardptr, best);
@@ -31,14 +31,14 @@ void ConsoleInterface::run(Board *boardptr){
 
     if(input == "ks"){
       Move m;
-      m.setSpecialMoveData(CASTLE_KINGSIDE);
-      makeMove(*boardptr,m);
+      setSpecialMoveData(&m,CASTLE_KINGSIDE);
+      makeMove(boardptr,&m);
       history.push(m);
     }
     if(input == "qs"){
       Move m;
-      m.setSpecialMoveData(CASTLE_QUEENSIDE);
-      makeMove(*boardptr,m);
+      setSpecialMoveData(&m,CASTLE_QUEENSIDE);
+      makeMove(boardptr,&m);
       history.push(m);
     }
   }
@@ -59,7 +59,7 @@ void ConsoleInterface::undoLastMove(){
     return;
   }
   Move m = history.top();
-  unmakeMove(*boardptr,m);
+  unmakeMove(boardptr,&m);
   
   c.output.append(debug::printMove(c.settings,*boardptr, m));
   c.printBoard = false;
@@ -107,9 +107,9 @@ void ConsoleInterface::makeRandomMove(){
     return;
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
-  std::cout<<debug::moveToStr(move,true)<<"\n";
-  makeMove(*boardptr,move);
-  std::cout<<debug::moveToStr(move,true)<<"\n";
+//  std::cout<<debug::moveToStr(move,true)<<"\n";
+  makeMove(boardptr,&move);
+//  std::cout<<debug::moveToStr(move,true)<<"\n";
   history.push(move);
   c.output = debug::printMove(c.settings, *boardptr, move);
   c.printBoard = false;
@@ -131,14 +131,14 @@ void ConsoleInterface::makeMoveFromConsole(){
   getNextInput();
   int to = squareNameToIndex(c.lastInput);
   Move move;
-  move.setFrom(from);
-  move.setTo(to);
+  setFrom(&move,from);
+  setTo(&move,to);
   MoveList legalMoves;
   generateMoves(*boardptr, legalMoves);
   bool isLegal = false;
   MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){
-    if(move.getFrom() == legalMoves.moves[i].getFrom() && move.getTo() == legalMoves.moves[i].getTo()){
+    if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
       isLegal = true;
       move = legalMoves.moves[i];//assigns proporties like flags
       variants.append(move);
@@ -149,20 +149,20 @@ void ConsoleInterface::makeMoveFromConsole(){
       c.output = "This move has multiple variants, choose one\n";
       for(int i = 0; i<variants.end; i++){
         Board copy = *boardptr;
-        makeMove(copy,variants.moves[i]);
+        makeMove(&copy,&variants.moves[i]);
         c.output.append("\n" + std::to_string(i) + ")\n");
         c.output.append(debug::printBoard(c.settings, copy));
       }
       getNextInput();
       move = variants.moves[std::stoi(c.lastInput)];
     }
-    makeMove(*boardptr,move);
+    makeMove(boardptr,&move);
     history.push(move);
   }else{
     c.output = "This move is not legal, continue? (y/N)\n";
     getNextInput();
     if(c.lastInput == "y"){
-      makeMove(*boardptr,move);
+      makeMove(boardptr,&move);
       history.push(move);
     }
   }

@@ -33,78 +33,6 @@ std::string debug::testFormatting(bool highlightOnly){
   return str;
 };
 
-std::string debug::moveToStr(Move m, bool expanded){
-  std::string str = "";
-  if(expanded){
-    
-    str.append("Move Data:   ");
-    for(int i = 15; i>=0;i--){
-      str.append("\x1b[34m");
-      if(i>=4) str.append("\x1b[33m");
-      if(i>=10) str.append("\x1b[32m");
-      if((m.getMoveData()>>i)&(unsigned short)1){
-        str.push_back('1');
-      }else{
-        str.push_back('0');
-      }
-    }
-    str.append("\x1b[0m");
-    str.append("\nUnmake Data: ");
-    for(int i = 15; i>=0;i--){
-      str.append("\x1b[2;30m");
-      if(i>=2) str.append("\x1b[0;34m");
-      if(i>=6) str.append("\x1b[0;33m");
-      if(i>=12) str.append("\x1b[0;32m");
-      if((m.getUnmakeData()>>i)&(unsigned short)1){
-        str.push_back('1');
-      }else{
-        str.push_back('0');
-      }
-    }
-    str.append("\n\x1b[0m");
-    str.append("isKingside: " + std::to_string(m.isKingside())+"\n");
-    str.append("isQueenside: " + std::to_string(m.isQueenside())+"\n");
-    str.append("isEnPassan: " + std::to_string(m.isEnPassan())+"\n");
-    str.append("isPromotion: " + std::to_string(m.isPromotion())+"\n");
-    str.append("toSquare: " + std::to_string(m.getTo())+"\n");
-    str.append("fromSquare: " + std::to_string(m.getFrom())+"\n");
-    str.append("promotionPiece: " + std::to_string(m.getPromotionPiece())+"\n");
-    str.append("capturedPiece: " + std::to_string(m.getCapturedPiece())+"\n");
-    str.append("enPassanTarget: " + std::to_string(m.getEnPassanTarget())+"\n");
-    str.append("\x1b[0m");
-    str.append("\n");
-  }
-  if(m.isKingside()) return str+"ks";
-  if(m.isQueenside()) return str+"qs";
-  std::string fromStr = "";
-  std::string toStr = "";
-  if(m.isKingside() || m.isQueenside()){
-    fromStr.append("\x1b[33m");
-  }
-  fromStr.push_back('h'-(m.getFrom()%8));
-  toStr.push_back('h'-(m.getTo()%8));
-  fromStr.append(std::to_string((m.getFrom()/8)+1));
-  toStr.append(std::to_string((m.getTo()/8)+1));
-  
-  str.append("[" + fromStr + "->" + toStr + "]");
-  if(m.isPromotion()){
-    switch(m.getPromotionPiece()%6){
-      case BISHOP:
-        str.append("b");
-      break;
-      case ROOK:
-        str.append("r");
-      break;
-      case KNIGHT:
-        str.append("n");
-      break;
-      case QUEEN:
-        str.append("q");
-      break;
-    }
-  }
-  return str;
-};
 std::string debug::printBoard(Settings settings, Board const &board, u64 highlighted){
   std::string str = "";
   if(!validateBoard(board)){
@@ -135,27 +63,27 @@ std::string debug::printBoard(Settings settings, Board const &board, u64 highlig
 
 std::string debug::printMove(Settings settings, Board const board, Move m){
   u64 highlightedSquares = (u64)0;
-  setBit(&highlightedSquares,m.getTo());
-  setBit(&highlightedSquares,m.getFrom());
+  setBit(&highlightedSquares,getTo(&m));
+  setBit(&highlightedSquares,getFrom(&m));
   if(!(board.flags & WHITE_TO_MOVE_BIT)){
-    if(m.isKingside()){
+    if(isKingside(&m)){
       highlightedSquares = (u64)0;
       setBit(&highlightedSquares,59);
       setBit(&highlightedSquares,57);
     }
-    if(m.isQueenside()){
+    if(isQueenside(&m)){
       highlightedSquares = (u64)0;
       setBit(&highlightedSquares,59);
       setBit(&highlightedSquares,61);
     } 
   }
   else {
-    if(m.isKingside()){
+    if(isKingside(&m)){
       highlightedSquares = (u64)0;
       setBit(&highlightedSquares,3);
       setBit(&highlightedSquares,1);
     }
-    if(m.isQueenside()){
+    if(isQueenside(&m)){
       highlightedSquares = (u64)0;
       setBit(&highlightedSquares,3);
       setBit(&highlightedSquares,5);
