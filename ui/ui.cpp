@@ -100,7 +100,7 @@ void ConsoleInterface::whosTurnIsIt(){
 }
 void ConsoleInterface::makeRandomMove(){
   MoveList legalMoves;
-  generateMoves(*boardptr, legalMoves);
+  generateMoves(boardptr, &legalMoves);
   if(legalMoves.end <= 0) {
     c.output = "No Legal Moves";
     c.printBoard = true;
@@ -116,7 +116,7 @@ void ConsoleInterface::makeRandomMove(){
 }
 void ConsoleInterface::printLegalMoves(){
   MoveList legalMoves;
-  generateMoves(*boardptr, legalMoves);
+  generateMoves(boardptr, &legalMoves);
   c.output = std::to_string((int)legalMoves.end) + " moves printed\n";
   for (int i = 0; i < legalMoves.end; i++) {
     std::cout<<debug::printMove(c.settings, *boardptr, legalMoves.moves[i])<<std::endl;
@@ -134,7 +134,7 @@ void ConsoleInterface::makeMoveFromConsole(){
   setFrom(&move,from);
   setTo(&move,to);
   MoveList legalMoves;
-  generateMoves(*boardptr, legalMoves);
+  generateMoves(boardptr, &legalMoves);
   bool isLegal = false;
   MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){
