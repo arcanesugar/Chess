@@ -1,5 +1,5 @@
 #include "search.h"
-#include <float.h>
+
 #define N_INF -9999999
 #define INF    9999999 
 

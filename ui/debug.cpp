@@ -1,4 +1,5 @@
 #include "debug.h"
+
 void debug::Settings::setASCIIPieces(){
   std::string a[13] = {"P","B","N","R","Q","K","p","b","n","r","q","k"," "};
   int i = 0; 

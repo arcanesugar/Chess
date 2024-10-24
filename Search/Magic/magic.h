@@ -1,9 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <vector> 
-#include <map> 
 #include <unordered_set>
 #include <thread>
+#include <climits>
+#include <unordered_set>
 #include "../../Board/board.h"
 
 struct Magic{

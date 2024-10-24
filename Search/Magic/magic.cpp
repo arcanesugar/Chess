@@ -1,6 +1,5 @@
 #include "magic.h"
-#include <climits>
-#include <unordered_set>
+
 
 Magic rookMagics[64];
 Magic bishopMagics[64];

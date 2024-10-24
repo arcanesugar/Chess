@@ -1,7 +1,5 @@
 #include "ui.h"
-#include "debug.h"
-#include "../Search/eval.h"
-#include <string>
+
 
 void ConsoleInterface::run(Board *boardptr){
   this->boardptr = boardptr;

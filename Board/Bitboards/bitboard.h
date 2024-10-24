@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
+#include <cmath>
 
-typedef unsigned char byte;
+#include "../../types.h"
+
 typedef unsigned long long u64;
 
 bool getBit(u64 bb, int index);

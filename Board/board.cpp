@@ -1,4 +1,3 @@
-#include <cmath>
 #include "board.h"
 
 u64 rankMasks[8];

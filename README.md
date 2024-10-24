@@ -12,6 +12,7 @@ UCI is not supported yet
 ## Changelog
 - search
     - C-migration
+        - added types.h
         - added movePiece function
         - removed all standard library dependencies
         - moved everything out of classes

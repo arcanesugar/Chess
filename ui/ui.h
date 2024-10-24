@@ -1,11 +1,12 @@
 #pragma once
 #include <iostream>
 #include <stack>
+#include <string>
 
 #include "../Board/board.h"
 #include "../Search/search.h"
+#include "../Search/eval.h"
 #include "debug.h"
-
 struct ConsoleState {
   debug::Settings settings;
   std::string lastInput = "";
