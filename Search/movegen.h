@@ -1,5 +1,4 @@
 #include "../Board/board.h"
-#include "../ui/debug.h"
 #include "Magic/magic.h"
 
 struct MoveList{

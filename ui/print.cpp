@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "print.h"
 
 void setASCIIPieces(printSettings *settings){
   char a[14] = "PBNRQKpbnrqk ";

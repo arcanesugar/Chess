@@ -5,7 +5,8 @@
 #include "../Board/board.h"
 #include "../Search/search.h"
 #include "../Search/eval.h"
-#include "debug.h"
+#include "print.h"
+
 #define INPUT_MAX_LEN 256
 struct ConsoleState {
   printSettings settings;
