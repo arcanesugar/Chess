@@ -8,7 +8,6 @@ void runConsoleInterface(Board *boardptr){
   bool quit = false;
   while (!quit) {
     if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);
-    std::cout<<consoleState.output;
     getNextInput();
     std::string input = consoleState.lastInput;
     if(input == "mve") makeMoveFromConsole();
@@ -20,7 +19,7 @@ void runConsoleInterface(Board *boardptr){
       consoleState.printBoard = false;
       printMoveOnBoard(consoleState.settings, *boardptr, best);
     }
-    //if(input == "dsp")  displaySettings();
+    if(input == "dsp")  displaySettings();
     if(input == "lgl") printLegalMoves();
     if(input == "rnd") makeRandomMove();
     if(input == "trn") whosTurnIsIt();
@@ -48,10 +47,12 @@ void runConsoleInterface(Board *boardptr){
 }
 
 void getNextInput() {
-  std::cout << consoleState.output<< ">>";
-  std::string temp;
-  std::getline(std::cin, temp);
-  if(temp != "") consoleState.lastInput = temp;//just keep the last input if input is blank
+  printf("%s>>","out");
+  char temp[INPUT_MAX_LEN];
+  if(scanf("%255s",temp) != 1){printf("Invalid input\n"); return;}
+  if(!(strlen(temp) == 0)) {
+    strcpy(consoleState.lastInput,temp);
+  }
   consoleState.output = "";
   consoleState.printBoard = true;
 }
@@ -164,7 +165,7 @@ void makeMoveFromConsole(){
   }else{
     consoleState.output = "This move is not legal, continue? (y/N)\n";
     getNextInput();
-    if(consoleState.lastInput == "y"){
+    if(consoleState.lastInput[0] == 'y'){
       makeMove(consoleState.boardptr,&move);
       consoleState.history.push(move);
     }
@@ -172,26 +173,22 @@ void makeMoveFromConsole(){
   printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);
   consoleState.printBoard = false;
 }
-/*
+
 void displaySettings(){
   bool done = false;
   while(!done){
-    consoleState.output.append("---Display Settings---\n");
-    consoleState.output.append("  ");
-    for(char p : consoleState.settings.pieceCharacters){
-      consoleState.output.push_back(p);
-      consoleState.output.append("\x1b[0m ");
-    }
-    consoleState.output.append("\n  Dark: "+consoleState.settings.darkColor + "  " + "\x1b[0m ");
-    consoleState.output.append("Light: "+consoleState.settings.lightColor + "  " + "\x1b[0m");
-    consoleState.output.append("\n");
-    consoleState.output.append("  0 - Use Unicode Pieces\n"); consoleState.output.append("  1 - Use ASCII Pieces\n");
-    consoleState.output.append("  2 - Set dark color\n");
-    consoleState.output.append("  3 - Set light color\n");
-    consoleState.output.append("  q - Done\n");
+    printf("---Display Settings---\n  ");
+    for(int i = 0; i<12; i++)
+      printf("%s ", consoleState.settings.pieceCharacters[i]);
+    printf("\n  Dark %s  \x1b[0m Light %s  \x1b[0m\n", consoleState.settings.darkColor, consoleState.settings.lightColor);
+    printf("  0 - Use Unicode Pieces\n");
+    printf("  1 - Use ASCII Pieces\n");
+    printf("  2 - Set dark color\n");
+    printf("  3 - Set light color\n");
+    printf("  q - Done\n");
     getNextInput();
-    if(consoleState.lastInput == "q") return;
-    if(!std::isdigit(consoleState.lastInput[0])) continue;
+    if(consoleState.lastInput[0] == 'q') return;
+    if(!isdigit(consoleState.lastInput[0])) continue;
     switch(std::stoi(consoleState.lastInput)){
       case 0:
         setUnicodePieces(&consoleState.settings);
@@ -200,23 +197,23 @@ void displaySettings(){
         setASCIIPieces(&consoleState.settings);
       break;
       case 2:
-        consoleState.output = "Choose new dark color: \n";
-        consoleState.output.append(testFormatting(true)+"\n");
-        getNextInput();
-        consoleState.settings.darkColor = "\x1b[";
-        consoleState.settings.darkColor.append(consoleState.lastInput + "m");
+        printf("Choose new dark color: \n");
+        //consoleState.output.append(testFormatting(true)+"\n");
+        //getNextInput();
+        //consoleState.settings.darkColor = "\x1b[";
+        //consoleState.settings.darkColor.append(consoleState.lastInput + "m");
       break;
       case 3:
-        consoleState.output = "Choose new light color(should start with 4 or 10): \n";
-        consoleState.output.append(testFormatting(true)+"\n");
-        getNextInput();
-        consoleState.settings.lightColor = "\x1b[";
-        consoleState.settings.lightColor.append(consoleState.lastInput + "m");
+        //consoleState.output = "Choose new light color(should start with 4 or 10): \n";
+        //consoleState.output.append(testFormatting(true)+"\n");
+        //getNextInput();
+        //consoleState.settings.lightColor = "\x1b[";
+        //consoleState.settings.lightColor.append(consoleState.lastInput + "m");
       break;
     }
   }
 }
-*/
+
 
 void showDebugView(){
   consoleState.printBoard = false;

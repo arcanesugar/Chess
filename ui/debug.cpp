@@ -2,10 +2,9 @@
 
 void setASCIIPieces(printSettings *settings){
   char a[14] = "PBNRQKpbnrqk ";
-  int i = 0; 
-  for(char p : a){
-    settings->pieceCharacters[i++][0] = p;
-    settings->pieceCharacters[i++][1] = '\0';
+  for(int i = 0; i<13; i++){
+    settings->pieceCharacters[i][0] = a[i];
+    settings->pieceCharacters[i][1] = '\0';
   }
 };
 

@@ -6,11 +6,11 @@
 #include "../Search/search.h"
 #include "../Search/eval.h"
 #include "debug.h"
-
+#define INPUT_MAX_LEN 256
 struct ConsoleState {
   printSettings settings;
   std::stack<Move> history;
-  std::string lastInput = "";
+  char lastInput[INPUT_MAX_LEN] = "";
   std::string output = "";
   bool printBoard = true;
   Board *boardptr = nullptr;
