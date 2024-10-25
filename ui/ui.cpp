@@ -3,6 +3,7 @@
 ConsoleState consoleState;
 
 void runConsoleInterface(Board *boardptr){
+  setUnicodePieces(&consoleState.settings);
   consoleState.boardptr = boardptr;
   bool quit = false;
   while (!quit) {

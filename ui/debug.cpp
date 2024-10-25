@@ -4,19 +4,22 @@ void setASCIIPieces(printSettings *settings){
   char a[14] = "PBNRQKpbnrqk ";
   int i = 0; 
   for(char p : a){
-    settings->pieceCharacters[i++] = p;
+    settings->pieceCharacters[i++][0] = p;
+    settings->pieceCharacters[i++][1] = '\0';
   }
 };
 
-/*
+
 void setUnicodePieces(printSettings *settings){
-  std::string u[13] = {"♙","♗","♘","♖","♕","♔","♟","♝","♞","♜","♛","♚"," "};
-  int i = 0; 
-  for(std::string p : u){
-    settings->pieceCharacters[i++] = p;
+  char pieces[13][6] = {
+    "\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2659",   
+    "\u265C", "\u265E", "\u265D", "\u265B", "\u265A", "\u265F", " " 
+  };
+  for(int i = 0; i<13; i++){
+    strcpy(settings->pieceCharacters[i], pieces[i]);
   }
 };
-*/
+
 void printBoard(printSettings settings, Board board, u64 highlighted){
   char str[5000] = "\n";
   if(!validateBoard(board)){
@@ -25,9 +28,7 @@ void printBoard(printSettings settings, Board board, u64 highlighted){
   strcat(str," a b c d e f g h\n");
   for(int file = 7; file>=0; file--){
     strcat(str, "\x1b[0m");
-    char temp1[2] = "n";//n will be replaced 
-    temp1[0] = '1'+file;
-    strcat(str,temp1);
+    strcatchar(str,'1'+file);
     for(int rank = 7; rank>=0; rank--){
       if((file+rank)% 2 == 0){
         strcat(str,settings.lightColor);
@@ -35,17 +36,14 @@ void printBoard(printSettings settings, Board board, u64 highlighted){
         strcat(str,settings.darkColor);
       }
       if(getBit(highlighted,getSquareIndex(file, rank))) strcat(str,"\x1b[45m");
-      char piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
+      char *piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
       strcat(str,"\x1b[30m");
-      char temp2[2] = "";
-      temp2[0] = piece;
-      strcat(str,temp2);
+      strcat(str,piece);
       strcat(str," \x1b[0m");
     }
     strcat(str, "\x1b[0m");
-    char temp[3] = "n\n";//n will be replaced 
-    temp[0] = '1'+file;
-    strcat(str,temp);
+    strcatchar(str,'1'+file);
+    strcat(str,"\n");
   }
   strcat(str," a b c d e f g h\n");
   strcat(str,"");
