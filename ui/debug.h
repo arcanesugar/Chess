@@ -1,22 +1,15 @@
 #pragma once
-#include <iostream>
-#include <string>
-
 #include "../Board/board.h"
 
-namespace debug{
-  struct Settings{
-    std::string pieceCharacters[13] = {"♙","♗","♘","♖","♕","♔","♟","♝","♞","♜","♛","♚"," "};
-    std::string darkColor  = "\x1b[103m";
-    std::string lightColor = "\x1b[47m";
-    void setASCIIPieces();
-    void setUnicodePieces();
-  };
-  std::string testFormatting(bool highlightOnly = false);
-  std::string printBoard(Settings settings, Board const &board, u64 highlighted = u64(0));
+struct printSettings{
+  char pieceCharacters[14] = "PBNRQKpbnrqk ";
+  char darkColor[10]  = "\x1b[103m";
+  char lightColor[10] = "\x1b[47m";
+};
 
-  std::string printMove(Settings settings, Board const board, Move m);
-  std::string printBitboard(debug::Settings settings,Board board,u64 const &bb);
+//void setUnicodePieces(printSettings *settings);
+void setASCIIPieces(printSettings *settings);
+void printBoard(printSettings settings, Board board, u64 highlighted = u64(0));
 
-  void runMoveGenerationTest();
-}
+void printMoveOnBoard(printSettings settings, Board board, Move m);
+void printBitboardOnBoard(printSettings settings,Board board,u64 bb);

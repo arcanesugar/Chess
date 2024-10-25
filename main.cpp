@@ -11,7 +11,6 @@ int main() {
   generateBoardMasks();
   printf("[creating move generator]\n");
   initMoveGenerator();
-  printf("[creating consoleInterface...]\n");
   printf("[beginning consoleInterface...]\n");
   runConsoleInterface(&board);
   return 0;

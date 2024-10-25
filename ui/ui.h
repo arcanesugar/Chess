@@ -1,7 +1,6 @@
 #pragma once
-#include <iostream>
 #include <stack>
-#include <string>
+#include <iostream>
 
 #include "../Board/board.h"
 #include "../Search/search.h"
@@ -9,7 +8,7 @@
 #include "debug.h"
 
 struct ConsoleState {
-  debug::Settings settings;
+  printSettings settings;
   std::stack<Move> history;
   std::string lastInput = "";
   std::string output = "";

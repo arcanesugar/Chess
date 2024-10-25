@@ -1,26 +1,28 @@
 #include "ui.h"
 
 ConsoleState consoleState;
+
 void runConsoleInterface(Board *boardptr){
   consoleState.boardptr = boardptr;
   bool quit = false;
   while (!quit) {
-    if(consoleState.printBoard) consoleState.output = "\n" + debug::printBoard(consoleState.settings,*boardptr) + consoleState.output;
+    if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);
+    std::cout<<consoleState.output;
     getNextInput();
     std::string input = consoleState.lastInput;
-    if (input == "mve") makeMoveFromConsole();
-    if (input == "evl") consoleState.output = std::to_string(evaluate(boardptr)) + "\n";
+    if(input == "mve") makeMoveFromConsole();
+    if(input == "evl") consoleState.output = std::to_string(evaluate(boardptr)) + "\n";
     if(input == "bst") {
       Move best = search(*boardptr, 2);
       makeMove(boardptr,&best);
       consoleState.history.push(best);
       consoleState.printBoard = false;
-      consoleState.output = debug::printMove(consoleState.settings, *boardptr, best);
+      printMoveOnBoard(consoleState.settings, *boardptr, best);
     }
-    if(input == "dsp")  displaySettings();
-    if (input == "lgl") printLegalMoves();
-    if (input == "rnd") makeRandomMove();
-    if (input == "trn") whosTurnIsIt();
+    //if(input == "dsp")  displaySettings();
+    if(input == "lgl") printLegalMoves();
+    if(input == "rnd") makeRandomMove();
+    if(input == "trn") whosTurnIsIt();
     if(input == "hlp" || input == "help") showHelpMenu();
     if(input == "sch") searchForMagics();
     if(input == "tst") runMoveGenerationTest(boardptr);
@@ -61,7 +63,7 @@ void undoLastMove(){
   Move m = consoleState.history.top();
   unmakeMove(consoleState.boardptr,&m);
   
-  consoleState.output.append(debug::printMove(consoleState.settings,*consoleState.boardptr, m));
+  printMoveOnBoard(consoleState.settings,*consoleState.boardptr, m);
   consoleState.printBoard = false;
   
   consoleState.history.pop();
@@ -111,7 +113,7 @@ void makeRandomMove(){
   makeMove(consoleState.boardptr,&move);
 //  std::cout<<debug::moveToStr(move,true)<<"\n";
   consoleState.history.push(move);
-  consoleState.output = debug::printMove(consoleState.settings, *consoleState.boardptr, move);
+  printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);
   consoleState.printBoard = false;
 }
 void printLegalMoves(){
@@ -119,7 +121,7 @@ void printLegalMoves(){
   generateMoves(consoleState.boardptr, &legalMoves);
   consoleState.output = std::to_string((int)legalMoves.end) + " moves printed\n";
   for (int i = 0; i < legalMoves.end; i++) {
-    std::cout<<debug::printMove(consoleState.settings, *consoleState.boardptr, legalMoves.moves[i])<<std::endl;
+    printMoveOnBoard(consoleState.settings, *consoleState.boardptr, legalMoves.moves[i]);
   }
   consoleState.printBoard = false;
 }
@@ -151,7 +153,7 @@ void makeMoveFromConsole(){
         Board copy = *consoleState.boardptr;
         makeMove(&copy,&variants.moves[i]);
         consoleState.output.append("\n" + std::to_string(i) + ")\n");
-        consoleState.output.append(debug::printBoard(consoleState.settings, copy));
+        printBoard(consoleState.settings, copy);
       }
       getNextInput();
       move = variants.moves[std::stoi(consoleState.lastInput)];
@@ -166,18 +168,18 @@ void makeMoveFromConsole(){
       consoleState.history.push(move);
     }
   }
-  consoleState.output = debug::printMove(consoleState.settings, *consoleState.boardptr, move);
+  printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);
   consoleState.printBoard = false;
 }
-
+/*
 void displaySettings(){
   bool done = false;
   while(!done){
-    consoleState.output = "";
     consoleState.output.append("---Display Settings---\n");
     consoleState.output.append("  ");
-    for(std::string p : consoleState.settings.pieceCharacters){
-      consoleState.output.append(p+"\x1b[0m ");
+    for(char p : consoleState.settings.pieceCharacters){
+      consoleState.output.push_back(p);
+      consoleState.output.append("\x1b[0m ");
     }
     consoleState.output.append("\n  Dark: "+consoleState.settings.darkColor + "  " + "\x1b[0m ");
     consoleState.output.append("Light: "+consoleState.settings.lightColor + "  " + "\x1b[0m");
@@ -191,21 +193,21 @@ void displaySettings(){
     if(!std::isdigit(consoleState.lastInput[0])) continue;
     switch(std::stoi(consoleState.lastInput)){
       case 0:
-        consoleState.settings.setUnicodePieces();
+        setUnicodePieces(&consoleState.settings);
       break;
       case 1:
-        consoleState.settings.setASCIIPieces();
+        setASCIIPieces(&consoleState.settings);
       break;
       case 2:
         consoleState.output = "Choose new dark color: \n";
-        consoleState.output.append(debug::testFormatting(true)+"\n");
+        consoleState.output.append(testFormatting(true)+"\n");
         getNextInput();
         consoleState.settings.darkColor = "\x1b[";
         consoleState.settings.darkColor.append(consoleState.lastInput + "m");
       break;
       case 3:
         consoleState.output = "Choose new light color(should start with 4 or 10): \n";
-        consoleState.output.append(debug::testFormatting(true)+"\n");
+        consoleState.output.append(testFormatting(true)+"\n");
         getNextInput();
         consoleState.settings.lightColor = "\x1b[";
         consoleState.settings.lightColor.append(consoleState.lastInput + "m");
@@ -213,12 +215,13 @@ void displaySettings(){
     }
   }
 }
+*/
 
 void showDebugView(){
   consoleState.printBoard = false;
   for(int i = 0; i<14; i++){
-    consoleState.output.append(debug::printBitboard(consoleState.settings, *consoleState.boardptr, consoleState.boardptr->bitboards[i]));
-    consoleState.output.append("\n");
+    printBitboardOnBoard(consoleState.settings, *consoleState.boardptr, consoleState.boardptr->bitboards[i]);
+    printf("\n");
   }
   for(int i = 7; i>=0; i--){
     if(consoleState.boardptr->flags>>i&1){
