@@ -11,7 +11,7 @@ void runConsoleInterface(Board *boardptr){
     getNextInput();
     std::string input = consoleState.lastInput;
     if(input == "mve") makeMoveFromConsole();
-    if(input == "evl") consoleState.output = std::to_string(evaluate(boardptr)) + "\n";
+    if(input == "evl") printf("%f\n",evaluate(boardptr));
     if(input == "bst") {
       Move best = search(*boardptr, 2);
       makeMove(boardptr,&best);
@@ -47,29 +47,29 @@ void runConsoleInterface(Board *boardptr){
 }
 
 void getNextInput() {
-  printf("%s>>","out");
+  printf(">>");
   char temp[INPUT_MAX_LEN];
   if(scanf("%255s",temp) != 1){printf("Invalid input\n"); return;}
   if(!(strlen(temp) == 0)) {
     strcpy(consoleState.lastInput,temp);
   }
-  consoleState.output = "";
   consoleState.printBoard = true;
 }
 
 void undoLastMove(){
   if(consoleState.history.empty()){
-    consoleState.output = "No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m";
+    printf("No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m\n");
     return;
   }
   Move m = consoleState.history.top();
   unmakeMove(consoleState.boardptr,&m);
-  
+
   printMoveOnBoard(consoleState.settings,*consoleState.boardptr, m);
   consoleState.printBoard = false;
-  
+
   consoleState.history.pop();
 }
+
 byte squareNameToIndex(std::string squareName) {
   byte squareIndex =
       ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
@@ -77,43 +77,40 @@ byte squareNameToIndex(std::string squareName) {
 }
 
 void showHelpMenu(){
-  consoleState.output.append(
-        (std::string)"---Help---\n"
-      + "  trn - Who's turn is it\n"
-      + "  mve - Make move\n"
-      + "  ks - Castle Kingside\n"
-      + "  qs - Castle Queenside\n"
-      + "  lgl - Show legal moves\n"
-      + "  dsp - Display settings\n"
-      + "  dbg - Debug View\n"
-      + "  rnd - Random move\n"
-      + "  sch - \"Search\" for magic numbers\n"
-      + "  und - Undo last move\n"
-      + "  hlp/help - Show this list\n"
-      + "  tst - Run move generation test on current position\n"
-      + "  mgs - Run move generation test suite\n"
-      + "  q - Quit\n"
-      + "Note that if no command is entered, the last command given is repeated");
+  printf("---Help---\n");
+  printf("  mve - Make move\n");
+  printf("  ks  - Castle Kingside\n");
+  printf("  qs  - Castle Queenside\n");
+  printf("  rnd - Random move\n");
+  printf("  und - Undo last move\n");
+  printf("  trn - Who's turn is it\n");
+  printf("  lgl - list legal moves\n");
+  printf("  dsp - Display settings\n");
+  printf("  hlp/help - Show this list\n");
+  printf("  q - Quit\n");
+
+  printf("\n---Debug commands---\n");
+  printf("  dbg - Debug View\n");
+  printf("  sch - Search for magic numbers\n");
+  printf("  tst - Run move generation test on current position\n");
+  printf("  mgs - Run move generation test suite\n");
 }
 void whosTurnIsIt(){
   if (consoleState.boardptr->flags & WHITE_TO_MOVE_BIT) {
-    consoleState.output = "White to move";
-  } else {
-    consoleState.output = "Black to move";
+    printf("White to move"); return;
   }
+  printf("Black to move"); return;
 }
 void makeRandomMove(){
   MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
   if(legalMoves.end <= 0) {
-    consoleState.output = "No Legal Moves";
+    printf("No legal moves\n");
     consoleState.printBoard = true;
     return;
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
-//  std::cout<<debug::moveToStr(move,true)<<"\n";
   makeMove(consoleState.boardptr,&move);
-//  std::cout<<debug::moveToStr(move,true)<<"\n";
   consoleState.history.push(move);
   printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);
   consoleState.printBoard = false;
@@ -121,17 +118,17 @@ void makeRandomMove(){
 void printLegalMoves(){
   MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
-  consoleState.output = std::to_string((int)legalMoves.end) + " moves printed\n";
+  printf("%i moves printed\n", legalMoves.end);
   for (int i = 0; i < legalMoves.end; i++) {
     printMoveOnBoard(consoleState.settings, *consoleState.boardptr, legalMoves.moves[i]);
   }
   consoleState.printBoard = false;
 }
 void makeMoveFromConsole(){
-  consoleState.output = "from:\n";
+  printf("from:\n");
   getNextInput();
   int from = squareNameToIndex(consoleState.lastInput);
-  consoleState.output = "to:\n";
+  printf("to:\n");
   getNextInput();
   int to = squareNameToIndex(consoleState.lastInput);
   Move move;
@@ -150,11 +147,11 @@ void makeMoveFromConsole(){
   }
   if(isLegal){
     if(variants.end>1){
-      consoleState.output = "This move has multiple variants, choose one\n";
+      printf("This move has multiple variants, choose one\n");
       for(int i = 0; i<variants.end; i++){
         Board copy = *consoleState.boardptr;
         makeMove(&copy,&variants.moves[i]);
-        consoleState.output.append("\n" + std::to_string(i) + ")\n");
+        printf("\n%i\n",i);
         printBoard(consoleState.settings, copy);
       }
       getNextInput();
@@ -163,7 +160,7 @@ void makeMoveFromConsole(){
     makeMove(consoleState.boardptr,&move);
     consoleState.history.push(move);
   }else{
-    consoleState.output = "This move is not legal, continue? (y/N)\n";
+    printf("This move is not legal, continue? (y/N)\n");
     getNextInput();
     if(consoleState.lastInput[0] == 'y'){
       makeMove(consoleState.boardptr,&move);
@@ -223,10 +220,10 @@ void showDebugView(){
   }
   for(int i = 7; i>=0; i--){
     if(consoleState.boardptr->flags>>i&1){
-      consoleState.output.append("1");
+      printf("1");
     }else{
-      consoleState.output.append("0");
+      printf("0");
     }
   }
-  consoleState.output.append("\n");
+  printf("\n");
 }

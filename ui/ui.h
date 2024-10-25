@@ -11,7 +11,6 @@ struct ConsoleState {
   printSettings settings;
   std::stack<Move> history;
   char lastInput[INPUT_MAX_LEN] = "";
-  std::string output = "";
   bool printBoard = true;
   Board *boardptr = nullptr;
 };
