@@ -49,8 +49,9 @@ void runConsoleInterface(Board *boardptr){
 void getNextInput() {
   printf(">>");
   char temp[INPUT_MAX_LEN];
-  if(scanf("%255s",temp) != 1){printf("Invalid input\n"); return;}
-  if(!(strlen(temp) == 0)) {
+  fgets(temp,INPUT_MAX_LEN,stdin);
+  if(strlen(temp) != 0) {
+    temp[strlen(temp)-1] = '\0';//remove newline character
     strcpy(consoleState.lastInput,temp);
   }
   consoleState.printBoard = true;
