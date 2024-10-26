@@ -1,6 +1,5 @@
 #pragma once
 #include <stack>
-#include <iostream>
 
 #include "../Board/board.h"
 #include "../Search/search.h"
@@ -18,8 +17,8 @@ struct ConsoleState {
 
 extern ConsoleState consoleState;
 
-void runConsoleInterface(Board *boardptr);//run the console interface
-//
+void runConsoleInterface(Board *boardptr);
+
 void getNextInput();
 void showHelpMenu();
 void displaySettings();
@@ -28,4 +27,5 @@ void makeMoveFromConsole();
 void undoLastMove();
 void makeRandomMove();
 void printLegalMoves();
+void makeBestMove(Board *boardptr);
 void showDebugView();

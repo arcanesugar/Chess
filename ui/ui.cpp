@@ -9,41 +9,42 @@ void runConsoleInterface(Board *boardptr){
   while (!quit) {
     if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);
     getNextInput();
-    std::string input = consoleState.lastInput;
-    if(input == "mve") makeMoveFromConsole();
-    if(input == "evl") printf("%f\n",evaluate(boardptr));
-    if(input == "bst") {
-      Move best = search(*boardptr, 2);
-      makeMove(boardptr,&best);
-      consoleState.history.push(best);
-      consoleState.printBoard = false;
-      printMoveOnBoard(consoleState.settings, *boardptr, best);
-    }
-    if(input == "dsp")  displaySettings();
-    if(input == "lgl") printLegalMoves();
-    if(input == "rnd") makeRandomMove();
-    if(input == "trn") whosTurnIsIt();
-    if(input == "hlp" || input == "help") showHelpMenu();
-    if(input == "sch") searchForMagics();
-    if(input == "tst") runMoveGenerationTest(boardptr);
-    if(input == "mgs") runMoveGenerationSuite();
-    if(input == "und") undoLastMove(); 
-    if(input == "dbg") showDebugView();
-    if(input == "q" || input == "quit" || input == "exit") quit = true;
+    if(strcmp(consoleState.lastInput, "mve") == 0) makeMoveFromConsole();
+    if(strcmp(consoleState.lastInput, "evl") == 0) printf("%f\n",evaluate(boardptr));
+    if(strcmp(consoleState.lastInput, "bst") == 0) makeBestMove(boardptr);
+    if(strcmp(consoleState.lastInput, "dsp") == 0) displaySettings();
+    if(strcmp(consoleState.lastInput, "lgl") == 0) printLegalMoves();
+    if(strcmp(consoleState.lastInput, "rnd") == 0) makeRandomMove();
+    if(strcmp(consoleState.lastInput, "trn") == 0) whosTurnIsIt();
+    if(strcmp(consoleState.lastInput, "hlp") == 0) showHelpMenu();
+    if(strcmp(consoleState.lastInput, "sch") == 0) searchForMagics();
+    if(strcmp(consoleState.lastInput, "tst") == 0) runMoveGenerationTest(boardptr);
+    if(strcmp(consoleState.lastInput, "mgs") == 0) runMoveGenerationSuite();
+    if(strcmp(consoleState.lastInput, "und") == 0) undoLastMove(); 
+    if(strcmp(consoleState.lastInput, "dbg") == 0) showDebugView();
+    if(strcmp(consoleState.lastInput, "q") == 0) quit = true;
 
-    if(input == "ks"){
+    if(strcmp(consoleState.lastInput, "ks") == 0){
       Move m;
       setSpecialMoveData(&m,CASTLE_KINGSIDE);
       makeMove(boardptr,&m);
       consoleState.history.push(m);
     }
-    if(input == "qs"){
+    if(strcmp(consoleState.lastInput, "qs") == 0){
       Move m;
       setSpecialMoveData(&m,CASTLE_QUEENSIDE);
       makeMove(boardptr,&m);
       consoleState.history.push(m);
     }
   }
+}
+
+void makeBestMove(Board *boardptr){
+  Move best = search(*boardptr, 2);
+  makeMove(boardptr,&best);
+  consoleState.history.push(best);
+  consoleState.printBoard = false;
+  printMoveOnBoard(consoleState.settings, *boardptr, best);
 }
 
 void getNextInput() {
@@ -71,12 +72,6 @@ void undoLastMove(){
   consoleState.history.pop();
 }
 
-byte squareNameToIndex(std::string squareName) {
-  byte squareIndex =
-      ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
-  return squareIndex;
-}
-
 void showHelpMenu(){
   printf("---Help---\n");
   printf("  mve - Make move\n");
@@ -102,6 +97,7 @@ void whosTurnIsIt(){
   }
   printf("Black to move"); return;
 }
+
 void makeRandomMove(){
   MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
@@ -116,6 +112,7 @@ void makeRandomMove(){
   printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);
   consoleState.printBoard = false;
 }
+
 void printLegalMoves(){
   MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
@@ -124,6 +121,12 @@ void printLegalMoves(){
     printMoveOnBoard(consoleState.settings, *consoleState.boardptr, legalMoves.moves[i]);
   }
   consoleState.printBoard = false;
+}
+
+byte squareNameToIndex(std::string squareName) {
+  byte squareIndex =
+      ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
+  return squareIndex;
 }
 void makeMoveFromConsole(){
   printf("from:\n");
