@@ -9,21 +9,43 @@ void runConsoleInterface(Board *boardptr){
   while (!quit) {
     if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);
     getNextInput();
-    if(strcmp(consoleState.lastInput, "mve") == 0) makeMoveFromConsole();
-    if(strcmp(consoleState.lastInput, "evl") == 0) printf("%f\n",evaluate(boardptr));
-    if(strcmp(consoleState.lastInput, "bst") == 0) makeBestMove(boardptr);
-    if(strcmp(consoleState.lastInput, "dsp") == 0) displaySettings();
-    if(strcmp(consoleState.lastInput, "lgl") == 0) printLegalMoves();
-    if(strcmp(consoleState.lastInput, "rnd") == 0) makeRandomMove();
-    if(strcmp(consoleState.lastInput, "trn") == 0) whosTurnIsIt();
-    if(strcmp(consoleState.lastInput, "hlp") == 0) showHelpMenu();
-    if(strcmp(consoleState.lastInput, "sch") == 0) searchForMagics();
-    if(strcmp(consoleState.lastInput, "tst") == 0) runMoveGenerationTest(boardptr);
-    if(strcmp(consoleState.lastInput, "mgs") == 0) runMoveGenerationSuite();
-    if(strcmp(consoleState.lastInput, "und") == 0) undoLastMove(); 
-    if(strcmp(consoleState.lastInput, "dbg") == 0) showDebugView();
+    if(strcmp(consoleState.lastInput, "mve") == 0) {makeMoveFromConsole(); continue;}
+    if(strcmp(consoleState.lastInput, "evl") == 0) {printf("%f\n",evaluate(boardptr)); continue;}
+    if(strcmp(consoleState.lastInput, "bst") == 0) {makeBestMove(boardptr); continue;}
+    if(strcmp(consoleState.lastInput, "dsp") == 0) {displaySettings(); continue;}
+    if(strcmp(consoleState.lastInput, "lgl") == 0) {printLegalMoves(); continue;}
+    if(strcmp(consoleState.lastInput, "rnd") == 0) {makeRandomMove(); continue;}
+    if(strcmp(consoleState.lastInput, "trn") == 0) {whosTurnIsIt(); continue;}
+    if(strcmp(consoleState.lastInput, "hlp") == 0) {showHelpMenu(); continue;}
+    if(strcmp(consoleState.lastInput, "sch") == 0) {searchForMagics(); continue;}
+    if(strcmp(consoleState.lastInput, "tst") == 0) {runMoveGenerationTest(boardptr); continue;}
+    if(strcmp(consoleState.lastInput, "mgs") == 0) {runMoveGenerationSuite(); continue;}
+    if(strcmp(consoleState.lastInput, "und") == 0) {undoLastMove();  continue;}
+    if(strcmp(consoleState.lastInput, "dbg") == 0) {showDebugView(); continue;}
     if(strcmp(consoleState.lastInput, "q") == 0) quit = true;
+
+
+    if(strcmp(consoleState.lastInput, "help") == 0) {showHelpMenu(); continue;}
   }
+}
+
+void showHelpMenu(){
+  printf("---Help---\n");
+  printf("  mve - Make move\n");
+  printf("  rnd - Random move\n");
+  printf("  und - Undo last move\n");
+  printf("  trn - Who's turn is it\n");
+  printf("  lgl - list legal moves\n");
+  printf("  dsp - Display settings\n");
+  printf("  hlp/help - Show this list\n");
+  printf("  q - Quit\n");
+
+  printf("\n---Debug commands---\n");
+  printf("  dbg - Debug View\n");
+  printf("  evl - Show positions evaluation\n");
+  printf("  sch - Search for magic numbers\n");
+  printf("  tst - Run move generation test on current position\n");
+  printf("  mgs - Run move generation test suite\n");
 }
 
 void makeBestMove(Board *boardptr){
@@ -59,23 +81,6 @@ void undoLastMove(){
   consoleState.history.pop();
 }
 
-void showHelpMenu(){
-  printf("---Help---\n");
-  printf("  mve - Make move\n");
-  printf("  rnd - Random move\n");
-  printf("  und - Undo last move\n");
-  printf("  trn - Who's turn is it\n");
-  printf("  lgl - list legal moves\n");
-  printf("  dsp - Display settings\n");
-  printf("  hlp/help - Show this list\n");
-  printf("  q - Quit\n");
-
-  printf("\n---Debug commands---\n");
-  printf("  dbg - Debug View\n");
-  printf("  sch - Search for magic numbers\n");
-  printf("  tst - Run move generation test on current position\n");
-  printf("  mgs - Run move generation test suite\n");
-}
 void whosTurnIsIt(){
   if (consoleState.boardptr->flags & WHITE_TO_MOVE_BIT) {
     printf("White to move"); return;
@@ -174,8 +179,6 @@ void displaySettings(){
     printf("\n  Dark %s  \x1b[0m Light %s  \x1b[0m\n", consoleState.settings.darkColor, consoleState.settings.lightColor);
     printf("  0 - Use Unicode Pieces\n");
     printf("  1 - Use ASCII Pieces\n");
-    printf("  2 - Set dark color\n");
-    printf("  3 - Set light color\n");
     printf("  q - Done\n");
     getNextInput();
     if(consoleState.lastInput[0] == 'q') return;
@@ -186,20 +189,6 @@ void displaySettings(){
       break;
       case 1:
         setASCIIPieces(&consoleState.settings);
-      break;
-      case 2:
-        printf("Choose new dark color: \n");
-        //consoleState.output.append(testFormatting(true)+"\n");
-        //getNextInput();
-        //consoleState.settings.darkColor = "\x1b[";
-        //consoleState.settings.darkColor.append(consoleState.lastInput + "m");
-      break;
-      case 3:
-        //consoleState.output = "Choose new light color(should start with 4 or 10): \n";
-        //consoleState.output.append(testFormatting(true)+"\n");
-        //getNextInput();
-        //consoleState.settings.lightColor = "\x1b[";
-        //consoleState.settings.lightColor.append(consoleState.lastInput + "m");
       break;
     }
   }
