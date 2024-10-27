@@ -306,43 +306,47 @@ void saveMagics(){
 };
 
 int loadMagics(){
-  std::ifstream file("Search/Magic/magics.txt");
-  if(!file.is_open()){
+  FILE *file = fopen("Search/Magic/magics.txt", "r");
+  if(file == NULL){
     printf("[error] Could not open magics.txt\n");
     return -1;
   }
-  std::string line;
-  getline(file,line);
-  if(line != "magicfile2.0"){
+  char line[255];
+  fgets(line,255,file);
+  if(strcmp(line,"magicfile2.0") == 0){
     printf("Magic file unrecognised, try regenerating with sch\n");
     return -1;
   }
   int index = 0;
   bool rook = true;
-  while(getline(file,line)){
-    if(line == "Bishop"){
+  while(fgets(line,255,file)){
+    if(strcmp(line,"Bishop\n") == 0){
       index = 0;
       rook = false;
       continue;
     }
-    std::string tokens[3];
+    char tokens[3][100];
     int tokenIndex = 0;
-    for(int i = 0; i<line.length(); i++){
+    tokens[0][0] = '\0';
+    for(int i = 0; i<strlen(line)-1; i++){
       if(line[i] == '|'){
         tokenIndex ++;
+        tokens[tokenIndex][0] = '\0';
         continue;
       }
-      tokens[tokenIndex].push_back(line[i]);
+      strcatchar(tokens[tokenIndex],line[i]);
     }
+    char *endptr = nullptr;
     Magic magic;
-    magic.magic = std::stoull(tokens[0]);
-    magic.shift = std::stoi(tokens[1]);
-    magic.max = std::stoi(tokens[2]);
+    magic.magic = strtoull(tokens[0],&endptr,10);
+    magic.shift = atoi(tokens[1]);
+    magic.max = atoi(tokens[2]);
     if(rook){
       rookMagics[index++] = magic;
     }else{
       bishopMagics[index++] = magic;
     }
   }
+  fclose(file);
   return 0;
 };

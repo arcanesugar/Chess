@@ -4,6 +4,7 @@
 #include <fstream>
 #include <thread>
 #include <unordered_set>
+#include "../../types.h"
 #include "../../Board/board.h"
 
 struct Magic{
