@@ -1,4 +1,5 @@
 #pragma once
+#include <ctype.h>
 #include <stack>
 
 #include "../Board/board.h"

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
+#include <string.h>
 #include <limits.h>
-#include <fstream>
 #include <thread>
 #include <unordered_set>
 #include "../../types.h"

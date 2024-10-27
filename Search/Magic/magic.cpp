@@ -290,19 +290,20 @@ void searchForMagics(){
 };
 
 void saveMagics(){
-  std::ofstream file("Search/Magic/magics.txt",std::ofstream::out | std::ofstream::trunc);
-  if(!file.is_open()){
+  FILE *file = fopen("Search/Magic/magics.txt","w");
+  if(file == NULL){
     printf("[error] Could not open magics.txt\n");
     return;
   }
-  file<<"magicfile2.0\n";
+  fprintf(file,"magicfile2.0\n");
   for(Magic u : rookMagics){
-    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"|"<<std::to_string(u.max)<<"\n";
+    fprintf(file,"%llu|%d|%d\n",u.magic,u.shift,u.max);
   }
-  file<<"Bishop\n";
+  fprintf(file,"Bishop\n");
   for(Magic u : bishopMagics){
-    file<<std::to_string(u.magic)<<"|"<<std::to_string(u.shift)<<"|"<<std::to_string(u.max)<<"\n";
+    fprintf(file,"%llu|%d|%d\n",u.magic,u.shift,u.max);
   }
+  fclose(file);
 };
 
 int loadMagics(){
@@ -313,7 +314,7 @@ int loadMagics(){
   }
   char line[255];
   fgets(line,255,file);
-  if(strcmp(line,"magicfile2.0") == 0){
+  if(strcmp(line,"magicfile2.0\n") != 0){
     printf("Magic file unrecognised, try regenerating with sch\n");
     return -1;
   }

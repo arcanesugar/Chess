@@ -183,7 +183,7 @@ void displaySettings(){
     getNextInput();
     if(consoleState.lastInput[0] == 'q') return;
     if(!isdigit(consoleState.lastInput[0])) continue;
-    switch(std::stoi(consoleState.lastInput)){
+    switch(atoi(consoleState.lastInput)){
       case 0:
         setUnicodePieces(&consoleState.settings);
       break;
