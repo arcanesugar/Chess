@@ -23,19 +23,6 @@ void runConsoleInterface(Board *boardptr){
     if(strcmp(consoleState.lastInput, "und") == 0) undoLastMove(); 
     if(strcmp(consoleState.lastInput, "dbg") == 0) showDebugView();
     if(strcmp(consoleState.lastInput, "q") == 0) quit = true;
-
-    if(strcmp(consoleState.lastInput, "ks") == 0){
-      Move m;
-      setSpecialMoveData(&m,CASTLE_KINGSIDE);
-      makeMove(boardptr,&m);
-      consoleState.history.push(m);
-    }
-    if(strcmp(consoleState.lastInput, "qs") == 0){
-      Move m;
-      setSpecialMoveData(&m,CASTLE_QUEENSIDE);
-      makeMove(boardptr,&m);
-      consoleState.history.push(m);
-    }
   }
 }
 
@@ -75,8 +62,6 @@ void undoLastMove(){
 void showHelpMenu(){
   printf("---Help---\n");
   printf("  mve - Make move\n");
-  printf("  ks  - Castle Kingside\n");
-  printf("  qs  - Castle Queenside\n");
   printf("  rnd - Random move\n");
   printf("  und - Undo last move\n");
   printf("  trn - Who's turn is it\n");
@@ -123,44 +108,49 @@ void printLegalMoves(){
   consoleState.printBoard = false;
 }
 
-byte squareNameToIndex(std::string squareName) {
+byte squareNameToIndex(char *squareName, int startIndex) {
   byte squareIndex =
-      ((squareName[1] - '0' - 1) * 8) + (7 - (squareName[0] - 'a'));
+      ((squareName[startIndex+1] - '0' - 1) * 8) + (7 - (squareName[startIndex] - 'a'));
   return squareIndex;
 }
+
 void makeMoveFromConsole(){
-  printf("from:\n");
+  printf("move(eg e2e4, a7a8n)\n");
+  printf("castle with \"ks\" and \"qs\"\n");
   getNextInput();
-  int from = squareNameToIndex(consoleState.lastInput);
-  printf("to:\n");
-  getNextInput();
-  int to = squareNameToIndex(consoleState.lastInput);
   Move move;
-  setFrom(&move,from);
-  setTo(&move,to);
+  if(strcmp(consoleState.lastInput, "ks") == 0){setSpecialMoveData(&move,CASTLE_KINGSIDE);}
+  if(strcmp(consoleState.lastInput, "qs") == 0){setSpecialMoveData(&move,CASTLE_QUEENSIDE);}
+  if(consoleState.lastInput[0] != 'k' && consoleState.lastInput[0] != 'q'){
+    setFrom(&move,squareNameToIndex(consoleState.lastInput,0));
+    setTo(&move,squareNameToIndex(consoleState.lastInput,2));
+    if(strlen(consoleState.lastInput) == 5){
+      byte piece;
+      switch(consoleState.lastInput[4]){
+        case 'p': piece = PAWN; break;
+        case 'b': piece = BISHOP; break;
+        case 'n': piece = KNIGHT; break;
+        case 'r': piece = ROOK; break;
+        case 'k': piece = KING; break;
+        case 'q': piece = QUEEN; break;
+        default:
+          printf("Invalid promotion");
+          return;
+          break;
+      }
+      setPromotion(&move,piece);
+    };
+  }
   MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
   bool isLegal = false;
-  MoveList variants;
   for(int i  =0; i<legalMoves.end; i++){
     if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
       isLegal = true;
-      move = legalMoves.moves[i];//assigns proporties like flags
-      variants.append(move);
+      break;
     }
   }
   if(isLegal){
-    if(variants.end>1){
-      printf("This move has multiple variants, choose one\n");
-      for(int i = 0; i<variants.end; i++){
-        Board copy = *consoleState.boardptr;
-        makeMove(&copy,&variants.moves[i]);
-        printf("\n%i\n",i);
-        printBoard(consoleState.settings, copy);
-      }
-      getNextInput();
-      move = variants.moves[std::stoi(consoleState.lastInput)];
-    }
     makeMove(consoleState.boardptr,&move);
     consoleState.history.push(move);
   }else{
