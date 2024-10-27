@@ -1,10 +1,9 @@
 #pragma once
 #include <stdio.h>
+#include <limits.h>
 #include <fstream>
-#include <vector> 
-#include <unordered_set>
 #include <thread>
-#include <climits>
+#include <unordered_set>
 #include "../../Board/board.h"
 
 struct Magic{
@@ -37,9 +36,7 @@ u64 bishopLookup(u64 blockers, byte bishopSquare);
 //generating magic numbers
 
 void searchForMagics();
-bool testMagic(std::vector<u64> *blockers, Magic &magic);
 void magicSearch();
-void generateBlockersFromMask(u64 mask,std::vector<u64> &target);
 void generateRookBlockers();
 void generateBishopBlockers();
 

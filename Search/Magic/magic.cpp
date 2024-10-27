@@ -184,18 +184,8 @@ void generateBishopBlockers(){
   }
 }
 
-void generateBlockersFromMask(u64 mask,std::vector<u64> &target){
-  target.clear();
-  u64 blocker = 0;
-  for(int j = 0; j<pow(2,bitcount(mask));j++){
-    blocker |= ~mask;
-    blocker +=1;
-    blocker &= mask;
-    target.push_back(blocker);
-  }
-}
 bool testRookMagic(int square, Magic &magic){
-  std::unordered_set<u64> foundKeys;//map is probably not the best fit here
+  std::unordered_set<u64> foundKeys;
   u64 max = 0;
   for(int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++){
     u64 hashed = magicHash(magic,rookBlockers[square][blockerIndex]);
@@ -335,13 +325,11 @@ int loadMagics(){
       rook = false;
       continue;
     }
-    std::vector<std::string> tokens;
+    std::string tokens[3];
     int tokenIndex = 0;
-    tokens.push_back("");
     for(int i = 0; i<line.length(); i++){
       if(line[i] == '|'){
         tokenIndex ++;
-        tokens.push_back("");
         continue;
       }
       tokens[tokenIndex].push_back(line[i]);
