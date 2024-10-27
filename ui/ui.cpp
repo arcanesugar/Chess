@@ -2,6 +2,17 @@
 
 ConsoleState consoleState;
 
+void getNextInput() {
+  printf(">>");
+  char temp[INPUT_MAX_LEN];
+  fgets(temp,INPUT_MAX_LEN,stdin);
+  if(strlen(temp) > 1) {
+    temp[strlen(temp)-1] = '\0';//remove newline character
+    strcpy(consoleState.lastInput,temp);
+  }
+  consoleState.printBoard = true;
+}
+
 void runConsoleInterface(Board *boardptr){
   setUnicodePieces(&consoleState.settings);
   consoleState.boardptr = boardptr;
@@ -54,17 +65,6 @@ void makeBestMove(Board *boardptr){
   consoleState.history.push(best);
   consoleState.printBoard = false;
   printMoveOnBoard(consoleState.settings, *boardptr, best);
-}
-
-void getNextInput() {
-  printf(">>");
-  char temp[INPUT_MAX_LEN];
-  fgets(temp,INPUT_MAX_LEN,stdin);
-  if(strlen(temp) != 0) {
-    temp[strlen(temp)-1] = '\0';//remove newline character
-    strcpy(consoleState.lastInput,temp);
-  }
-  consoleState.printBoard = true;
 }
 
 void undoLastMove(){
