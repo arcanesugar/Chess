@@ -8,8 +8,12 @@ u64 *bishopMoves[64];//key, moves bitboard
 u64 rookMasks[64];
 u64 bishopMasks[64];
 
+#define ROOK_BLOCKERS_PER_SQUARE 16384
+#define BISHOP_BLOCKERS_PER_SQUARE 16384//technically every bishop square has a different amount of blockers, but its fine
+//
 u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
-std::vector<u64> bishopBlockers[64];
+u64 bishopBlockers[64][BISHOP_BLOCKERS_PER_SQUARE];
+int numBishopBlockers[64];
 
 static bool quitSearch = false;
 
@@ -108,9 +112,6 @@ void fillBishopMoves() {
       bishopMoves[i][magicHash(bishopMagics[i], blocker)] = moves;
     }
   }
-  for(int i = 0; i<64; i++){
-    bishopBlockers[i].clear();
-  }
 }
 
 //random functions from https://www.chessprogramming.org/Looking_for_Magics
@@ -170,7 +171,16 @@ void generateRookBlockers(){
   }
 }
 void generateBishopBlockers(){
-  for(int i = 0; i<64; i++){ generateBlockersFromMask(bishopMasks[i], bishopBlockers[i]);
+  for(int i = 0; i<64; i++){
+    u64 mask = bishopMasks[i];
+    u64 blocker = 0;
+    numBishopBlockers[i] = pow(2,bitcount(mask));
+    for(int j = 0; j<pow(2,bitcount(mask));j++){
+      blocker |= ~mask;
+      blocker +=1;
+      blocker &= mask;
+      bishopBlockers[i][j] = blocker;
+    }
   }
 }
 
@@ -184,12 +194,11 @@ void generateBlockersFromMask(u64 mask,std::vector<u64> &target){
     target.push_back(blocker);
   }
 }
-
-bool testMagic(std::vector<u64> *blockers, Magic &magic){
+bool testRookMagic(int square, Magic &magic){
   std::unordered_set<u64> foundKeys;//map is probably not the best fit here
   u64 max = 0;
-  for(u64 blocker : *blockers){
-    u64 hashed = magicHash(magic,blocker);
+  for(int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++){
+    u64 hashed = magicHash(magic,rookBlockers[square][blockerIndex]);
     max = std::max(hashed,max);
     if(foundKeys.count(hashed) != 0){
       return false;
@@ -200,11 +209,11 @@ bool testMagic(std::vector<u64> *blockers, Magic &magic){
   return true;
 }
 
-bool testRookMagic(int square, Magic &magic){
+bool testBishopMagic(int square, Magic &magic){
   std::unordered_set<u64> foundKeys;//map is probably not the best fit here
   u64 max = 0;
-  for(int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++){
-    u64 hashed = magicHash(magic,rookBlockers[square][blockerIndex]);
+  for(int blockerIndex = 0; blockerIndex<numBishopBlockers[square]; blockerIndex++){
+    u64 hashed = magicHash(magic,bishopBlockers[square][blockerIndex]);
     max = std::max(hashed,max);
     if(foundKeys.count(hashed) != 0){
       return false;
@@ -226,7 +235,7 @@ void magicSearch(){
         if(rookMagics[square].max > magic.max) rookMagics[square] = magic;
       }
       magic.shift = 61-bitcount(bishopMasks[square]);
-      if(testMagic(&bishopBlockers[square],magic)){
+      if(testBishopMagic(square,magic)){
         if(bishopMagics[square].max > magic.max) bishopMagics[square] = magic;
       }
     }
@@ -248,8 +257,8 @@ void magicSearch(){
     }
     printf("\x1b[3A");
     printf("Press enter to quit search\n");
-    printf("Rook magics %i/64 %i KiB\n", foundRook, (rookTableSize/1000));
-    printf("Bishop magics %i/64 %i KiB\n", foundBishop, (bishopTableSize/1000));
+    printf("Rook magics %i/64 %i KiB\n", foundRook, ((rookTableSize*8)/1000));
+    printf("Bishop magics %i/64 %i KiB\n", foundBishop, ((bishopTableSize*8)/1000));
   }
 }
 
