@@ -24,10 +24,12 @@ void initMagics(){
   }
 }
 void cleanupMagics(){
+  printf("[Deallocating rooks]\n");
   //deallocate memory
   for(int i = 0; i<64; i++){
     delete[] rookMoves[i];
   }
+  printf("[Deallocating bishops]\n");
   for(int i = 0; i<64; i++){
     delete[] bishopMoves[i];
   }
@@ -250,6 +252,7 @@ void magicSearch(){
     printf("Bishop magics %i/64 %i KiB\n", foundBishop, (bishopTableSize/1000));
   }
 }
+
 void searchForMagics(){
   srand(time(NULL));
   printf("[generating blockers]\n");

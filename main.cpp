@@ -12,5 +12,6 @@ int main() {
   initMoveGenerator();
   printf("[beginning consoleInterface...]\n");
   runConsoleInterface(&board);
+  cleanupMagics();
   return 0;
 }
