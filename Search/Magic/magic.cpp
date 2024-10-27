@@ -8,7 +8,7 @@ u64 *bishopMoves[64];//key, moves bitboard
 u64 rookMasks[64];
 u64 bishopMasks[64];
 
-std::vector<u64> rookBlockers[64];
+u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
 std::vector<u64> bishopBlockers[64];
 
 static bool quitSearch = false;
@@ -59,7 +59,8 @@ void fillRookMoves() {
   printf("%d KiB required for rooks\n", (sum*8)/1000);
   generateRookBlockers();
   for (int i = 0; i < 64; i++) {
-    for (u64 blocker : rookBlockers[i]) {
+    for (int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++) {
+      u64 blocker = rookBlockers[i][blockerIndex];
       u64 moves = (u64)0;
       int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
       for (int direction = 0; direction < 4; direction++) {
@@ -75,9 +76,6 @@ void fillRookMoves() {
       }
       rookMoves[i][magicHash(rookMagics[i], blocker)] = moves;
     }
-  }
-  for(int i = 0; i<64; i++){
-    rookBlockers[i].clear();
   }
 }
 
@@ -159,7 +157,14 @@ void generateBishopMasks() {
 
 void generateRookBlockers(){
   for(int i = 0; i<64; i++){
-    generateBlockersFromMask(rookMasks[i], rookBlockers[i]);
+    u64 mask = rookMasks[i];
+    u64 blocker = 0;
+    for(int j = 0; j<pow(2,bitcount(mask));j++){
+      blocker |= ~mask;
+      blocker +=1;
+      blocker &= mask;
+      rookBlockers[i][j] = blocker;  
+    }
   }
 }
 void generateBishopBlockers(){
@@ -193,15 +198,29 @@ bool testMagic(std::vector<u64> *blockers, Magic &magic){
   return true;
 }
 
+bool testRookMagic(int square, Magic &magic){
+  std::unordered_set<u64> foundKeys;//map is probably not the best fit here
+  u64 max = 0;
+  for(int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++){
+    u64 hashed = magicHash(magic,rookBlockers[square][blockerIndex]);
+    max = std::max(hashed,max);
+    if(foundKeys.count(hashed) != 0){
+      return false;
+    }
+    foundKeys.insert(hashed);
+  }
+  magic.max = (int)max;
+  return true;
+}
+
 void magicSearch(){
-  printf("Hello from another thread\n");
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) return;
       Magic magic;
       magic.magic = random_u64_fewbits();
       magic.shift = 61-bitcount(rookMasks[square]); //64-bc would be a perfect magic number, 61 gives wiggle room
-      if(testMagic(&rookBlockers[square],magic)){
+      if(testRookMagic(square,magic)){
         if(rookMagics[square].max > magic.max) rookMagics[square] = magic;
       }
       magic.shift = 61-bitcount(bishopMasks[square]);
@@ -227,8 +246,8 @@ void magicSearch(){
     }
     printf("\x1b[3A");
     printf("Press enter to quit search\n");
-    printf("Rook magics %i/64 %i KiB %i elements\n", foundRook, (rookTableSize/1000), rookTableSize);
-    printf("Bishop magics %i/64 %i KiB %i elements\n", foundBishop, (bishopTableSize/1000), bishopTableSize);
+    printf("Rook magics %i/64 %i KiB\n", foundRook, (rookTableSize/1000));
+    printf("Bishop magics %i/64 %i KiB\n", foundBishop, (bishopTableSize/1000));
   }
 }
 void searchForMagics(){
@@ -236,11 +255,10 @@ void searchForMagics(){
   printf("[generating blockers]\n");
   generateRookBlockers();
   generateBishopBlockers();
-  printf("[beginning search]\nresume from last time?(Y/n)\n");
+  printf("[beginning search]\nresume from last time?(y/n) ");
   loadMagics();
   char in = getchar();
   if(in == 'n'){
-    printf("in = %c\n",in);
     for(Magic &i : rookMagics){
       i.max = INT_MAX;
     }
@@ -249,20 +267,24 @@ void searchForMagics(){
     }
   }
   quitSearch = false;
+  printf("\n\n\n");//make room for the search output
   std::thread searchThread(magicSearch);
-  getchar();
-  getchar();
-  printf("heheheha\n");
+  while(1){
+    if(getchar()){
+      while(getchar() != '\n');//clear standard input
+      break;
+    }
+  }
   quitSearch = true;
   searchThread.join();
-
-  printf("Save magics?(y/N)\n");
-  getchar();
+  printf("Save magics?(y/n) \n");
   in = getchar();
   if(in == 'y'){
+    printf("saving...\n");
     saveMagics();
   }
   loadMagics();
+  while(getchar() != '\n');//clear standard input
 };
 
 void saveMagics(){

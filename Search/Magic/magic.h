@@ -21,7 +21,9 @@ extern u64 *bishopMoves[64];//key, moves bitboard
 extern u64 rookMasks[64];
 extern u64 bishopMasks[64];
 
-extern std::vector<u64> rookBlockers[64];
+#define ROOK_BLOCKERS_PER_SQUARE 16384
+
+extern u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
 extern std::vector<u64> bishopBlockers[64];
 
 
