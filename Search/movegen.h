@@ -2,13 +2,7 @@
 #include "../Board/board.h"
 #include "Magic/magic.h"
 
-struct MoveList{
-  Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is just a beter number(and adds room for psedeo legal moves)
-  byte end;
-};
-MoveList createMoveList();
-void moveListAppend(MoveList *ml, Move m);
-void moveListRemove(MoveList *ml, byte index);
+
 
 extern u64 knightMoves[64];
 extern u64 kingMoves[64];
