@@ -5,6 +5,7 @@
 
 #include "Bitboards/bitboard.h"
 #include "../types.h"
+
 #define CAPTURE_BIT       0b00000001
 #define EN_PASSAN_NULL    0
 

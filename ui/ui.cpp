@@ -5,7 +5,7 @@ ConsoleState consoleState;
 void getNextInput() {
   printf(">>");
   char temp[INPUT_MAX_LEN];
-  fgets(temp,INPUT_MAX_LEN,stdin);
+  if(fgets(temp,INPUT_MAX_LEN,stdin) == NULL) return;
   if(strlen(temp) > 1) {
     temp[strlen(temp)-1] = '\0';//remove newline character
     strcpy(consoleState.lastInput,temp);
@@ -193,7 +193,6 @@ void displaySettings(){
     }
   }
 }
-
 
 void showDebugView(){
   consoleState.printBoard = false;

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <thread>
+#include <pthread.h>
 #include <unordered_set>
 #include "../../types.h"
 #include "../../Board/board.h"

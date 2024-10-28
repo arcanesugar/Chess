@@ -214,10 +214,10 @@ bool testBishopMagic(int square, Magic &magic){
   return true;
 }
 
-void magicSearch(){
+void* magicSearch(void* vargp){
   while(!quitSearch){
     for(int square = 0;square<64;square++){
-      if(quitSearch) return;
+      if(quitSearch) return 0;
       Magic magic;
       magic.magic = random_u64_fewbits();
       magic.shift = 61-bitcount(rookMasks[square]); //64-bc would be a perfect magic number, 61 gives wiggle room
@@ -250,6 +250,7 @@ void magicSearch(){
     printf("Rook magics %i/64 %i KiB\n", foundRook, ((rookTableSize*8)/1000));
     printf("Bishop magics %i/64 %i KiB\n", foundBishop, ((bishopTableSize*8)/1000));
   }
+  return 0;
 }
 
 void searchForMagics(){
@@ -270,7 +271,8 @@ void searchForMagics(){
   }
   quitSearch = false;
   printf("\n\n\n");//make room for the search output
-  std::thread searchThread(magicSearch);
+  pthread_t thread;//the thread id
+  pthread_create(&thread, NULL, magicSearch, NULL);
   while(1){
     if(getchar()){
       while(getchar() != '\n');//clear standard input
@@ -278,7 +280,7 @@ void searchForMagics(){
     }
   }
   quitSearch = true;
-  searchThread.join();
+  pthread_join(thread,NULL);
   printf("Save magics?(y/n) \n");
   in = getchar();
   if(in == 'y'){
@@ -313,7 +315,7 @@ int loadMagics(){
     return -1;
   }
   char line[255];
-  fgets(line,255,file);
+  if(fgets(line,255,file) == NULL) return -1;
   if(strcmp(line,"magicfile2.0\n") != 0){
     printf("Magic file unrecognised, try regenerating with sch\n");
     return -1;
