@@ -17,9 +17,9 @@ struct MoveStack{
 struct ConsoleState {
   printSettings settings;
   MoveStack history;
-  char lastInput[INPUT_MAX_LEN] = "";
-  bool printBoard = true;
-  Board *boardptr = nullptr;
+  char lastInput[INPUT_MAX_LEN];
+  bool printBoard;
+  Board *boardptr;
 };
 
 extern ConsoleState consoleState;

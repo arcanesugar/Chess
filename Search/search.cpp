@@ -6,7 +6,7 @@
 
 double minimax(Board *b, int depth, bool maximiser){
   if(depth == 0) return evaluate(b);
-  MoveList ml;
+  MoveList ml = createMoveList();
   generateMoves(b, &ml);
   if(ml.end == 0) return (maximiser) ? N_INF : INF;//checkmate is the worst possible outcome (for the side whos turn it is)
 
@@ -26,7 +26,7 @@ double minimax(Board *b, int depth, bool maximiser){
 }
 
 Move search(Board b, int depth){
-  MoveList ml;
+  MoveList ml = createMoveList();
   generateMoves(&b, &ml);
   bool maximiser = b.flags&WHITE_TO_MOVE_BIT;
   double bestEval = (maximiser) ? N_INF : INF;
@@ -52,7 +52,7 @@ Move search(Board b, int depth){
 u64 perftTest(Board *b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
-  MoveList moves;
+  MoveList moves = createMoveList();
   generateMoves(b, &moves);
   for(byte i = 0; i<moves.end;i++){
     makeMove(b,&moves.moves[i]);

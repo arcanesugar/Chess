@@ -36,8 +36,12 @@ void getNextInput() {
 
 void runConsoleInterface(Board *boardptr){
   setUnicodePieces(&consoleState.settings);
+  setLightColor(&consoleState.settings, "47");
+  setDarkColor(&consoleState.settings, "103");
+  consoleState.printBoard = true;
   consoleState.boardptr = boardptr;
   consoleState.history = createMoveStack();
+  consoleState.lastInput[0] = '\0';
   bool quit = false;
   while (!quit) {
     if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);

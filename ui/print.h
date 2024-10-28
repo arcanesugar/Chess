@@ -3,9 +3,13 @@
 
 struct printSettings{
   char pieceCharacters[14][6];
-  char darkColor[10]  = "\x1b[103m";
-  char lightColor[10] = "\x1b[47m";
+  char darkColor[10];
+  char lightColor[10];
 };
+
+//set light and dark color will result in \x1b[colorIDm
+void setLightColor(printSettings *settings, const char *colorID);
+void setDarkColor(printSettings *settings, const char *colorID);
 
 void setUnicodePieces(printSettings *settings);
 void setASCIIPieces(printSettings *settings);

@@ -1,5 +1,19 @@
 #include "print.h"
 
+void setLightColor(printSettings *settings, const char *colorID){
+  settings->lightColor[0] = 0;
+  strcat(settings->lightColor,"\x1b[");
+  strcat(settings->lightColor,colorID);
+  strcat(settings->lightColor,"m");
+}
+
+void setDarkColor(printSettings *settings, const char *colorID){
+  settings->darkColor[0] = 0;
+  strcat(settings->darkColor,"\x1b[");
+  strcat(settings->darkColor,colorID);
+  strcat(settings->darkColor,"m");
+}
+
 void setASCIIPieces(printSettings *settings){
   char a[14] = "PBNRQKpbnrqk ";
   for(int i = 0; i<13; i++){

@@ -48,8 +48,8 @@ enum piece{
 #define BLACK_PIECES 13
 
 struct Move{
-  unsigned short move = 0; //ttttttffffffssss  t = to f = from s = special move data 
-  unsigned short unmakeData = 0;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
+  unsigned short move; //ttttttffffffssss  t = to f = from s = special move data 
+  unsigned short unmakeData;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
 };
 
 inline void setTo(Move *move, byte to) { move->move |= to<<10;}
@@ -75,6 +75,7 @@ inline byte getCapturedPiece(Move *move) {return move->unmakeData>>12;}
 
 inline void resetUnmakeData(Move *move){move->unmakeData = (unsigned short)0;}
 inline Move createNullMove(){return Move{0};}
+inline Move createEmptyMove(){return Move{0};}
 inline bool isNullMove(Move* move){return !(move->move|move->unmakeData);}
 
 int getSquareIndex(int file, int rank);
@@ -86,9 +87,9 @@ void generateBoardMasks();
 struct Board{
   u64 bitboards[14];
   u64 occupancy; 
-  byte enPassanTarget = EN_PASSAN_NULL;
+  byte enPassanTarget;
   byte squares[64];
-  byte flags = 0 | WHITE_TO_MOVE_BIT;
+  byte flags;
 };
 
 Board boardFromFEN(char* fen);

@@ -1,5 +1,12 @@
 #include "movegen.h"
 
+MoveList createMoveList(){MoveList ml; ml.end = 0; return ml;}
+void moveListAppend(MoveList *ml, Move m){ml->moves[ml->end] = m; ml->end++;}
+void moveListRemove(MoveList *ml, byte index){
+  for (byte i = index; i < ml->end; i++)
+    ml->moves[i] = ml->moves[i + 1]; // copy next element left
+  ml->end-=1;
+}
 u64 knightMoves[64];
 u64 kingMoves[64];
 
@@ -46,7 +53,7 @@ void filterLegalMoves(Board *board, MoveList *moves){
     unmakeMove(board,&moves->moves[i]);
     moves->moves[i].unmakeData = 0;
     if(!isLegal){
-       moves->remove(i);
+      moveListRemove(moves,i);
     }
   }
 }
@@ -109,19 +116,19 @@ void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags){
     byte to = popls1b(&targets);
     if(to<8 || to>55){ 
       for(int i = BISHOP; i<= QUEEN;i++){
-        Move move;
+        Move move = createEmptyMove();
         setTo(&move, to);
         setFrom(&move, to + offset);
         setPromotion(&move, i);
-        moves->append(move);
+        moveListAppend(moves,move);
       }
       continue;
     }
-    Move move;
+    Move move = createEmptyMove();
     setTo(&move, to);
     setFrom(&move, to + offset);
     setSpecialMoveData(&move, flags);
-    moves->append(move);
+    moveListAppend(moves,move);
   }
 }
 
@@ -168,10 +175,10 @@ void addPawnMoves(Board *board, MoveList *moves) {
 
 void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares){
   while (squares) {
-    Move move;
+    Move move = createEmptyMove();
     setTo(&move, popls1b(&squares));
     setFrom(&move, fromSquare);
-    moves->append(move);
+    moveListAppend(moves,move);
   }
 }
 
@@ -207,13 +214,13 @@ void addCastlingMoves(Board *board, MoveList *moves){
       }
     }
     if(!legal) continue;
-    Move m;
+    Move m = createEmptyMove();
     if(j%2 == 0){
       setSpecialMoveData(&m,CASTLE_KINGSIDE); 
     }else{
       setSpecialMoveData(&m,CASTLE_QUEENSIDE); 
     }
-    moves->append(m);
+    moveListAppend(moves,m);
   }
 }
 
