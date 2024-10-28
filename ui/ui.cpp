@@ -2,6 +2,27 @@
 
 ConsoleState consoleState;
 
+MoveStack createMoveStack(){
+  MoveStack ms;
+  ms.top = -1;
+  return ms;
+}
+void moveStackPush(MoveStack *ms, Move m){
+  ms->moves[++ms->top] = m;
+}
+Move moveStackPeek(MoveStack *ms){
+  return ms->moves[ms->top];
+}
+bool moveStackPop(MoveStack *ms){
+  if(ms->top == 1) return false;
+  ms->top--;
+  return true;
+}
+bool moveStackEmpty(MoveStack ms){
+  if(ms.top == -1) return true;
+  return false;
+}
+
 void getNextInput() {
   printf(">>");
   char temp[INPUT_MAX_LEN];
@@ -16,6 +37,7 @@ void getNextInput() {
 void runConsoleInterface(Board *boardptr){
   setUnicodePieces(&consoleState.settings);
   consoleState.boardptr = boardptr;
+  consoleState.history = createMoveStack();
   bool quit = false;
   while (!quit) {
     if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);
@@ -62,23 +84,22 @@ void showHelpMenu(){
 void makeBestMove(Board *boardptr){
   Move best = search(*boardptr, 2);
   makeMove(boardptr,&best);
-  consoleState.history.push(best);
+  moveStackPush(&consoleState.history,best);
   consoleState.printBoard = false;
   printMoveOnBoard(consoleState.settings, *boardptr, best);
 }
 
 void undoLastMove(){
-  if(consoleState.history.empty()){
+  if(moveStackEmpty(consoleState.history)){
     printf("No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m\n");
     return;
   }
-  Move m = consoleState.history.top();
+  Move m = moveStackPeek(&consoleState.history);
   unmakeMove(consoleState.boardptr,&m);
-
   printMoveOnBoard(consoleState.settings,*consoleState.boardptr, m);
   consoleState.printBoard = false;
 
-  consoleState.history.pop();
+  consoleState.history.top--;
 }
 
 void whosTurnIsIt(){
@@ -98,7 +119,7 @@ void makeRandomMove(){
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
   makeMove(consoleState.boardptr,&move);
-  consoleState.history.push(move);
+  moveStackPush(&consoleState.history,move);
   printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);
   consoleState.printBoard = false;
 }
@@ -157,13 +178,13 @@ void makeMoveFromConsole(){
   }
   if(isLegal){
     makeMove(consoleState.boardptr,&move);
-    consoleState.history.push(move);
+    moveStackPush(&consoleState.history,move);
   }else{
     printf("This move is not legal, continue? (y/N)\n");
     getNextInput();
     if(consoleState.lastInput[0] == 'y'){
       makeMove(consoleState.boardptr,&move);
-      consoleState.history.push(move);
+      moveStackPush(&consoleState.history,move);
     }
   }
   printMoveOnBoard(consoleState.settings, *consoleState.boardptr, move);

@@ -74,6 +74,8 @@ inline byte getCastlingRights(Move *move){return (move->unmakeData & CASTLING_RI
 inline byte getCapturedPiece(Move *move) {return move->unmakeData>>12;}
 
 inline void resetUnmakeData(Move *move){move->unmakeData = (unsigned short)0;}
+inline Move createNullMove(){return Move{0};}
+inline bool isNullMove(Move* move){return !(move->move|move->unmakeData);}
 
 int getSquareIndex(int file, int rank);
 

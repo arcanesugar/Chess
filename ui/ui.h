@@ -1,6 +1,5 @@
 #pragma once
 #include <ctype.h>
-#include <stack>
 
 #include "../Board/board.h"
 #include "../Search/search.h"
@@ -8,9 +7,16 @@
 #include "print.h"
 
 #define INPUT_MAX_LEN 256
+
+
+struct MoveStack{
+  Move moves[255];
+  int top;
+};
+
 struct ConsoleState {
   printSettings settings;
-  std::stack<Move> history;
+  MoveStack history;
   char lastInput[INPUT_MAX_LEN] = "";
   bool printBoard = true;
   Board *boardptr = nullptr;
