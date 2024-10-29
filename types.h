@@ -1,15 +1,13 @@
 #pragma once
-#ifdef __cplusplus
-extern "C"{
-#endif
-
 typedef unsigned long long u64;
 typedef unsigned char byte;
+
 #ifndef __cplusplus
 typedef char bool;
 #define true 1;
 #define false 0;
 #endif
+
 void strcatchar(char *string, char c);
 
 //Move is completely abstracted, never access move or unmakeData directly
@@ -17,9 +15,7 @@ struct Move{
   unsigned short move; //ttttttffffffssss  t = to f = from s = special move data 
   unsigned short unmakeData;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
 };
-#ifndef __cplusplus
 typedef struct Move Move;
-#endif
 
 //masks for move.move
 #define TO_PIECE_MASK          0b1111110000000000
@@ -39,31 +35,31 @@ typedef struct Move Move;
 
 
 
-inline void setTo(Move *move, byte to) { move->move |= to<<10;}
-inline void setFrom(Move *move, byte from) { move->move |= from<<4;}
-inline void setSpecialMoveData(Move *move, byte smd) { move->move |= smd;}
-inline void setPromotion(Move *move, byte piece) {move->move |= piece | PROMOTION_BIT;}
-inline void setEnPassanTarget(Move *move, byte target){ move->unmakeData |= target<<6;}
-inline void setCastlingRights(Move *move, byte flags){move->unmakeData |= flags<<2;}
-inline void setCapturedPiece(Move *move, byte piece){move->unmakeData |= piece<<12;}
+void setTo(Move *move, byte to);
+void setFrom(Move *move, byte from);
+void setSpecialMoveData(Move *move, byte smd);
+void setPromotion(Move *move, byte piece);
+void setEnPassanTarget(Move *move, byte target);
+void setCastlingRights(Move *move, byte flags);
+void setCapturedPiece(Move *move, byte piece);
 
-inline byte getTo(Move *move) {return (move->move & TO_PIECE_MASK)>>10;}
-inline byte getFrom(Move *move) {return (move->move & FROM_PIECE_MASK)>>4;}
-inline byte getSpecialMoveData(Move *move){ return (move->move&SPECIAL_MOVE_DATA_MASK);}
-inline bool isEnPassan(Move *move){ return getSpecialMoveData(move) == EN_PASSAN;}
-inline bool isKingside(Move *move){ return getSpecialMoveData(move) == CASTLE_KINGSIDE;}
-inline bool isQueenside(Move *move){ return getSpecialMoveData(move) == CASTLE_QUEENSIDE;}
-inline bool isPromotion(Move *move){return move->move & PROMOTION_BIT;}
-inline byte getPromotionPiece(Move *move){return move->move & PROMOTION_MASK;}
+byte getTo(Move *move);
+byte getFrom(Move *move);
+byte getSpecialMoveData(Move *move);
+bool isEnPassan(Move *move);
+bool isKingside(Move *move);
+bool isQueenside(Move *move);
+bool isPromotion(Move *move);
+byte getPromotionPiece(Move *move);
 
-inline byte getEnPassanTarget(Move *move){return (move->unmakeData & EN_PASSAN_TARGET_MASK )>>6;}
-inline byte getCastlingRights(Move *move){return (move->unmakeData & CASTLING_RIGHTS_MASK)>>2;}
-inline byte getCapturedPiece(Move *move) {return move->unmakeData>>12;}
+byte getEnPassanTarget(Move *move);
+byte getCastlingRights(Move *move);
+byte getCapturedPiece(Move *move);
 
-inline void resetUnmakeData(Move *move){move->unmakeData = (unsigned short)0;}
-inline Move createNullMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
-inline Move createEmptyMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
-inline bool isNullMove(Move* move){return !(move->move|move->unmakeData);}
+void resetUnmakeData(Move *move);
+Move createNullMove();
+Move createEmptyMove();
+bool isNullMove(Move* move);
 
 
 struct MoveList{
@@ -76,7 +72,3 @@ void moveListAppend(struct MoveList *ml, Move m);
 void moveListRemove(struct MoveList *ml, byte index);//very slow
 
 //functions to treat MoveList like a stack
-
-#ifdef __cplusplus
-}
-#endif

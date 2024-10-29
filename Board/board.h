@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "Bitboards/bitboard.h"
 #include "../types.h"
@@ -46,7 +47,7 @@ struct Board{
   byte squares[64];
   byte flags;
 };
-
+typedef struct Board Board;
 Board boardFromFEN(char* fen);
 bool validateBoard(Board board);
 

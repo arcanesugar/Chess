@@ -25,7 +25,7 @@ $(BINNAME):$(OBJ)
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 %.o:%.c Makefile
-	$(CC) $(CCFLAGS) -c -o $@ $<
+	$(CPP) $(CCFLAGS) -c -o $@ $<
 
 -include $(DEP)
 clean:
