@@ -21,8 +21,6 @@ extern u64 *bishopMoves[64];//key, moves bitboard
 extern u64 rookMasks[64];
 extern u64 bishopMasks[64];
 
-
-
 //initialisation/cleanup
 void initMagics();  
 void cleanupMagics();

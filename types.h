@@ -1,11 +1,15 @@
 #pragma once
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 typedef unsigned long long u64;
 typedef unsigned char byte;
-
-//typedef char bool;
-//#define true 1;
-//#define false 0;
-
+#ifndef __cplusplus
+typedef char bool;
+#define true 1;
+#define false 0;
+#endif
 void strcatchar(char *string, char c);
 
 //Move is completely abstracted, never access move or unmakeData directly
@@ -13,6 +17,9 @@ struct Move{
   unsigned short move; //ttttttffffffssss  t = to f = from s = special move data 
   unsigned short unmakeData;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
 };
+#ifndef __cplusplus
+typedef struct Move Move;
+#endif
 
 //masks for move.move
 #define TO_PIECE_MASK          0b1111110000000000
@@ -54,8 +61,8 @@ inline byte getCastlingRights(Move *move){return (move->unmakeData & CASTLING_RI
 inline byte getCapturedPiece(Move *move) {return move->unmakeData>>12;}
 
 inline void resetUnmakeData(Move *move){move->unmakeData = (unsigned short)0;}
-inline Move createNullMove(){return Move{0};}
-inline Move createEmptyMove(){return Move{0};}
+inline Move createNullMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
+inline Move createEmptyMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
 inline bool isNullMove(Move* move){return !(move->move|move->unmakeData);}
 
 
@@ -64,8 +71,12 @@ struct MoveList{
   byte end;
 };
 
-MoveList createMoveList();
-void moveListAppend(MoveList *ml, Move m);
-void moveListRemove(MoveList *ml, byte index);//very slow
+struct MoveList createMoveList();
+void moveListAppend(struct MoveList *ml, Move m);
+void moveListRemove(struct MoveList *ml, byte index);//very slow
 
 //functions to treat MoveList like a stack
+
+#ifdef __cplusplus
+}
+#endif
