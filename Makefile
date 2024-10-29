@@ -1,10 +1,14 @@
 CPP:=clang++
 CPPFLAGS:=-Wall
+CC:=clang
+CCFLAGS:=-Wall
 BINNAME:=main
 SRCDIR:=.
 
 SRC:=$(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/*/*.cpp) $(wildcard $(SRCDIR)/*/*/*.cpp)
-OBJ:=$(SRC:.cpp=.o)
+CSRC:=$(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*/*.c)
+
+OBJ:=$(SRC:.cpp=.o) $(CSRC:.c=.o)
 
 # $@ = name of the current target
 # @^ = current targets dependencies
@@ -18,6 +22,9 @@ $(BINNAME):$(OBJ)
 
 %.o:%.cpp
 	$(CPP) $(CPPFLAGS) -c -o $@ $^
+
+%.o:%.c
+	$(CC) $(CCFLAGS) -c -o $@ $^
 
 clean:
 	@rm -f $(OBJ)

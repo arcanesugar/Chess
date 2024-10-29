@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include <stdlib.h>
 
 u64 signedShift(u64 bb, int s){//positive = left shift
   if(s>0){
@@ -7,7 +8,7 @@ u64 signedShift(u64 bb, int s){//positive = left shift
   return bb>>abs(s);
 }
 
-bool getBit(u64 bb, int index){
+char getBit(u64 bb, int index){
   return (bb>>index) & (u64)1;
 };
 void setBit(u64 *bb, int index){
