@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "Board/board.h"
-#include "Search/search.h"
 #include "ui/ui.h"
 
 int main() {

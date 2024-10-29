@@ -6,6 +6,8 @@ Prerequisites
 .ccls-cache/
 /replit.nix
 /.replit
+
+#final bianary
 /main
 
 # Compiled Object files

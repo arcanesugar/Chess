@@ -1,16 +1,24 @@
-all: main
+CPP:=clang++
+CPPFLAGS:=-Wall
+BINNAME:=main
+SRCDIR:=.
 
-CXX = clang++
-override CXXFLAGS += -g -Wall -Werror
+SRC:=$(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/*/*.cpp) $(wildcard $(SRCDIR)/*/*/*.cpp)
+OBJ:=$(SRC:.cpp=.o)
 
-SRCS = $(shell find . -name '.ccls-cache' -type d -prune -o -type f -name '*.cpp' -print | sed -e 's/ /\\ /g')
-HEADERS = $(shell find . -name '.ccls-cache' -type d -prune -o -type f -name '*.h' -print)
+# $@ = name of the current target
+# @^ = current targets dependencies
+# $@:$^
+# this makefile does fill up the project with .o files, but I dont want to fix that right now
 
-main: $(SRCS) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o "$@"
+all:$(BINNAME)
 
-main-debug: $(SRCS) $(HEADERS)
-	NIX_HARDENING_ENABLE= $(CXX) $(CXXFLAGS) -O0  $(SRCS) -o "$@"
+$(BINNAME):$(OBJ)
+	$(CPP) $(CPPFLAGS) -o $@ $(OBJ)
+
+%.o:%.cpp
+	$(CPP) $(CPPFLAGS) -c -o $@ $^
 
 clean:
-	rm -f main main-debug
+	@rm -f $(OBJ)
+	@rm -f $(BINNAME)
