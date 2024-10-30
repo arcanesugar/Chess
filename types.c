@@ -1,6 +1,10 @@
 #include "types.h"
 #include <string.h>
 
+class test{
+public:
+  int hi;
+};
 void strcatchar(char *string, char c){
   char temp[2] = " ";
   temp[0] = c;
