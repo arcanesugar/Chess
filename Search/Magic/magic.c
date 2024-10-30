@@ -191,51 +191,58 @@ void generateBishopBlockers(){
 
 static bool quitSearch = false;
 static bool startFromScratch = false;
-static u64 *bishopPlayground;
-static u64 *rookPlayground;
+struct playgroundChunk{
+  int counter;
+  u64 moves;
+};
+typedef struct playgroundChunk playgroundChunk;
+static playgroundChunk *bishopPlayground;
+static playgroundChunk *rookPlayground;
 static u64 bishopPlaygroundSize;
 static u64 rookPlaygroundSize;
+static int searchCounter = 0;
 
-bool testRookMagic(int square, Magic *magic, u64 bestMax){
+bool testMagic(Magic *magic, u64 *blockers, int numBlockers, playgroundChunk *playground, int playgroundSize, u64 (*eml)(u64,byte), byte emlc){
+  //eml = Exisiting Magic Lookup
+  //emlc = eml char argument
   u64 max = 0;
-  for(int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++){
-    u64 hashed = magicHash(*magic,rookBlockers[square][blockerIndex]);
-    if(hashed>=rookPlaygroundSize) return false;
-    if(hashed>bestMax) return false;
-    if(rookPlayground[hashed] == magic->magic) return false;
-    rookPlayground[hashed] = magic->magic;
+  for(int blockerIndex = 0; blockerIndex < numBlockers; blockerIndex++){
+    u64 hashed = magicHash(*magic,blockers[blockerIndex]);
+    if(hashed >= playgroundSize) return false;
+    if(playground[hashed].counter == searchCounter){
+      if(eml == NULL) return false;
+      if(playground[hashed].moves != eml(blockers[blockerIndex], emlc)) return false;
+    }
+    playground[hashed].counter = searchCounter;
+    if(eml!=NULL) playground[hashed].moves = eml(blockers[blockerIndex], emlc);
     if(hashed>max) max = hashed;
   }
-  magic->max = (int)max;
-  return true;
-}
-
-bool testBishopMagic(int square, Magic *magic, u64 bestMax){
-  u64 max = 0;
-  for(int blockerIndex = 0; blockerIndex<numBishopBlockers[square]; blockerIndex++){
-    u64 hashed = magicHash(*magic,bishopBlockers[square][blockerIndex]);
-    if(hashed>=bishopPlaygroundSize) return false;
-    if(hashed>bestMax) return false;
-    if(bishopPlayground[hashed] == magic->magic) return false;
-    bishopPlayground[hashed] = magic->magic;
-    if(hashed>max) max = hashed;
-  }
-  magic->max = (int)max;
+  magic->max = max;
   return true;
 }
 
 void* magicSearch(void* vargp){
   bishopPlaygroundSize = 0;
   rookPlaygroundSize = 0;
+  Magic newRookMagics[64];
+  Magic newBishopMagics[64];
+  u64 (*rookLookupFunction)(u64,byte);
+  u64 (*bishopLookupFunction)(u64,byte);
   if(startFromScratch){
+    //more than enough room
+    rookLookupFunction = NULL;
+    bishopLookupFunction = NULL;
+    rookPlaygroundSize   = 200000;
+    bishopPlaygroundSize = 200000;
     for(int i = 0; i<64; i++){
-      rookMagics[i].max = INT_MAX;
-      bishopMagics[i].max = INT_MAX;
+      newRookMagics[i].max = rookPlaygroundSize;
+      newBishopMagics[i].max = bishopPlaygroundSize;
     }
-    //might be too much room, but it doesnt really matter.
-    rookPlaygroundSize = 200000;
-    bishopPlaygroundSize = 60000;
   }else{
+    for(int i = 0; i<64; i++){
+      newRookMagics[i] = rookMagics[i];
+      newBishopMagics[i] = bishopMagics[i];
+    }
     int maxRook = 0;
     int maxBishop = 0;
     for(int i = 0; i<64; i++){
@@ -244,22 +251,39 @@ void* magicSearch(void* vargp){
     }
     rookPlaygroundSize = maxRook+1;
     bishopPlaygroundSize = maxBishop+1;
+    rookLookupFunction = rookLookup;
+    bishopLookupFunction = bishopLookup;
   }
-  rookPlayground   = (u64*)calloc(rookPlaygroundSize,sizeof(u64));
-  bishopPlayground = (u64*)calloc(bishopPlaygroundSize,sizeof(u64));
-  for(int i = 0; i<99;i++);
+  //calloc initilises everything to 0 which is important
+  rookPlayground   = calloc(rookPlaygroundSize,sizeof(playgroundChunk));
+  bishopPlayground = calloc(bishopPlaygroundSize,sizeof(playgroundChunk));
+
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) break;
+      searchCounter++;
       Magic magic;
       magic.magic = random_u64_fewbits();
       magic.shift = 61-bitcount(rookMasks[square]); //64-bc would be a perfect magic number, 61 gives wiggle room
-      if(testRookMagic(square,&magic,rookMagics[square].max)){
-        rookMagics[square] = magic;
+      //using new*Magics[square].max as the playground size means only a better magic will be valid,
+      //this does assume that the initial max is within range, which it is
+      if(testMagic(
+        &magic,
+        rookBlockers[square], ROOK_BLOCKERS_PER_SQUARE,
+        rookPlayground,newRookMagics[square].max,
+        rookLookupFunction,square
+      )){
+        newRookMagics[square] = magic;
       }
+
       magic.shift = 61-bitcount(bishopMasks[square]);
-      if(testBishopMagic(square,&magic,bishopMagics[square].max)){
-        bishopMagics[square] = magic;
+      if(testMagic(
+        &magic,
+        bishopBlockers[square], numBishopBlockers[square],
+        bishopPlayground,newBishopMagics[square].max,
+        bishopLookupFunction,square
+      )){
+        newBishopMagics[square] = magic;
       }
     }
 
@@ -268,15 +292,14 @@ void* magicSearch(void* vargp){
     int rookTableSize= 0;
     int foundBishop = 0;
     int bishopTableSize= 0;
-
     for(int i= 0; i<64; i++){
-      if(rookMagics[i].max != INT_MAX){
+      if(newRookMagics[i].max != rookPlaygroundSize){
         foundRook++;
-        rookTableSize += rookMagics[i].max + 1;
+        rookTableSize += newRookMagics[i].max + 1;
       }
-      if(bishopMagics[i].max != INT_MAX){
+      if(newBishopMagics[i].max != bishopPlaygroundSize){
         foundBishop++;
-        bishopTableSize += bishopMagics[i].max + 1;
+        bishopTableSize += newBishopMagics[i].max + 1;
       }
     }
     printf("\x1b[3A");
@@ -284,8 +307,12 @@ void* magicSearch(void* vargp){
     printf("Rook magics %i/64 %i KiB\n", foundRook, ((rookTableSize*8)/1000));
     printf("Bishop magics %i/64 %i KiB\n", foundBishop, ((bishopTableSize*8)/1000));
   }
-  free(bishopPlayground);
+  for(int i = 0; i<64; i++){
+    rookMagics[i] = newRookMagics[i];
+    bishopMagics[i] = newBishopMagics[i];
+  }
   free(rookPlayground);
+  free(bishopPlayground);
   return 0;
 }
 
