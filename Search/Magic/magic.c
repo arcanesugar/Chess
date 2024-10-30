@@ -236,10 +236,14 @@ void* magicSearch(void* vargp){
     rookPlaygroundSize = 200000;
     bishopPlaygroundSize = 60000;
   }else{
+    int maxRook = 0;
+    int maxBishop = 0;
     for(int i = 0; i<64; i++){
-      rookPlaygroundSize += rookMagics[i].max+1;
-      bishopPlaygroundSize += bishopMagics[i].max+1;
+      if(rookMagics[i].max>maxRook) maxRook = rookMagics[i].max;
+      if(bishopMagics[i].max>maxBishop) maxBishop = bishopMagics[i].max;
     }
+    rookPlaygroundSize = maxRook+1;
+    bishopPlaygroundSize = maxBishop+1;
   }
   rookPlayground   = (u64*)calloc(rookPlaygroundSize,sizeof(u64));
   bishopPlayground = (u64*)calloc(bishopPlaygroundSize,sizeof(u64));
@@ -264,18 +268,15 @@ void* magicSearch(void* vargp){
     int rookTableSize= 0;
     int foundBishop = 0;
     int bishopTableSize= 0;
-    int maxRook = 0;
-    int maxBishop = 0;
+
     for(int i= 0; i<64; i++){
       if(rookMagics[i].max != INT_MAX){
         foundRook++;
         rookTableSize += rookMagics[i].max + 1;
-        if(rookMagics[i].max>maxRook) maxRook = rookMagics[i].max;
       }
       if(bishopMagics[i].max != INT_MAX){
         foundBishop++;
         bishopTableSize += bishopMagics[i].max + 1;
-        if(bishopMagics[i].max>maxBishop) maxBishop = bishopMagics[i].max;
       }
     }
     printf("\x1b[3A");
