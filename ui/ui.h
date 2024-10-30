@@ -8,7 +8,6 @@
 
 #define INPUT_MAX_LEN 256
 
-
 struct MoveStack{
   Move moves[255];
   int top;

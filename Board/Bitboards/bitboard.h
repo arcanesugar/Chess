@@ -1,4 +1,8 @@
 #pragma once
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 
 
 #include <stdio.h>
@@ -13,3 +17,7 @@ int bitScanForward(u64 bb);
 int popls1b(u64 *bb);
 u64 signedShift(u64 bb, int s);
 int bitcount(u64 bb);
+
+#ifdef __cplusplus
+}
+#endif
