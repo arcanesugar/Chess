@@ -8,11 +8,13 @@
 
 #define INPUT_MAX_LEN 256
 
+typedef struct MoveStack MoveStack;
 struct MoveStack{
   Move moves[255];
   int top;
 };
 
+typedef struct ConsoleState ConsoleState;
 struct ConsoleState {
   printSettings settings;
   MoveStack history;

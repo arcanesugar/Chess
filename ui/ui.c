@@ -44,7 +44,7 @@ void runConsoleInterface(Board *boardptr){
   consoleState.lastInput[0] = '\0';
   bool quit = false;
   while (!quit) {
-    if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr);
+    if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr,0);
     getNextInput();
     if(strcmp(consoleState.lastInput, "mve") == 0) {makeMoveFromConsole(); continue;}
     if(strcmp(consoleState.lastInput, "evl") == 0) {printf("%f\n",evaluate(boardptr)); continue;}

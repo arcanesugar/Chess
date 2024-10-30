@@ -10,6 +10,7 @@ typedef char bool;
 #define false 0;
 #endif
 
+typedef unsigned long long u64;
 void strcatchar(char *string, char c);
 
 //Move is completely abstracted, never access move or unmakeData directly
