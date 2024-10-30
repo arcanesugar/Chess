@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "../../types.h"
 
 struct Magic{
@@ -10,11 +9,6 @@ struct Magic{
 };
 typedef struct Magic Magic;
 
-//the actual magic numbers
-extern Magic rookMagics[64];
-extern Magic bishopMagics[64];
-extern u64 *rookMoves[64];//key, moves bitboard 
-extern u64 *bishopMoves[64];//key, moves bitboard 
 extern u64 rookMasks[64];
 extern u64 bishopMasks[64];
 
@@ -30,12 +24,4 @@ u64 rookLookup(u64 blockers, byte rookSquare);
 u64 bishopLookup(u64 blockers, byte bishopSquare);
 
 //generating magic numbers
-
 void searchForMagics();
-void generateRookBlockers();
-void generateBishopBlockers();
-
-void generateRookMasks();
-void generateBishopMasks();
-void fillRookMoves();
-void fillBishopMoves();

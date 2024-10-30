@@ -7,7 +7,6 @@
 #include "movegen.h"
 #include "eval.h"
 
-
 #define N_INF -9999999
 #define INF    9999999 
 

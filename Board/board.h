@@ -3,8 +3,6 @@
 #include "../types.h"
 #include "../move.h"
 
-#define EN_PASSAN_NULL    0
-
 #define WHITE_TO_MOVE_BIT     0b00000001
 #define WHITE_KINGSIDE_BIT    0b00000010
 #define WHITE_QUEENSIDE_BIT   0b00000100
@@ -14,6 +12,7 @@
 #define WHITE_CASTLING_RIGHTS 0b00000110
 #define BLACK_CASTLING_RIGHTS 0b00011000
 
+#define EN_PASSAN_NULL 0
 
 int getSquareIndex(int file, int rank);
 

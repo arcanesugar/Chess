@@ -8,7 +8,7 @@
 #define EN_PASSAN        0b0000000000000011
 
 //Move is completely abstracted, never access move or unmakeData directly
-//set functions only work if that proporty has not yet been set, and the initial move was empty
+//Set functions only work if that property has not yet been set, and the initial move was empty
 struct Move{
   unsigned short move; //ttttttffffffssss  t = to f = from s = special move data 
   unsigned short unmakeData;//cccceeeeeerrrr** c = captured e = en passan r = castling rights * = unused 
@@ -36,7 +36,6 @@ byte getEnPassanTarget(Move *move);
 byte getCastlingRights(Move *move);
 byte getCapturedPiece(Move *move);
 
-void resetUnmakeData(Move *move);
 Move createNullMove();
 Move createEmptyMove();
 bool isNullMove(Move* move);

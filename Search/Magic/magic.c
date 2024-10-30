@@ -9,20 +9,29 @@
 #include "../../Board/Bitboards/bitboard.h"
 #include "../../Board/board.h"
 
-Magic rookMagics[64];
-Magic bishopMagics[64];
-u64 *rookMoves[64];//key, moves bitboard 
-u64 *bishopMoves[64];//key, moves bitboard 
+static Magic rookMagics[64];
+static Magic bishopMagics[64];
+static u64 *rookMoves[64];//key, moves bitboard 
+static u64 *bishopMoves[64];//key, moves bitboard 
 u64 rookMasks[64];
 u64 bishopMasks[64];
 
-#define ROOK_BLOCKERS_PER_SQUARE 16384
-#define BISHOP_BLOCKERS_PER_SQUARE 16384//technically every bishop square has a different amount of blockers, but its fine
-//
-u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
-u64 bishopBlockers[64][BISHOP_BLOCKERS_PER_SQUARE];
-int numBishopBlockers[64];
+//The rook and bishop blocker tables are only used when creating the moves tables or during a magic search
+//They should probobly be moved to local variables, but it works for now
 
+#define ROOK_BLOCKERS_PER_SQUARE 16384
+#define BISHOP_BLOCKERS_PER_SQUARE 16384//technically every bishop square has a different amount of blockers, but this is the max
+static u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
+static u64 bishopBlockers[64][BISHOP_BLOCKERS_PER_SQUARE];
+static int numBishopBlockers[64];
+
+void generateRookBlockers();
+void generateBishopBlockers();
+
+void generateRookMasks();
+void generateBishopMasks();
+void fillRookMoves();
+void fillBishopMoves();
 
 void initMagics(){
   generateRookMasks();
