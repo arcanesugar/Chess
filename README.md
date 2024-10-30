@@ -12,7 +12,10 @@ UCI is not supported yet
 ## Changelog
 - search
     - C-migration
-        - added types.h
+        - cleaned up headers
+        - greatly improved magic number search
+        - added move.h/move.c
+        - added types.h/move.c
         - added movePiece function
         - removed all standard library dependencies
         - moved everything out of classes
