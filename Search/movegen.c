@@ -1,6 +1,5 @@
 #include "movegen.h"
 
-
 u64 knightMoves[64];
 u64 kingMoves[64];
 
@@ -71,7 +70,7 @@ bool isAttacked(Board *board, byte square, byte opponentColor){
   if((possibleBishops|possibleRooks)&board->bitboards[QUEEN+opponentColor]) return true;
   
   //attacked by pawn
-  u64 possiblePawns = u64(0);
+  u64 possiblePawns = 0;
   if(opponentColor == WHITE){
     if(square%8 != 0)setBit(&possiblePawns, square-9);
     if(square%8 != 7)setBit(&possiblePawns, square-7);
@@ -134,7 +133,7 @@ void addPawnMoves(Board *board, MoveList *moves) {
   // forward pawn moves
   u64 pawnDestinations = signedShift(board->bitboards[color + PAWN], 8 * dir);
   pawnDestinations &= ~board->occupancy;
-  addMovesFromOffset(moves, -8*dir, pawnDestinations);
+  addMovesFromOffset(moves, -8*dir, pawnDestinations,0);
   
   // double forward moves
   pawnDestinations = board->bitboards[color + PAWN] & startRank;
@@ -142,16 +141,16 @@ void addPawnMoves(Board *board, MoveList *moves) {
   pawnDestinations &=  ~board->occupancy;
   pawnDestinations = signedShift(pawnDestinations, 8 * dir);
   pawnDestinations &=  ~board->occupancy;
-  addMovesFromOffset(moves, -16*dir, pawnDestinations);
+  addMovesFromOffset(moves, -16*dir, pawnDestinations,0);
 
   // pawn captures
   pawnDestinations = signedShift(board->bitboards[color + PAWN], 7 * dir);
   pawnDestinations &= ~leftFileMask & enemyBitboard;
-  addMovesFromOffset(moves, -7*dir, pawnDestinations);
+  addMovesFromOffset(moves, -7*dir, pawnDestinations,0);
 
   pawnDestinations = signedShift(board->bitboards[color + PAWN], 9 * dir);
   pawnDestinations &= ~rightFileMask & enemyBitboard;
-  addMovesFromOffset(moves, -9*dir, pawnDestinations);
+  addMovesFromOffset(moves, -9*dir, pawnDestinations,0);
 
   //En Passan
   if(board->enPassanTarget != EN_PASSAN_NULL){
@@ -201,8 +200,8 @@ void addCastlingMoves(Board *board, MoveList *moves){
     if(!(board->flags&masks[j])) continue;
     if(mustBeEmpty[j]&board->occupancy) continue;
     bool legal = true; 
-    for(int s : mustBeSafe[j]){
-      if(isAttacked(board, s, opponentColor)){
+    for(int s = 0; s<2; s++){
+      if(isAttacked(board, mustBeSafe[j][s], opponentColor)){
         legal = false;
         break;
       }

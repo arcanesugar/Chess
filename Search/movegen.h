@@ -1,8 +1,12 @@
 #pragma once
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 #include "../Board/board.h"
 #include "Magic/magic.h"
 
-
+typedef struct MoveList MoveList;
 
 extern u64 knightMoves[64];
 extern u64 kingMoves[64];
@@ -13,7 +17,7 @@ void createKnightTable();//fills the knight moves array, does not do actual move
 void createKingTable();//see above comment
 
 void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares);
-void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags = 0);
+void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags);
 
 void addDiagonalMoves(Board *board, int square, MoveList *moves);
 void addOrthogonalMoves(Board *board, int square, MoveList *moves);
@@ -31,3 +35,7 @@ void filterLegalMoves(Board *board, MoveList *moves);
 void initMoveGenerator();
 void cleanupMoveGenerator();
 void generateMoves(Board *board, MoveList *moves);
+
+#ifdef __cplusplus
+}
+#endif
