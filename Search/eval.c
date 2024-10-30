@@ -1,5 +1,8 @@
 #include "eval.h"
 
+#include "../types.h"
+#include "../Board/Bitboards/bitboard.h"
+
 double material(Board *board){
   double material = 0.0;
   double values[5] = {1,3,3,5,9};

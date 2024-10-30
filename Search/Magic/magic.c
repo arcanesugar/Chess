@@ -1,5 +1,14 @@
 #include "magic.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+#include <pthread.h>
+
+#include "../../Board/Bitboards/bitboard.h"
+#include "../../Board/board.h"
+
 Magic rookMagics[64];
 Magic bishopMagics[64];
 u64 *rookMoves[64];//key, moves bitboard 

@@ -1,6 +1,24 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+#include "../Search/Magic/magic.h"
+#include "../Search/movegen.h"
+#include "../Search/search.h"
+#include "../Search/eval.h"
+#include "print.h"
 #include "ui.h"
 
-ConsoleState consoleState;
+typedef struct ConsoleState ConsoleState;
+struct ConsoleState {
+  printSettings settings;
+  MoveStack history;
+  char lastInput[INPUT_MAX_LEN];
+  bool printBoard;
+  Board *boardptr;
+};
+static ConsoleState consoleState;
 
 MoveStack createMoveStack(){
   MoveStack ms;
@@ -22,6 +40,17 @@ bool moveStackEmpty(MoveStack ms){
   if(ms.top == -1) return true;
   return false;
 }
+
+//function prototypes so runConsoleInterface can be at the top of the file
+void showHelpMenu();
+void displaySettings();
+void whosTurnIsIt();
+void makeMoveFromConsole();
+void undoLastMove();
+void makeRandomMove();
+void printLegalMoves();
+void makeBestMove(Board *boardptr);
+void showDebugView();
 
 void getNextInput() {
   printf(">>");
@@ -114,7 +143,7 @@ void whosTurnIsIt(){
 }
 
 void makeRandomMove(){
-  MoveList legalMoves;
+  struct MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
   if(legalMoves.end <= 0) {
     printf("No legal moves\n");
@@ -129,7 +158,7 @@ void makeRandomMove(){
 }
 
 void printLegalMoves(){
-  MoveList legalMoves;
+  struct MoveList legalMoves;
   generateMoves(consoleState.boardptr, &legalMoves);
   printf("%i moves printed\n", legalMoves.end);
   for (int i = 0; i < legalMoves.end; i++) {

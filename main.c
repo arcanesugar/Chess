@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "Board/board.h"
 #include "ui/ui.h"
+#include "Search/movegen.h"
+#include "Search/Magic/magic.h"
 
 int main() {
   printf("[creating board...]\n");

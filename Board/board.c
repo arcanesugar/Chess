@@ -1,6 +1,12 @@
 #include "board.h"
+
+#include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
+
+#include "Bitboards/bitboard.h"
 #include "../types.h"
+
 u64 rankMasks[8];
 u64 fileMasks[8];
 

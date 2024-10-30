@@ -1,5 +1,12 @@
 #include "search.h"
+
+#include <stdio.h>
 #include <time.h>
+
+#include "../types.h"
+#include "movegen.h"
+#include "eval.h"
+
 
 #define N_INF -9999999
 #define INF    9999999 

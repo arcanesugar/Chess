@@ -1,11 +1,7 @@
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <pthread.h>
+
 #include "../../types.h"
-#include "../../Board/board.h"
 
 struct Magic{
   u64 magic;

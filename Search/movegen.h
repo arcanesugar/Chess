@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Board/board.h"
-#include "Magic/magic.h"
 
 typedef struct MoveList MoveList;
 

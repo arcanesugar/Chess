@@ -1,4 +1,7 @@
 #include "print.h"
+#include <stdio.h>
+#include <string.h>
+#include "../Board/Bitboards/bitboard.h"
 
 void setLightColor(printSettings *settings, const char *colorID){
   settings->lightColor[0] = 0;
