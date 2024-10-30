@@ -3,7 +3,6 @@
 #include <string.h>
 #include <limits.h>
 #include <pthread.h>
-#include <unordered_set>
 #include "../../types.h"
 #include "../../Board/board.h"
 
