@@ -1,7 +1,4 @@
 #pragma once
-#ifdef __cplusplus
-extern "C"{
-#endif
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -56,6 +53,3 @@ bool validateBoard(Board board);
 
 void makeMove(Board *board, Move *m);
 void unmakeMove(Board *board, Move *m);
-#ifdef __cplusplus
-}
-#endif

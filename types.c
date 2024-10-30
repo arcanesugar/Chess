@@ -42,7 +42,7 @@ byte getEnPassanTarget(Move *move){return (move->unmakeData & EN_PASSAN_TARGET_M
 byte getCastlingRights(Move *move){return (move->unmakeData & CASTLING_RIGHTS_MASK)>>2;}
 byte getCapturedPiece(Move *move) {return move->unmakeData>>12;}
 
-void resetUnmakeData(Move *move){move->unmakeData = (unsigned short)0;}
+void resetUnmakeData(Move *move){move->unmakeData = 0;}
 Move createNullMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
 Move createEmptyMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
 bool isNullMove(Move* move){return !(move->move|move->unmakeData);}

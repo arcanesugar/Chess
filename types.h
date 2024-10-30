@@ -1,14 +1,10 @@
 #pragma once
 typedef unsigned long long u64;
 typedef unsigned char byte;
-#ifdef __cplusplus
-extern "C"{
-#endif
-#ifndef __cplusplus
+
 typedef char bool;
-#define true 1;
-#define false 0;
-#endif
+#define true 1
+#define false 0
 
 typedef unsigned long long u64;
 void strcatchar(char *string, char c);
@@ -73,8 +69,3 @@ struct MoveList{
 struct MoveList createMoveList();
 void moveListAppend(struct MoveList *ml, Move m);
 void moveListRemove(struct MoveList *ml, byte index);//very slow
-
-//functions to treat MoveList like a stack
-#ifdef __cplusplus
-}
-#endif

@@ -1,8 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C"{
-#endif
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
@@ -18,6 +15,3 @@ u64 perftTest(Board *b, int depth, bool root);
 void runMoveGenerationTest(Board *board);
 void runMoveGenerationSuite();
 Move search(Board b, int depth);
-#ifdef __cplusplus
-}
-#endif

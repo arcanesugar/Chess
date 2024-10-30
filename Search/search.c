@@ -53,6 +53,7 @@ Move search(Board b, int depth){
   }
   return bestMove;
 }
+
 u64 perftTest(Board *b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
@@ -75,7 +76,7 @@ u64 perftTest(Board *b, int depth, bool root){
 void runMoveGenerationTest(Board *board){
   for(int i = 1; i<5; i++){
     printf("Depth: %i\n", i);
-    u64 found = perftTest(board,i,1);
+    u64 found = perftTest(board,i,true);
     printf("Found: %llu\n\n", found);
   }
 }
@@ -118,7 +119,7 @@ void runMoveGenerationSuite(){
   Board board;
   for(int i = 0; i<8; i++){
     board = boardFromFEN(positions[i]);
-    u64 found = perftTest(&board,depths[i],0);
+    u64 found = perftTest(&board,depths[i],false);
     sum += found;
     printf("Depth: %i Found: ",depths[i]);
     if(found != expected[i]){

@@ -1,7 +1,5 @@
 #pragma once
-#ifdef __cplusplus
-extern "C"{
-#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -45,6 +43,3 @@ void generateRookMasks();
 void generateBishopMasks();
 void fillRookMoves();
 void fillBishopMoves();
-#ifdef __cplusplus
-}
-#endif

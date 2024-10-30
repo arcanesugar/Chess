@@ -1,8 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C"{
-#endif
 #include "../Board/board.h"
 #include "Magic/magic.h"
 
@@ -10,7 +7,6 @@ typedef struct MoveList MoveList;
 
 extern u64 knightMoves[64];
 extern u64 kingMoves[64];
-
 
 //initialisation functions
 void createKnightTable();//fills the knight moves array, does not do actual move generation
@@ -35,7 +31,3 @@ void filterLegalMoves(Board *board, MoveList *moves);
 void initMoveGenerator();
 void cleanupMoveGenerator();
 void generateMoves(Board *board, MoveList *moves);
-
-#ifdef __cplusplus
-}
-#endif
