@@ -1,4 +1,7 @@
 #pragma once
+#ifdef __cplusplus
+extern "C"{
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -11,6 +14,7 @@ struct Magic{
   int shift;
   int max;
 };
+typedef struct Magic Magic;
 
 //the actual magic numbers
 extern Magic rookMagics[64];
@@ -34,7 +38,6 @@ u64 bishopLookup(u64 blockers, byte bishopSquare);
 //generating magic numbers
 
 void searchForMagics();
-void magicSearch();
 void generateRookBlockers();
 void generateBishopBlockers();
 
@@ -42,3 +45,6 @@ void generateRookMasks();
 void generateBishopMasks();
 void fillRookMoves();
 void fillBishopMoves();
+#ifdef __cplusplus
+}
+#endif
