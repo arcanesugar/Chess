@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../Core/bitboard.h"
+#include "../Search/eval.h"
 
 void setLightColor(printSettings *settings, const char *colorID){
   settings->lightColor[0] = 0;
@@ -100,3 +101,20 @@ void printMoveOnBoard(printSettings settings, Board board, Move m){
 void printBitboardOnBoard(printSettings settings,Board board,u64 bb){
   printBoard(settings, board, bb);
 };
+
+void printPsqt(printSettings settings){
+  for(int piece = 0; piece<6; piece++){
+    printf("Piece: %s\n", settings.pieceCharacters[piece]);
+    for(int file = 7; file>=0; file--){
+      for(int rank = 7; rank>=0; rank--){
+        int val = pieceSquareTables[piece][getSquareIndex(file,rank)];
+        val = val/10;
+        if(val>=100){ printf("%d ",val); continue;}
+        if(val>=10){ printf(" %d ",val); continue;}
+        printf("  %d ",val);
+      }
+      printf("\n");
+    }
+    printf("\n");
+  }
+}

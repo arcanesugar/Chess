@@ -45,8 +45,21 @@ void initpsqt(){
     1,1,2,3,3,2,1,1,
     1,1,2,2,2,2,1,1,
     1,1,1,1,1,1,1,1,
-    1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1
   };
+  int pawnTable[64] = {
+    0,0,0,0,0,0,0,0,//a pawn will never actually reach these squares because they get promoted
+    9,9,9,9,9,9,9,9,
+    0,0,0,0,0,0,0,0,
+    0,0,0,1,1,0,0,0,
+    0,0,0,2,2,0,0,0,
+    1,0,0,1,1,0,0,1,//letting the pawn move up a square helps not suffocate the king, so this is probably a good idea
+    1,1,1,0,0,1,1,1,
+    0,0,0,0,0,0,0,0
+  };
+  for(int i = 0; i<64; i++){
+    pieceSquareTables[PAWN][i] += pawnTable[63-i]*10;//64-i makes the squares actually correct
+  }
   u64 queenMasks[64];
   for(int square = 0; square<64; square++) queenMasks[square] = bishopMasks[square] | rookMasks[square];
 
@@ -55,16 +68,14 @@ void initpsqt(){
   psqtMobility(pieceSquareTables[BISHOP], bishopMasks, objSquareVal, mobilityValue);
   psqtMobility(pieceSquareTables[ROOK], rookMasks, objSquareVal, mobilityValue);
   psqtMobility(pieceSquareTables[QUEEN], queenMasks, objSquareVal, mobilityValue);
-
-  psqtMobility(pieceSquareTables[BLACK+KNIGHT], knightMoves, objSquareVal, mobilityValue);
-  psqtMobility(pieceSquareTables[BLACK+BISHOP], bishopMasks, objSquareVal, mobilityValue);
-  psqtMobility(pieceSquareTables[BLACK+ROOK], rookMasks, objSquareVal, mobilityValue);
-  psqtMobility(pieceSquareTables[BLACK+QUEEN], queenMasks, objSquareVal, mobilityValue); 
-
-  //make black piece square tables negative
+  
+  //Create black peice square tables by negating the white ones and flipping them over the y axis;
   for(int piece = 6; piece<12; piece++){
     for(int square = 0; square<64; square++){
-      pieceSquareTables[piece][square] = -pieceSquareTables[piece][square];
+      int sx = square%8;
+      int sy = square/8;
+      sy = 8-sy;
+      pieceSquareTables[piece][(sy*8)+sx] = -pieceSquareTables[piece-BLACK][square];
     }
   }
 }

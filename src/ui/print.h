@@ -17,6 +17,7 @@ void setDarkColor(printSettings *settings, const char *colorID);
 void setUnicodePieces(printSettings *settings);
 void setASCIIPieces(printSettings *settings);
 
+void printPsqt(printSettings settings);
 void printBoard(printSettings settings, Board board, u64 highlighted);
 void printMoveOnBoard(printSettings settings, Board board, Move m);
 void printBitboardOnBoard(printSettings settings,Board board,u64 bb);

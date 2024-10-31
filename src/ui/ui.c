@@ -88,6 +88,7 @@ void runConsoleInterface(Board *boardptr){
     if(strcmp(consoleState.lastInput, "mgs") == 0) {runMoveGenerationSuite(); continue;}
     if(strcmp(consoleState.lastInput, "und") == 0) {undoLastMove();  continue;}
     if(strcmp(consoleState.lastInput, "dbg") == 0) {showDebugView(); continue;}
+    if(strcmp(consoleState.lastInput, "psq") == 0) {printPsqt(consoleState.settings); continue;}
     if(strcmp(consoleState.lastInput, "q") == 0) quit = true;
 
 
