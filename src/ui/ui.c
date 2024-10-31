@@ -116,6 +116,10 @@ void showHelpMenu(){
 
 void makeBestMove(Board *boardptr){
   Move best = search(*boardptr, 2);
+  if(isNullMove(&best)){
+    printf("No legal moves(Checkmate)\n");
+    return;
+  }
   makeMove(boardptr,&best);
   moveStackPush(&consoleState.history,best);
   consoleState.printBoard = false;

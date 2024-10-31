@@ -40,7 +40,7 @@ Move search(Board b, int depth){
   generateMoves(&b, &ml);
   bool maximiser = b.flags&WHITE_TO_MOVE_BIT;
   double bestEval = (maximiser) ? N_INF : INF;
-  Move bestMove;
+  Move bestMove = createNullMove();
   for(int i = 0; i<ml.end; i++){
     makeMove(&b, &ml.moves[i]);
     double eval = minimax(&b,depth-1,!maximiser);
