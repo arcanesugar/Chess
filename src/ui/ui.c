@@ -102,10 +102,10 @@ void showHelpMenu(){
   printf("  rnd - Random move\n");
   printf("  und - Undo last move\n");
   printf("  trn - Who's turn is it\n");
-  printf("  lgl - list legal moves\n");
+  printf("  lgl - List legal moves\n");
   printf("  dsp - Display settings\n");
-  printf("  hlp/help - Show this list\n");
-  printf("  q - Quit\n");
+  printf("  hlp - Show this list\n");
+  printf("  q   - Quit\n");
 
   printf("\n---Debug commands---\n");
   printf("  dbg - Debug View\n");
