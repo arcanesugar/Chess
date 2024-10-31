@@ -1,4 +1,4 @@
-A c++ chess program that runs in the console
+A c chess program that runs in the console
 
 ## UI
 A list of commands can be accessed with "hlp" or "help"\
@@ -9,8 +9,20 @@ When no command is entered, the last is repeated
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
 UCI is not supported yet
 
+## TODO
+Refactor ui code
+
 ## Changelog
 - search
+    - C-migration
+        - reorganised project files
+        - cleaned up headers
+        - greatly improved magic number search
+        - added move.h/move.c
+        - added types.h/move.c
+        - added movePiece function
+        - removed all standard library dependencies
+        - moved everything out of classes
     - added bst command (plays the "best" move)
     - added minimax search
     - added evl command (shows the evaluation)

@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include <stdlib.h>
 
 u64 signedShift(u64 bb, int s){//positive = left shift
   if(s>0){
@@ -7,14 +8,14 @@ u64 signedShift(u64 bb, int s){//positive = left shift
   return bb>>abs(s);
 }
 
-bool getBit(u64 bb, int index){
+char getBit(u64 bb, int index){
   return (bb>>index) & (u64)1;
 };
-void setBit(u64 &bb, int index){
-  bb |= (u64)1<<index;
+void setBit(u64 *bb, int index){
+  *bb |= (u64)1<<index;
 };
-void resetBit(u64 &bb, int index){
-  bb &= ~((u64)1<<index);
+void resetBit(u64 *bb, int index){
+  *bb &= ~((u64)1<<index);
 };
 
 const int index64[64] = {
@@ -36,21 +37,20 @@ const int index64[64] = {
  * @return index (0..63) of least significant one bit
  */
 int bitScanForward(u64 bb) {
-  if(bb == 0) return -1;
   const u64 debruijn64 = 0x03f79d71b4cb0a89;
   return index64[((bb ^ (bb-1)) * debruijn64) >> 58];
 }
 
-int popls1b(u64 &bb){
-  int index = bitScanForward(bb);
-  if(index == -1) std::cout<<"Cannot pop from empty bitboard"<<std::endl;
+int popls1b(u64 *bb){
+  int index = bitScanForward(*bb);
+  if(index == -1) printf("Cannot pop from empty bitboard");
   resetBit(bb,index);
   return index;
 }
 int bitcount(u64 bb){
   int count = 0;
   while(bb){
-    popls1b(bb);
+    popls1b(&bb);
     count++;
   }
   return count;

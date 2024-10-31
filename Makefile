@@ -1,16 +1,31 @@
-all: main
+CC:=clang
+CCFLAGS:=-Wall -Werror -MMD -MP
+BINNAME:=main
+SRCDIR:=src
 
-CXX = clang++
-override CXXFLAGS += -g -Wall -Werror
+SRC:=$(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*/*.c)
 
-SRCS = $(shell find . -name '.ccls-cache' -type d -prune -o -type f -name '*.cpp' -print | sed -e 's/ /\\ /g')
-HEADERS = $(shell find . -name '.ccls-cache' -type d -prune -o -type f -name '*.h' -print)
+OBJ:=$(SRC:.c=.o)
 
-main: $(SRCS) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o "$@"
+DEP:=$(SRC:.c=.d)
 
-main-debug: $(SRCS) $(HEADERS)
-	NIX_HARDENING_ENABLE= $(CXX) $(CXXFLAGS) -O0  $(SRCS) -o "$@"
+# $@ = name of the current target
+# @^ = current targets dependencies
+# $@:$^
+# adding a build directory is probobly a good idea
+
+all:$(BINNAME)
+
+
+$(BINNAME):$(OBJ)
+	$(CC) $(CCFLAGS) -o $@ $(OBJ) -lm
+
+%.o:%.c Makefile
+	$(CC) $(CCFLAGS) -c -o $@ $<
+
+-include $(DEP)
 
 clean:
-	rm -f main main-debug
+	@rm -f $(OBJ)
+	@rm -f $(DEP)
+	@rm -f $(BINNAME)
