@@ -11,6 +11,7 @@ UCI is not supported yet
 
 ## TODO
 Refactor ui code
+Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a magic)
 
 ## Changelog
 - search
