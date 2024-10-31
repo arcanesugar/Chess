@@ -12,7 +12,7 @@ void psqtMobility(int *psqt, u64 *moveMasks, int *squareValues, int value){
   int maxBonus = 0;
   for(int square = 0; square<64; square++){
     u64 mask = moveMasks[square];
-    int bonus = 0;
+    int bonus = squareValues[square];
     while(mask){
       bonus+=squareValues[popls1b(&mask)];
     }
@@ -51,10 +51,10 @@ void initpsqt(){
     0,0,0,0,0,0,0,0,//a pawn will never actually reach these squares because they get promoted
     9,9,9,9,9,9,9,9,
     0,0,0,0,0,0,0,0,
-    0,0,0,1,1,0,0,0,
-    0,0,0,2,2,0,0,0,
-    1,0,0,1,1,0,0,1,//letting the pawn move up a square helps not suffocate the king, so this is probably a good idea
-    1,1,1,0,0,1,1,1,
+    0,0,0,4,4,0,0,0,
+    0,0,0,5,5,0,0,0,
+    3,0,0,1,1,0,0,3,//letting the pawn move up a square helps not suffocate the king, so this is probably a good idea
+    3,3,3,-1,-1,3,3,3,
     0,0,0,0,0,0,0,0
   };
   for(int i = 0; i<64; i++){
