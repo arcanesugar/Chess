@@ -275,14 +275,14 @@ void* magicSearch(void* vargp){
   //calloc initilises everything to 0 which is important
   rookPlayground   = calloc(rookPlaygroundSize,sizeof(playgroundChunk));
   bishopPlayground = calloc(bishopPlaygroundSize,sizeof(playgroundChunk));
-
+  int shiftWiggle = 61;
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) break;
       searchCounter++;
       Magic magic;
       magic.magic = random_u64_fewbits();
-      magic.shift = 61-bitcount(rookMasks[square]); //64-bc would be a perfect magic number, 61 gives wiggle room
+      magic.shift = shiftWiggle-bitcount(rookMasks[square]);
       //using new*Magics[square].max as the playground size means only a better magic will be valid,
       //this does assume that the initial max is within range, which it is
       if(testMagic(
@@ -294,7 +294,7 @@ void* magicSearch(void* vargp){
         newRookMagics[square] = magic;
       }
 
-      magic.shift = 61-bitcount(bishopMasks[square]);
+      magic.shift = shiftWiggle-bitcount(bishopMasks[square]);
       if(testMagic(
         &magic,
         bishopBlockers[square], numBishopBlockers[square],
@@ -320,6 +320,7 @@ void* magicSearch(void* vargp){
         bishopTableSize += newBishopMagics[i].max + 1;
       }
     }
+    if(rookTableSize == 64 && bishopTableSize == 64 && shiftWiggle<64) shiftWiggle++;
     printf("\x1b[3A");
     printf("Press enter to quit search\n");
     printf("Rook magics %i/64 %i KiB\n", foundRook, ((rookTableSize*8)/1000));

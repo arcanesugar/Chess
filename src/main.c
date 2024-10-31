@@ -3,6 +3,7 @@
 #include "ui/ui.h"
 #include "Movegen/movegen.h"
 #include "Movegen/Magic/magic.h"
+#include "Search/eval.h"
 
 int main() {
   printf("[creating board...]\n");
@@ -11,6 +12,7 @@ int main() {
   generateBoardMasks();
   printf("[creating move generator]\n");
   initMoveGenerator();
+  initEval();
   printf("[beginning consoleInterface...]\n");
   runConsoleInterface(&board);
   cleanupMagics();
