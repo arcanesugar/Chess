@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../types.h"
-#include "../move.h"
+#include "types.h"
+#include "move.h"
 
 #define WHITE_TO_MOVE_BIT     0b00000001
 #define WHITE_KINGSIDE_BIT    0b00000010

@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "../types.h"
-#include "movegen.h"
+#include "../Core/types.h"
+#include "../Movegen/movegen.h"
 #include "eval.h"
 
 #define N_INF -9999999

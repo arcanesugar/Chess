@@ -6,8 +6,8 @@
 #include <limits.h>
 #include <pthread.h>
 
-#include "../../Board/Bitboards/bitboard.h"
-#include "../../Board/board.h"
+#include "../../Core/bitboard.h"
+#include "../../Core/board.h"
 
 static Magic rookMagics[64];
 static Magic bishopMagics[64];
@@ -368,7 +368,7 @@ void searchForMagics(){
 };
 
 void saveMagics(){
-  FILE *file = fopen("Search/Magic/magics.txt","w");
+  FILE *file = fopen("magics.txt","w");
   if(file == NULL){
     printf("[error] Could not open magics.txt\n");
     return;
@@ -387,7 +387,7 @@ void saveMagics(){
 };
 
 int loadMagics(){
-  FILE *file = fopen("Search/Magic/magics.txt", "r");
+  FILE *file = fopen("magics.txt", "r");
   if(file == NULL){
     printf("[error] Could not open magics.txt\n");
     return -1;

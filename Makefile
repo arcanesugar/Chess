@@ -1,7 +1,7 @@
 CC:=clang
 CCFLAGS:=-Wall -Werror -MMD -MP
 BINNAME:=main
-SRCDIR:=.
+SRCDIR:=src
 
 SRC:=$(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/*/*.c) $(wildcard $(SRCDIR)/*/*/*.c)
 

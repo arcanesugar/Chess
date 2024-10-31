@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Board/board.h"
+#include "../Core/board.h"
 
 #define INPUT_MAX_LEN 256
 

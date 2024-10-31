@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "Bitboards/bitboard.h"
-#include "../types.h"
+#include "../Core/bitboard.h"
+#include "../Core/types.h"
 
 u64 rankMasks[8];
 u64 fileMasks[8];

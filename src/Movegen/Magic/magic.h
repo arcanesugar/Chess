@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../types.h"
+#include "../../Core/types.h"
 
 struct Magic{
   u64 magic;

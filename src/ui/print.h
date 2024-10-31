@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Board/board.h"
-#include "../types.h"
+#include "../Core/board.h"
+#include "../Core/types.h"
 
 struct printSettings{
   char pieceCharacters[14][6];

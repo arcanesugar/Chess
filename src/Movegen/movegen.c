@@ -1,7 +1,7 @@
 #include "movegen.h"
 
 #include "Magic/magic.h"
-#include "../Board/Bitboards/bitboard.h"
+#include "../Core/bitboard.h"
 
 u64 knightMoves[64];
 u64 kingMoves[64];

@@ -3,8 +3,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "../Search/Magic/magic.h"
-#include "../Search/movegen.h"
+#include "../Movegen/Magic/magic.h"
+#include "../Movegen/movegen.h"
 #include "../Search/search.h"
 #include "../Search/eval.h"
 #include "print.h"

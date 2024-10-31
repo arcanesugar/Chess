@@ -1,5 +1,5 @@
 #pragma once
 
-#include "../Board/board.h"
+#include "../Core/board.h"
 
 double evaluate(Board *board);

@@ -1,7 +1,7 @@
 #include "eval.h"
 
-#include "../types.h"
-#include "../Board/Bitboards/bitboard.h"
+#include "../Core/types.h"
+#include "../Core/bitboard.h"
 
 double material(Board *board){
   double material = 0.0;
