@@ -9,9 +9,13 @@ When no command is entered, the last is repeated
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
 UCI is not supported yet
 
+## TODO
+Refactor ui code
+
 ## Changelog
 - search
     - C-migration
+        - reorganised project files
         - cleaned up headers
         - greatly improved magic number search
         - added move.h/move.c
