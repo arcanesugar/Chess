@@ -14,7 +14,10 @@ Refactor ui code
 
 ## Changelog
 - search
-    - C-migration
+    - Added psq debug command
+    - Added mobility bonus
+    - Added piece square tables
+    - C-migration (merged 10/30/24)
         - reorganised project files
         - cleaned up headers
         - greatly improved magic number search

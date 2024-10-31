@@ -109,6 +109,7 @@ void showHelpMenu(){
 
   printf("\n---Debug commands---\n");
   printf("  dbg - Debug View\n");
+  printf("  psq - Show piece square tables\n");
   printf("  evl - Show positions evaluation\n");
   printf("  sch - Search for magic numbers\n");
   printf("  tst - Run move generation test on current position\n");

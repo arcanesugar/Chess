@@ -103,17 +103,29 @@ void printBitboardOnBoard(printSettings settings,Board board,u64 bb){
 };
 
 void printPsqt(printSettings settings){
+  for(int piece = 6; piece<12; piece++){
+    printf("Piece: %s\n", settings.pieceCharacters[piece]);
+    for(int file = 7; file>=0; file--){
+      for(int rank = 7; rank>=0; rank--){
+        double val = pieceSquareTables[piece][getSquareIndex(file,rank)];
+        val = val/100;
+        if(val>=10){printf("%.1f ",val);continue;}
+        printf("%.1f  ",val);
+      }
+      printf("\n\n\n");
+    }
+    printf("\n");
+  }
   for(int piece = 0; piece<6; piece++){
     printf("Piece: %s\n", settings.pieceCharacters[piece]);
     for(int file = 7; file>=0; file--){
       for(int rank = 7; rank>=0; rank--){
-        int val = pieceSquareTables[piece][getSquareIndex(file,rank)];
-        val = val/10;
-        if(val>=100){ printf("%d ",val); continue;}
-        if(val>=10){ printf(" %d ",val); continue;}
-        printf("  %d ",val);
+        double val = pieceSquareTables[piece][getSquareIndex(file,rank)];
+        val = val/100;
+        if(val>=10){printf("%.1f ",val);continue;}
+        printf("%.1f  ",val);
       }
-      printf("\n");
+      printf("\n\n\n");
     }
     printf("\n");
   }

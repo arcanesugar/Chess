@@ -74,7 +74,7 @@ void initpsqt(){
     for(int square = 0; square<64; square++){
       int sx = square%8;
       int sy = square/8;
-      sy = 8-sy;
+      sy = 7-sy;
       pieceSquareTables[piece][(sy*8)+sx] = -pieceSquareTables[piece-BLACK][square];
     }
   }
