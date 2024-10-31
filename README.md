@@ -14,6 +14,7 @@ Refactor ui code
 
 ## Changelog
 - search
+    - switched to nmax search
     - Added psq debug command
     - Added mobility bonus
     - Added piece square tables

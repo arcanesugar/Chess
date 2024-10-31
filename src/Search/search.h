@@ -2,7 +2,7 @@
 
 #include "../Core/board.h"
 
-double minimax(Board *b, int depth, bool maximiser);
+int nmax(Board *b, int depth);
 Move search(Board b, int depth);//search uses minimax but returns a move instead of an evaluation
 
 //testing

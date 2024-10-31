@@ -99,5 +99,6 @@ double psqt(Board *board){
 double evaluate(Board *board){
   double evaluation = 0.0;
   evaluation += psqt(board);
-  return evaluation;
+  if(board->flags&WHITE_TO_MOVE_BIT) return evaluation;
+  return -evaluation;
 }

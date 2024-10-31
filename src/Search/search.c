@@ -2,60 +2,48 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <limits.h>
 
 #include "../Core/types.h"
 #include "../Movegen/movegen.h"
 #include "eval.h"
 
-#define N_INF -9999999
-#define INF    9999999 
+#define N_INF INT_MIN
+#define INF   INT_MAX 
 
-double minimax(Board *b, int depth, bool maximiser){
+int nmax(Board *b, int depth){
   if(depth == 0) return evaluate(b);
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
-  if(ml.end == 0) return (maximiser) ? N_INF : INF;//checkmate is the worst possible outcome (for the side whos turn it is)
-
-  double bestEval = (maximiser) ? N_INF : INF;
+  if(ml.end == 0) return N_INF;//checkmate is the worst possible outcome (for the side whos turn it is)
+  
+  double bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
     makeMove(b,&ml.moves[i]);
-    double eval = minimax(b,depth-1,!maximiser);
-    if(maximiser){
-      if(eval>bestEval){
-        bestEval = eval;
-      }
-    }else{
-      if(eval<bestEval){
-        bestEval = eval;
-      }
+    double eval = -nmax(b,depth-1);//a move that is good for the opponent is equally bad for us
+    if(eval>bestEval){
+      bestEval = eval;
     }
     unmakeMove(b,&ml.moves[i]);
   }
-  
   return bestEval;
 }
 
 Move search(Board b, int depth){
+  Move bestMove = createNullMove();
   MoveList ml = createMoveList();
   generateMoves(&b, &ml);
-  bool maximiser = b.flags&WHITE_TO_MOVE_BIT;
-  double bestEval = (maximiser) ? N_INF : INF;
-  Move bestMove = createNullMove();
+  if(ml.end == 0) return bestMove;//checkmate is the worst possible outcome (for the side whos turn it is)
+  
+  double bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
-    makeMove(&b, &ml.moves[i]);
-    double eval = minimax(&b,depth-1,!maximiser);
-    if(maximiser){
-      if(eval>bestEval){
-        bestEval = eval;
-        bestMove = ml.moves[i];
-      }
-    }else{
-      if(eval<bestEval){
-        bestEval = eval;
-        bestMove = ml.moves[i];
-      }
+    makeMove(&b,&ml.moves[i]);
+    double eval = -nmax(&b,depth-1);//a move that is good for the opponent is equally bad for us
+    if(eval>bestEval){
+      bestEval = eval;
+      bestMove = ml.moves[i];
     }
-    unmakeMove(&b, &ml.moves[i]);
+    unmakeMove(&b,&ml.moves[i]);
   }
   return bestMove;
 }
