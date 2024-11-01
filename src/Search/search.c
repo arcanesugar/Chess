@@ -8,43 +8,52 @@
 #include "../Movegen/movegen.h"
 #include "eval.h"
 
-#define N_INF INT_MIN
+//because -INF must equal N_INF, INT MIN cannot be used
+//(-INT_MIN >INT_MAX so it overflows)
 #define INF   INT_MAX 
+#define N_INF -INF
 
-int nmax(Board *b, int depth){
-  if(depth == 0) return evaluate(b);
+static int nodesSearched = 0;
+
+int nmax(Board *b, int depth, int alpha){
+  if(depth == 0){nodesSearched++; return evaluate(b);}
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
-  if(ml.end == 0) return N_INF;//checkmate is the worst possible outcome (for the side whos turn it is)
-  
-  double bestEval = N_INF;
+  if(ml.end == 0){ nodesSearched++; return N_INF;}//checkmate is the worst possible outcome (for the side whos turn it is)
+  int bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
     makeMove(b,&ml.moves[i]);
-    double eval = -nmax(b,depth-1);//a move that is good for the opponent is equally bad for us
+    int eval = -nmax(b,depth-1,-bestEval);//a move that is good for the opponent is equally bad for us
+    unmakeMove(b,&ml.moves[i]);
     if(eval>bestEval){
       bestEval = eval;
     }
-    unmakeMove(b,&ml.moves[i]);
+    if(eval>alpha){
+      //if this position is better for us than the best position from the parent loop, it will not get picked
+      break;
+    }
   }
   return bestEval;
 }
 
 Move search(Board b, int depth){
+  nodesSearched = 0;
   Move bestMove = createNullMove();
   MoveList ml = createMoveList();
   generateMoves(&b, &ml);
   if(ml.end == 0) return bestMove;//checkmate is the worst possible outcome (for the side whos turn it is)
   
-  double bestEval = N_INF;
+  int bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
     makeMove(&b,&ml.moves[i]);
-    double eval = -nmax(&b,depth-1);//a move that is good for the opponent is equally bad for us
+    int eval = -nmax(&b,depth-1, -bestEval);//a move that is good for the opponent is equally bad for us
+    unmakeMove(&b,&ml.moves[i]);
     if(eval>bestEval){
       bestEval = eval;
       bestMove = ml.moves[i];
     }
-    unmakeMove(&b,&ml.moves[i]);
   }
+  printf("%d",nodesSearched);
   return bestMove;
 }
 

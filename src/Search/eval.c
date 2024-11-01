@@ -31,7 +31,7 @@ void initpsqt(){
     500,//Rook
     900 //Queen
   };
-  int mobilityValue = 100;
+  int mobilityValue = 0;
   for(int piece = 0; piece<12; piece++){
     for(int square = 0; square<64; square++){
       pieceSquareTables[piece][square] = pieceValues[piece%6];
