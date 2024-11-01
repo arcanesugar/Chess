@@ -14,7 +14,8 @@ Refactor ui code
 Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a magic)
 
 ## Changelog
-- search
+- search (merged 11/1/24)
+    - added basic pruning
     - switched to nmax search
     - Added psq debug command
     - Added mobility bonus
