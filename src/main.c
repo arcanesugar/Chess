@@ -1,20 +1,6 @@
-#include <stdio.h>
-#include "Core/board.h"
 #include "ui/ui.h"
-#include "Movegen/movegen.h"
-#include "Movegen/Magic/magic.h"
-#include "Search/eval.h"
 
 int main() {
-  printf("[creating board...]\n");
-  char fen[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  Board board = boardFromFEN(fen);
-  generateBoardMasks();
-  printf("[creating move generator]\n");
-  initMoveGenerator();
-  initEval();
-  printf("[beginning consoleInterface...]\n");
-  runConsoleInterface(&board);
-  cleanupMagics();
+  runConsoleInterface("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   return 0;
 }

@@ -61,7 +61,7 @@ bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
   return true;
 }
 
-Board boardFromFEN(char *fen){
+Board boardFromFEN(const char *fen){
   Board board;
   char parsed[6][100];
   int index = 0;
