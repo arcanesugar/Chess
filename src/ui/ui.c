@@ -72,7 +72,7 @@ void cleanupEngine(){
   cleanupMagics();
 }
 void runConsoleInterface(const char* fen){
-  printf("[creating board]");
+  printf("[creating board]\n");
   Board board = boardFromFEN(fen);
   setUnicodePieces(&consoleState.settings);
   setLightColor(&consoleState.settings, "47");
