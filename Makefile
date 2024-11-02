@@ -12,7 +12,7 @@ DEP:=$(SRC:.c=.d)
 # $@:$^
 # .PHONY means the rule does not refer to a file
 
-all:cli
+all:uci
 
 .PHONY: cli
 cli:CFLAGS += -D CLI

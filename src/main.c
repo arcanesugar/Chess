@@ -8,11 +8,10 @@ int main() {
 #endif
 
 #ifdef UCI
-#include <stdio.h>
 #include "UCI/uci.h"
 
 int main() {
-  printf("UCI mode\n");
+  runUCI();
   return 0;
 }
 #endif
