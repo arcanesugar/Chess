@@ -6,16 +6,16 @@
 #include "../Core/types.h"
 
 #define maxTokens 20//maybe enough
-struct TokenisedString{
+struct TokenizedString{
   char* string;
   int numTokens;
   int tokenStart[maxTokens];
   int tokenEnd[maxTokens];
 };
-typedef struct TokenisedString TokenisedString;
+typedef struct TokenizedString TokenizedString;
 
-TokenisedString tokenise(char* string){
-  TokenisedString ts;
+TokenizedString tokenise(char* string){
+  TokenizedString ts;
   ts.string = string;
   bool waitingForTokenStart = true;
   bool creatingToken = false;
@@ -41,7 +41,7 @@ TokenisedString tokenise(char* string){
   }
   return ts;
 }
-void getToken(TokenisedString ts, int token, char* target){
+void getToken(TokenizedString ts, int token, char* target){
   if(token>ts.numTokens){
     printf("token index out of range");
   }
@@ -56,7 +56,7 @@ void getToken(TokenisedString ts, int token, char* target){
 }
 void runUCI(){
   char* testString = "word1 word2  word3    word4           word5";
-  TokenisedString ts = tokenise(testString);
+  TokenizedString ts = tokenise(testString);
   for(int i = 0; i<ts.numTokens; i++){
     char token[255];
     getToken(ts,i,token);
