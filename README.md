@@ -14,6 +14,9 @@ Refactor ui code
 Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a magic)
 
 ## Changelog
+- UCI
+    - added String struct for i/o
+    - added more make build options
 - search (merged 11/1/24)
     - added basic pruning
     - switched to nmax search
