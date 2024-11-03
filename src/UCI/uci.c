@@ -15,8 +15,9 @@ typedef struct String String;
 
 void resizeString(String *str, int newCapacity){
   str->buf = realloc(str->buf,newCapacity+1);
-  str->size = newCapacity+1;
+  str->size = sizeof(char)*(newCapacity+1);
   str->capacity = newCapacity;
+  str->buf[str->capacity] = '\0';//just in case
 }
 
 int stringLen(String *str){
@@ -64,9 +65,8 @@ char stringGetChar(String *str, int index){
 
 String createString(){
   String str;
-  str.buf = malloc(sizeof(char)*8);
-  str.size = sizeof(char)*8;
-  str.capacity = str.size-1;
+  str.buf = NULL;
+  resizeString(&str,8);
   stringSet(&str,"");
   return str;
 };
@@ -91,6 +91,7 @@ void runUCI(){
   while(!quit){
     stringFromStdin(&testString);
     stringSetChar(&testString,7,'l');
+    printf("%d;%s\n",testString.capacity, testString.buf);
     if(stringEqual(&testString,"quit")){
       quit = true;
     }
