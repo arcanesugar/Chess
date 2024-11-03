@@ -75,25 +75,44 @@ void destroyString(String *str){
   free(str->buf);
 }
 
+#define MAX_TOKENS 50
 struct TokenList{
-  String tokens[50];
+  String tokens[MAX_TOKENS];
   int len;
 };
 typedef struct TokenList TokenList;
 
-void createTokenList(String *source, TokenList *tl){
+void createTokenList(TokenList *tl){
   tl->len = 0;
-  int tokenIndex = 0;
-  tl->tokens[0] = createString();
-  printf("%s",tl->tokens[0].buf);
+  for(int i = 0; i<MAX_TOKENS; i++){
+    tl->tokens[i].buf = NULL;
+  }
+}
+
+void destroyTokenList(TokenList *tl){
+  tl->len = 0;
+  for(int i = 0; i<MAX_TOKENS; i++){
+    destroyString(&tl->tokens[i]);
+  }
+}
+
+void tokeniseString(String *source, TokenList *tl){
+  tl->len = 0;
+  int tokenIndex = -1;
   bool creatingToken = false;
   for(int i = 0; i<stringLen(source); i++){
     char c = stringGetChar(source,i);
-    if(c != ' ') creatingToken = true;
+    if(c != ' ' && creatingToken == false){
+      tokenIndex++;
+      if(tl->tokens[tokenIndex].buf != NULL){
+        stringSet(&tl->tokens[tokenIndex],"");
+      }else{
+        tl->tokens[tokenIndex] = createString();
+      }
+      creatingToken = true;
+    }
     if(creatingToken){
       if(c == ' '){
-        tokenIndex++;
-        tl->tokens[tokenIndex] = createString();
         creatingToken = false;
       }else{
         stringAppendChar(&tl->tokens[tokenIndex],c);
@@ -114,20 +133,25 @@ void stringFromStdin(String *str){
 }
 
 void runUCI(){
-  String testString = createString();
+  String input = createString();
+  TokenList tl;
+  createTokenList(&tl);
   bool quit = false;
   while(!quit){
-    stringFromStdin(&testString);
-    TokenList tl;
-    createTokenList(&testString,&tl);
-    printf("\ntokens:");
-    for(int i = 0; i<tl.len; i++){
-      printf("%s;", tl.tokens[i].buf);
-    }
-    printf("\ntestString:%s\n",testString.buf);
-    if(stringEqual(&testString,"quit")){
+    stringFromStdin(&input);
+    tokeniseString(&input,&tl);
+    if(stringEqual(&tl.tokens[0],"quit")){
       quit = true;
+      continue;
+    }
+    if(stringEqual(&tl.tokens[0],"echo")){
+      if(tl.len<2) {
+        printf("not enough arguments");
+        continue;
+      }
+      printf("%s\n", tl.tokens[1].buf);
     }
   }
-  destroyString(&testString);
+  destroyTokenList(&tl);
+  destroyString(&input);
 }
