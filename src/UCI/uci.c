@@ -1,13 +1,14 @@
 #include "uci.h"
-#include "rstr.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "../Core/types.h"
-
-
+#include "rstr.h"
+#include "../Core/board.h"
+#include "../Search/search.h"
+#include "../ui/print.h"
 
 #define MAX_TOKENS 50
 struct TokenList{
@@ -34,6 +35,7 @@ void tokeniseRstr(rstr *source, TokenList *tl){
   tl->len = 0;
   int tokenIndex = -1;
   bool creatingToken = false;
+  bool inQuotes = false;
   for(int i = 0; i<rstrLen(source); i++){
     char c = rstrGetChar(source,i);
     if(c != ' ' && creatingToken == false){
@@ -46,11 +48,15 @@ void tokeniseRstr(rstr *source, TokenList *tl){
       creatingToken = true;
     }
     if(creatingToken){
-      if(c == ' '){
+      if(c == ' ' && !inQuotes){
         creatingToken = false;
-      }else{
-        rstrAppendChar(&tl->tokens[tokenIndex],c);
+        continue;
       }
+      if(c == '"'){
+        inQuotes = !inQuotes;
+        continue;
+      }
+      rstrAppendChar(&tl->tokens[tokenIndex],c);
     }
   }
   tl->len = tokenIndex+1;
@@ -71,6 +77,7 @@ void runUCI(){
   TokenList tl;
   createTokenList(&tl);
   bool quit = false;
+  Board board;
   while(!quit){
     rstrFromStdin(&input);
     tokeniseRstr(&input,&tl);
@@ -89,6 +96,19 @@ void runUCI(){
     if(rstrEqual(&tl.tokens[0],"isready")){
       printf("readyok\n");
       continue;
+    }
+    if(rstrEqual(&tl.tokens[0],"position")){
+      if(rstrEqual(&tl.tokens[1], "fen")){
+        board = boardFromFEN(tl.tokens[2].buf);
+      }
+      if(rstrEqual(&tl.tokens[1], "startpos")){
+        board = boardFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+      }
+      continue;
+    }
+    if(rstrEqual(&tl.tokens[0],"d")){//stockfish also uses d to display the board
+      printSettings ps = createDefaultPrintSettings();
+      printBoard(ps, board, 0);
     }
     if(rstrEqual(&tl.tokens[0],"echo")){
       if(tl.len<2) {
