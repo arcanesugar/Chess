@@ -5,7 +5,8 @@
 
 #include "../Core/types.h"
 
-#define maxTokens 20//maybe enough
+#define maxTokens 20
+
 struct TokenizedString{
   char* string;
   int numTokens;
@@ -41,6 +42,7 @@ TokenizedString tokenise(char* string){
   }
   return ts;
 }
+
 void getToken(TokenizedString ts, int token, char* target){
   if(token>ts.numTokens){
     printf("token index out of range");
@@ -54,12 +56,28 @@ void getToken(TokenizedString ts, int token, char* target){
   }
   target[targetIndex] = '\0';
 }
+
+#define MAX_INPUT_SIZE 255
 void runUCI(){
-  char* testString = "word1 word2  word3    word4           word5";
-  TokenizedString ts = tokenise(testString);
-  for(int i = 0; i<ts.numTokens; i++){
+  bool quit = false;
+  while(!quit){
+    char input[MAX_INPUT_SIZE+1];
+    fgets(input,MAX_INPUT_SIZE,stdin);
+    if(input[strlen(input)-1] == '\n'){
+      input[strlen(input)-1] = '\0';
+    }else{
+      printf("[error]input does not end with newline");
+    }
+    TokenizedString ts = tokenise(input);
     char token[255];
-    getToken(ts,i,token);
-    printf("%s;\n",token);
+    getToken(ts, 0, token);
+    if(strcmp(token,"quit") == 0){
+      quit = true;
+      continue;
+    }
+    if(strcmp(token,"uci") == 0){
+      printf("uciok\n");
+      continue;
+    }
   }
 }
