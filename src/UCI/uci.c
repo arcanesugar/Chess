@@ -130,12 +130,14 @@ void runUCI(){
       int movesStart = 0;
       if(rstrEqual(&tl.tokens[1], "fen")){
         board = boardFromFEN(tl.tokens[2].buf);
+        if(tl.len == 3) continue;
         if(rstrEqual(&tl.tokens[3], "moves")){
           movesStart = 4;
         }
       }
       if(rstrEqual(&tl.tokens[1], "startpos")){
         board = boardFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        if(tl.len == 2) continue;
         if(rstrEqual(&tl.tokens[2], "moves")){
           movesStart = 3;
         }
