@@ -185,7 +185,7 @@ void printLegalMoves(){
   consoleState.printBoard = false;
 }
 
-byte squareNameToIndex(char *squareName, int startIndex) {
+static byte squareNameToIndex(char *squareName, int startIndex) {
   byte squareIndex =
       ((squareName[startIndex+1] - '0' - 1) * 8) + (7 - (squareName[startIndex] - 'a'));
   return squareIndex;
