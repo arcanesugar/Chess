@@ -5,10 +5,10 @@
 #include <stdlib.h>
 
 #include "../Core/types.h"
-#include "rstr.h"
+#include "../io/rstr.h"
 #include "../Core/board.h"
 #include "../Search/search.h"
-#include "../ui/print.h"
+#include "../io/print.h"
 
 #define MAX_TOKENS 50
 struct TokenList{

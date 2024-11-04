@@ -7,7 +7,7 @@
 #include "../Movegen/movegen.h"
 #include "../Search/search.h"
 #include "../Search/eval.h"
-#include "print.h"
+#include "../io/print.h"
 #include "ui.h"
 
 typedef struct ConsoleState ConsoleState;
