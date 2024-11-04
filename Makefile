@@ -12,15 +12,7 @@ DEP:=$(SRC:.c=.d)
 # $@:$^
 # .PHONY means the rule does not refer to a file
 
-all:uci
-
-.PHONY: cli
-cli:CFLAGS += -D CLI
-cli:$(BINNAME)
-
-.PHONY: uci
-uci:CFLAGS += -D UCI 
-uci:$(BINNAME)
+all:$(BINNAME)
 
 $(BINNAME):$(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) -lm
