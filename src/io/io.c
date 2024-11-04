@@ -4,14 +4,13 @@
 
 bool rstrFromStream(rstr *str, FILE* stream){
   rstrSet(str,"");
-  char buf[8];
-  bool eof = false;
-  while(1){
-    if(fgets(buf,8,stream) == NULL) {eof = true;break;};
+  char buf[8];//read 7 characters at a time
+  bool eof = true;
+  while(fgets(buf,8,stream) != NULL){
     rstrAppend(str,buf);
-    if(buf[strlen(buf)-1] == '\n') break;
+    if(buf[strlen(buf)-1] == '\n') {eof = false; break;}
   }
-  rstrSetChar(str,rstrLen(str)-1,'\0');//remove newline character
+  if(rstrGetChar(str, rstrLen(str)-1) == '\n') rstrSetChar(str,rstrLen(str)-1,'\0');//remove newline character if present
   return eof;
 }
 
