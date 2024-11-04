@@ -43,6 +43,10 @@ void go(TokenList *args){
     printf("searching for %dms\n", movetime);
   }
 }
+void stop(){
+  printf("stopping\n");
+}
+
 void runUCI(){
   rstr input = createRstr();
   TokenList tl;
@@ -55,8 +59,9 @@ void runUCI(){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
     if(tl.len == 0) continue;
-    if(rstrEqual(&tl.tokens[0], "go")) go(&tl);
-    if(rstrEqual(&tl.tokens[0],"quit")){
+    if(rstrEqual(&tl.tokens[0], "go")) {go(&tl); continue;}
+    if(rstrEqual(&tl.tokens[0], "stop")) {stop(); continue;}
+    if(rstrEqual(&tl.tokens[0], "quit")){
       quit = true;
       continue;
     }

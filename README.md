@@ -22,12 +22,15 @@ Supported commands:\
 ## TODO
 Refactor ui code
 Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a magic)
+Add wtime/btime and wint/binc options to go
 
 ## Changelog
 - UCI
-    - added settings.txt
-    - added String struct for i/o
-    - added more make build options
+    - Added i/o folder
+    - Added settings.txt
+    - Added tokenizer
+    - Added String struct for i/o
+      
 - search (merged 11/1/24)
     - added basic pruning
     - switched to nmax search
