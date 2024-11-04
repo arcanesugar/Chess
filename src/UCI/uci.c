@@ -10,7 +10,39 @@
 #include "../io/print.h"
 #include "../io/tokens.h"
 #include "../io/io.h"
-
+void go(TokenList *args){
+  int nextArg = 1;
+  int depth = -1;
+  bool infinite = false;
+  int movetime = -1;
+  while(nextArg<args->len){
+    if(rstrEqual(&args->tokens[nextArg], "depth")){
+      depth = atoi(args->tokens[nextArg+1].buf);
+      nextArg+=2;
+      continue;
+    }
+    if(rstrEqual(&args->tokens[nextArg], "movetime")){
+      movetime = atoi(args->tokens[nextArg+1].buf);
+      nextArg+=2;
+      continue;
+    }
+    if(rstrEqual(&args->tokens[nextArg], "infinite")){
+      infinite = true;
+      nextArg+=1;
+      continue;
+    }
+    nextArg++;
+  }
+  if(depth != -1){
+    printf("searching to depth %d\n", depth);
+  }
+  if(infinite){
+    printf("searching until stop\n");
+  }
+  if(movetime != -1){
+    printf("searching for %dms\n", movetime);
+  }
+}
 void runUCI(){
   rstr input = createRstr();
   TokenList tl;
@@ -23,6 +55,7 @@ void runUCI(){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
     if(tl.len == 0) continue;
+    if(rstrEqual(&tl.tokens[0], "go")) go(&tl);
     if(rstrEqual(&tl.tokens[0],"quit")){
       quit = true;
       continue;
@@ -71,13 +104,6 @@ void runUCI(){
     if(rstrEqual(&tl.tokens[0],"d")){//stockfish also uses d to display the board
       printSettings ps = createDefaultPrintSettings();
       printBoard(ps, board, 0);
-    }
-    if(rstrEqual(&tl.tokens[0],"echo")){
-      if(tl.len<2) {
-        printf("not enough arguments");
-        continue;
-      }
-      printf("%s\n", tl.tokens[1].buf);
     }
   }
   if(initialised){
