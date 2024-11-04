@@ -5,6 +5,8 @@
 #include "../io/rstr.h"
 #include "../Core/board.h"
 #include "../Search/search.h"
+#include "../Search/eval.h"
+#include "../Movegen/movegen.h"
 #include "../io/print.h"
 #include "../io/tokens.h"
 #include "../io/io.h"
@@ -15,6 +17,8 @@ void runUCI(){
   createTokenList(&tl);
   bool quit = false;
   Board board = boardFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  bool initialised = false;
+  
   while(!quit){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
@@ -32,6 +36,11 @@ void runUCI(){
       continue;
     }
     if(rstrEqual(&tl.tokens[0],"isready")){
+      if(!initialised){
+        initialised = true;
+        initEval();
+        initMoveGenerator();   
+      }
       printf("readyok\n");
       continue;
     }
@@ -70,6 +79,10 @@ void runUCI(){
       }
       printf("%s\n", tl.tokens[1].buf);
     }
+  }
+  if(initialised){
+    cleanupMoveGenerator();
+    //eval doesnt need to be cleaned up
   }
   destroyTokenList(&tl);
   destroyRstr(&input);

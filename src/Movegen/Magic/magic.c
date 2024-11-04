@@ -40,16 +40,14 @@ void initMagics(){
     fillRookMoves();
     fillBishopMoves();
   }else{
-    printf("[error] Could not create sliding move tables\n");
+    fprintf(stderr,"[error] Could not create sliding move tables\n");
   }
 }
 void cleanupMagics(){
-  printf("[Deallocating rooks]\n");
   //deallocate memory
   for(int i = 0; i<64; i++){
     free(rookMoves[i]);
   }
-  printf("[Deallocating bishops]\n");
   for(int i = 0; i<64; i++){
     free(bishopMoves[i]);
   }
@@ -72,13 +70,10 @@ u64 bishopLookup(u64 blockers, byte square){
 
 //initialisation
 void fillRookMoves() {
-  int sum = 0;
   for(int i = 0; i<64; i++){
     int size = rookMagics[i].max + 1;
-    sum+=size;
     rookMoves[i] = (u64*)malloc(sizeof(u64)*size);
   }
-  printf("%d KiB required for rooks\n", (sum*8)/1000);
   generateRookBlockers();
   for (int i = 0; i < 64; i++) {
     for (int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++) {
@@ -102,13 +97,10 @@ void fillRookMoves() {
 }
 
 void fillBishopMoves() {
-  int sum = 0;
   for(int i = 0; i<64; i++){
     int size = bishopMagics[i].max + 1;
-    sum += size;
     bishopMoves[i] = (u64*)malloc(sizeof(u64)*size);
   }
-  printf("%d KiB required for bishops\n", (sum*8)/1000);
   generateBishopBlockers();
   for (int i = 0; i < 64; i++) {
     for (int blockerIndex = 0; blockerIndex<numBishopBlockers[i]; blockerIndex++) {
