@@ -2,14 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 
-void rstrFromStdin(rstr *str){
+bool rstrFromStream(rstr *str, FILE* stream){
   rstrSet(str,"");
   char buf[8];
-  while(fgets(buf,8,stdin) != NULL){
+  bool eof = false;
+  while(1){
+    if(fgets(buf,8,stream) == NULL) {eof = true;break;};
     rstrAppend(str,buf);
     if(buf[strlen(buf)-1] == '\n') break;
   }
   rstrSetChar(str,rstrLen(str)-1,'\0');//remove newline character
+  return eof;
 }
 
 static byte squareNameToIndex(char *squareName, int startIndex) {

@@ -10,17 +10,13 @@
 #include "../io/io.h"
 
 void runUCI(){
-  printf("id name "ENGINE_NAME"\n");
-  printf("id author "AUTHOR"\n");
-  printf("uciok\n");
-
   rstr input = createRstr();
   TokenList tl;
   createTokenList(&tl);
   bool quit = false;
   Board board = boardFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   while(!quit){
-    rstrFromStdin(&input);
+    rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
     if(tl.len == 0) continue;
     if(rstrEqual(&tl.tokens[0],"quit")){

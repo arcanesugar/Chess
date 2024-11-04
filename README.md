@@ -7,7 +7,6 @@ Commands are case sensetive\
 When no command is entered, the last is repeated
   
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
-UCI is not supported yet
 
 ## TODO
 Refactor ui code
@@ -15,6 +14,7 @@ Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a 
 
 ## Changelog
 - UCI
+    - added settings.txt
     - added String struct for i/o
     - added more make build options
 - search (merged 11/1/24)

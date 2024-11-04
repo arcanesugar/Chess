@@ -1,17 +1,18 @@
 #include "CLI/ui.h"
 #include "UCI/uci.h"
-#include <stdio.h>
 
-#include "io/io.h"
+#include "settings.h"
 
 int main() {
-  printf("Enter \"uci\" to enter uci, otherwise the engine will start in cli mode\n");
-  rstr in = createRstr();
-  rstrFromStdin(&in);
-  if(rstrEqual(&in,"uci")){
-    runUCI();
-  }else{
-    runConsoleInterface("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  loadSettings();
+  switch(settings.mode){
+    case MODE_UCI:
+      runUCI();
+      break;
+    case MODE_CLI:
+      runConsoleInterface("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+      break;
   }
+
   return 0;
 }
