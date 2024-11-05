@@ -13,12 +13,16 @@
 #include "../io/io.h"
 
 
-enum SEARCH_STATE{
+enum SEARCH_STATES{
   IDLE,
   SEARCHING,
   DONE,
 };
-
+enum SEARCH_MODES{
+  DEPTH,
+  TIMED,
+  INFINITE,
+};
 typedef struct UCIstate{
   Board board;
   int state;
@@ -27,12 +31,29 @@ typedef struct UCIstate{
   int searchState;//should be read only unless you are the search thread
   bool quitSearch;//if set to true the search thread should exit as soon as possible
   Move searchResult;//also readonly unless you are the search thread
+  int searchMode;
+  int searchDepth;
+  int searchTime;
 }UCIstate;
 
 void* doSearch(void* args){
   UCIstate *state = (UCIstate*)args;
   state->searchState = SEARCHING;
-  state->searchResult = search(state->board,4);
+
+  state->searchResult = createEmptyMove();
+  //this isnt nessicary unless the search is never called
+  //but "bestmove h1h1" is a pretty good indicator that something went wrong
+  //so its helpful for debugging
+  
+  
+  switch(state->searchMode){
+    case DEPTH:
+      state->searchResult = search(state->board,state->searchDepth);
+    case INFINITE:
+    break;
+    case TIMED:
+    break;
+  }
   char moveStr[10] = "";
   moveToString(state->searchResult, moveStr);
   printf("bestmove %s\n",moveStr);
@@ -42,6 +63,14 @@ void* doSearch(void* args){
 
 void go(TokenList *args, UCIstate *state){
   if(state->searchState != IDLE) return;
+
+  state->searchMode = DEPTH;
+  state->searchDepth = 1;
+
+  if(rstrEqual(&args->tokens[1], "depth")){
+    state->searchDepth = atoi(args->tokens[2].buf);
+    state->searchMode = DEPTH;
+  }
   pthread_create(&state->searchThread,NULL,doSearch,state);
 }
 
@@ -115,7 +144,7 @@ void runUCI(){
       printBoard(ps, state.board, 0);
     }
   }
-  if(state.searchState == DONE)
+  if(state.searchState == DONE)//just in case
     pthread_join(state.searchThread ,NULL);
   if(initialised){
     cleanupMoveGenerator();
