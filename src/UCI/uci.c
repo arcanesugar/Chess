@@ -132,12 +132,14 @@ void runUCI(){
       state.searchState = IDLE;
     }
     if(tl.len == 0) continue;
-    if(rstrEqual(&tl.tokens[0], "go")){go(&tl, &state); continue;}
     if(rstrEqual(&tl.tokens[0], "position")){position(&tl, &state); continue;}
     if(rstrEqual(&tl.tokens[0], "quit")){quit = true; continue;}
     if(rstrEqual(&tl.tokens[0], "isready")){isready(&initialised);}
     if(rstrEqual(&tl.tokens[0], "uci")){uci(); continue;}
-    
+
+    if(initialised){
+      if(rstrEqual(&tl.tokens[0], "go")){go(&tl, &state); continue;}
+    }
     //debug commands
     if(rstrEqual(&tl.tokens[0], "d")){
       printSettings ps = createDefaultPrintSettings();
