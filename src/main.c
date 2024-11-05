@@ -10,7 +10,7 @@ int main() {
       runUCI();
       break;
     case MODE_CLI:
-      runConsoleInterface("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+      runConsoleInterface(STARTPOS_FEN);
       break;
   }
 

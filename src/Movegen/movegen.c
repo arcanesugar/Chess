@@ -25,6 +25,7 @@ void addCastlingMoves(Board *board, MoveList *moves);
 void filterLegalMoves(Board *board, MoveList *moves);
 
 void initMoveGenerator(){
+  generateBoardMasks();
   initMagics();
   createKingTable();
   createKnightTable();

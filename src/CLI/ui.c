@@ -63,7 +63,6 @@ void getNextInput() {
   consoleState.printBoard = true;
 }
 void initEngine(){
-  generateBoardMasks();
   printf("[creating move generator]\n");
   initMoveGenerator();
   initEval();

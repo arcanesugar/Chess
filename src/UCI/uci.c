@@ -23,9 +23,28 @@ typedef struct UCIstate{
   Board board;
   int state;
 
-  int searchState;
   pthread_t searchThread;
+  int searchState;//should be read only unless you are the search thread
+  bool quitSearch;//if set to true the search thread should exit as soon as possible
+  Move searchResult;//also readonly unless you are the search thread
 }UCIstate;
+
+void* doSearch(void* args){
+  UCIstate *state = (UCIstate*)args;
+  state->searchState = SEARCHING;
+  state->searchResult = search(state->board,4);
+  char moveStr[10] = "";
+  moveToString(state->searchResult, moveStr);
+  printf("bestmove %s\n",moveStr);
+  state->searchState = DONE;
+  return NULL;
+};
+
+void go(TokenList *args, UCIstate *state){
+  if(state->searchState != IDLE) return;
+  printf("Creating thread\n");
+  pthread_create(&state->searchThread,NULL,doSearch,state);
+}
 
 void position(TokenList *args, UCIstate *state){
   int movesStart = 0;
@@ -52,7 +71,7 @@ void position(TokenList *args, UCIstate *state){
 }
 
 void isready(bool *initialised){
-  if(!initialised){
+  if(!*initialised){
     *initialised = true;
     initEval();
     initMoveGenerator();   
@@ -80,16 +99,25 @@ void runUCI(){
   while(!quit){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
+    if(state.searchState == DONE){//I know that this wont happen until an input is provided, but it works for now
+      pthread_join(state.searchThread ,NULL);
+      state.searchState = IDLE;
+    }
     if(tl.len == 0) continue;
+    if(rstrEqual(&tl.tokens[0], "go")){go(&tl, &state); continue;}
     if(rstrEqual(&tl.tokens[0], "position")){position(&tl, &state); continue;}
     if(rstrEqual(&tl.tokens[0], "quit")){quit = true; continue;}
-    if(rstrEqual(&tl.tokens[0],"isready")){isready(&initialised);}
+    if(rstrEqual(&tl.tokens[0], "isready")){isready(&initialised);}
     if(rstrEqual(&tl.tokens[0], "uci")){uci(); continue;}
-    if(rstrEqual(&tl.tokens[0],"d")){//stockfish also uses d to display the board
+    
+    //debug commands
+    if(rstrEqual(&tl.tokens[0], "d")){
       printSettings ps = createDefaultPrintSettings();
       printBoard(ps, state.board, 0);
     }
   }
+  if(state.searchState == DONE)
+    pthread_join(state.searchThread ,NULL);
   if(initialised){
     cleanupMoveGenerator();
     //eval doesnt need to be cleaned up
