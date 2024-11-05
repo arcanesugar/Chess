@@ -42,7 +42,6 @@ void* doSearch(void* args){
 
 void go(TokenList *args, UCIstate *state){
   if(state->searchState != IDLE) return;
-  printf("Creating thread\n");
   pthread_create(&state->searchThread,NULL,doSearch,state);
 }
 

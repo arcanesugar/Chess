@@ -53,7 +53,7 @@ Move search(Board b, int depth){
       bestMove = ml.moves[i];
     }
   }
-  printf("Nodes searched: %d\n",nodesSearched);
+  //printf("Nodes searched: %d\n",nodesSearched);
   return bestMove;
 }
 
