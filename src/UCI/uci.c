@@ -53,6 +53,7 @@ void* doSearch(void* args){
     case INFINITE:
     break;
     case TIMED:
+      state->searchResult = searchForMs(state->board,state->searchTime);
     break;
   }
   char moveStr[10] = "";
@@ -67,10 +68,13 @@ void go(TokenList *args, UCIstate *state){
 
   state->searchMode = DEPTH;
   state->searchDepth = 1;
-
   if(rstrEqual(&args->tokens[1], "depth")){
     state->searchDepth = atoi(args->tokens[2].buf);
     state->searchMode = DEPTH;
+  }
+  if(rstrEqual(&args->tokens[1], "movetime")){
+    state->searchTime = atoi(args->tokens[2].buf);
+    state->searchMode = TIMED;
   }
   pthread_create(&state->searchThread,NULL,doSearch,state);
 }
@@ -108,6 +112,7 @@ void isready(UCIstate *state){
   printf("readyok\n");
   return;
 }
+
 void uci(){
   //send name and author of engine
   printf("id name "ENGINE_NAME"\n");
@@ -115,6 +120,7 @@ void uci(){
 
   printf("uciok\n");
 }
+
 
 void runUCI(){
   TokenList tl;
