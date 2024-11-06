@@ -51,6 +51,7 @@ void makeRandomMove();
 void printLegalMoves();
 void makeBestMove(Board *boardptr);
 void showDebugView();
+void playAgainstSelf();
 
 void getNextInput() {
   printf(">>");
@@ -99,6 +100,7 @@ void runConsoleInterface(const char* fen){
     if(strcmp(consoleState.lastInput, "und") == 0) {undoLastMove();  continue;}
     if(strcmp(consoleState.lastInput, "dbg") == 0) {showDebugView(); continue;}
     if(strcmp(consoleState.lastInput, "psq") == 0) {printPsqt(consoleState.settings); continue;}
+    if(strcmp(consoleState.lastInput, "ply") == 0) {playAgainstSelf(); continue;}
     if(strcmp(consoleState.lastInput, "q") == 0) quit = true;
 
 
@@ -116,6 +118,7 @@ void showHelpMenu(){
   printf("  lgl - List legal moves\n");
   printf("  dsp - Display settings\n");
   printf("  hlp - Show this list\n");
+  printf("  ply - Play against self\n");
   printf("  q   - Quit\n");
 
   printf("\n---Debug commands---\n");
@@ -126,7 +129,20 @@ void showHelpMenu(){
   printf("  tst - Run move generation test on current position\n");
   printf("  mgs - Run move generation test suite\n");
 }
-
+void playAgainstSelf(){
+  bool checkmate = false;
+  while(!checkmate){
+    Move best = iterativeDeepeningSearch(*consoleState.boardptr, 256, 2000, NULL);
+    if(isNullMove(&best)){
+      checkmate = true;
+    }
+    makeMove(consoleState.boardptr,&best);
+    moveStackPush(&consoleState.history,best);
+    consoleState.printBoard = false;
+    printMoveOnBoard(consoleState.settings, *consoleState.boardptr, best);
+  }
+  printf("checkmate");
+}
 void makeBestMove(Board *boardptr){
   Move best = iterativeDeepeningSearch(*boardptr, 256, 2000, NULL);
   if(isNullMove(&best)){
