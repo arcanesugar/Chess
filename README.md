@@ -12,7 +12,8 @@ Loading a position from a fen string is supported, but currently requires editin
 
 ## UCI
 Supported commands:\
-(the order of commands after go shouldn't matter)
+(both depth and movetime can be used, and the search with stop when the first condition is met\
+but using infinite in combination with depth/movetime results in unpredictable behaviour)
 - uci
 - quit
 - position \[fen \<fenstring\> | startpos\]  moves \<move1\> .... \<movei\>
@@ -27,6 +28,9 @@ Add wtime/btime and wint/binc options to go
 
 ## Changelog
 - UCI
+    - Added the ability to cancel searches
+    - Added time constrained searches
+    - Added iterative deepening
     - Added actual alpha/beta pruning
     - Added i/o folder
     - Added settings.txt
