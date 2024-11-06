@@ -101,6 +101,7 @@ void runConsoleInterface(const char* fen){
 
 
     if(rstrEquals(&state.lastInput, "help")) {showHelpMenu(); continue;}
+    if(rstrEquals(&state.lastInput, "quit")) quit = true;
   }
   cleanupEngine();
 }
@@ -115,8 +116,10 @@ void showHelpMenu(){
   printf("  dsp - Display settings\n");
   printf("  hlp - Show this list\n");
   printf("  ply - Play against self\n");
-  printf("  q   - Quit\n");
-
+  printf("  q  - Quit\n\n");
+  
+  printf("  help - Show this list\n");
+  printf("  quit - Quit\n");
   printf("\n---Debug commands---\n");
   printf("  dbg - Debug View\n");
   printf("  psq - Show piece square tables\n");
