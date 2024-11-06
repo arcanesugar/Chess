@@ -19,7 +19,12 @@ typedef struct orderedMoveList{
   MoveList moveList;
   int evals[255];
 }orderedMoveList;
-
+orderedMoveList createOrderedMoveList(MoveList ml){
+  orderedMoveList oml;
+  oml.moveList = ml;
+  for(int i = 0; i<255; i++) oml.evals[i] = 0;
+  return oml;
+}
 void orderMoves(orderedMoveList *oml){//orders the moves high to low based on the evals list
   for(int i = 0; i<oml->moveList.end; i++){
     for(int j = 0; j<i-1; j++){
@@ -35,12 +40,6 @@ void orderMoves(orderedMoveList *oml){//orders the moves high to low based on th
     }
   }
 }
-void printNow(){
-  struct timespec start;
-  clock_gettime(CLOCK_MONOTONIC, &start);
-  printf("seconds: %ld\nnanoseconds: %ld\n", start.tv_sec,start.tv_nsec);
-}
-
 long long getTimeMS(){//guess what this does? your right! it get the time in miliseconds. Good job
   struct timespec t;
   clock_gettime ( CLOCK_MONOTONIC , & t ) ;
@@ -85,32 +84,31 @@ int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bool *qui
   return bestEval;
 }
 
-Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime, bool *quitWhenTrue){
+Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWhenTrue){
   long long startTime = getTimeMS();
-  Move bestMove = createNullMove();
-  bool quitSearch = false;
+  long long quitTime = startTime+timeLimit;
+  if(timeLimit == 0) quitTime = 0;
+  
   MoveList ml = createMoveList();
   generateMoves(&b, &ml);
-  if(ml.end == 0) return bestMove;//return a nullmove if in checkmate
-  orderedMoveList oml;
-  oml.moveList = ml;
-  for(int i = 0; i<255; i++) oml.evals[i] = 0;
+  if(ml.end == 0) return createNullMove();
+  orderedMoveList orderedMoves = createOrderedMoveList(ml);
+  
+  Move bestMove = createNullMove();
+  bool quitSearch = false;
   for(int depth = 1; depth<=maxDepth; depth++){
-    orderMoves(&oml);
+    orderMoves(&orderedMoves);
     nodesSearched = 0;
     int bestEval = N_INF;//any move is better than no moves
-    //Because we are the root of the tree, there is no beta value and we just use the constant value N_INF.
-    //We technically could use a beta and set it to N_INF, but that would be the same as just using the constant.
-    //This is a little confusing, and this large comment is overkill that just fills space, but I dont care
     Move bestSoFar = createNullMove();
     bool hasSearchedFirstMove = false;
-    for(int i = 0; i<oml.moveList.end; i++){
-      Move currentMove = oml.moveList.moves[i];
+    for(int i = 0; i<orderedMoves.moveList.end; i++){
+      Move currentMove = orderedMoves.moveList.moves[i];
       makeMove(&b,&currentMove);
       int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime, quitWhenTrue);
       unmakeMove(&b,&currentMove);
       if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}
-      oml.evals[i] = eval;
+      orderedMoves.evals[i] = eval;
       if(eval>bestEval){
         bestEval = eval;
         bestSoFar = currentMove;
@@ -118,8 +116,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime, bool *q
       hasSearchedFirstMove = true;
     }
     if(hasSearchedFirstMove) bestMove = bestSoFar;
-    long long now = getTimeMS();
-    printf("info nodes %d depth %d time %lld\n",nodesSearched,depth,now-startTime);
+    printf("info nodes %d depth %d time %lld\n",nodesSearched,depth,getTimeMS()-startTime);
     if(quitSearch) break;
   }
   if(isNullMove(&bestMove)) bestMove = ml.moves[0];//if we didnt complete any search just choose the first move
@@ -127,7 +124,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime, bool *q
 };
 
 Move searchForMs(Board b, int ms){
-  return iterativeDeepeningSearch(b,255,getTimeMS()+ms,NULL);
+  return iterativeDeepeningSearch(b,255,ms,NULL);
 }
 Move searchUntilTrue(Board b, bool *quitWhenTrue){
   return iterativeDeepeningSearch(b,256,0,quitWhenTrue);
