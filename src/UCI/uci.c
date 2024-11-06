@@ -46,7 +46,6 @@ void* doSearch(void* args){
   //but "bestmove h1h1" is a pretty good indicator that something went wrong
   //so its helpful for debugging
   
-  
   switch(state->searchMode){
     case DEPTH:
       state->searchResult = search(state->board,state->searchDepth);
@@ -74,6 +73,7 @@ void go(TokenList *args, UCIstate *state){
   }
   if(rstrEqual(&args->tokens[1], "movetime")){
     state->searchTime = atoi(args->tokens[2].buf);
+    if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
     state->searchMode = TIMED;
   }
   pthread_create(&state->searchThread,NULL,doSearch,state);

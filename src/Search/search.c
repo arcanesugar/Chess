@@ -15,7 +15,26 @@
 #define NULL_EVAL 88888
 
 static int nodesSearched = 0;
+typedef struct orderedMoveList{
+  MoveList moveList;
+  int evals[255];
+}orderedMoveList;
 
+void orderMoves(orderedMoveList *oml){//orders the moves high to low based on the evals list
+  for(int i = 0; i<oml->moveList.end; i++){
+    for(int j = 0; j<i-1; j++){
+      if(oml->evals[j]<oml->evals[j+1]){
+        int tempI =  oml->evals[j];
+        Move tempM =  oml->moveList.moves[j];
+        oml->evals[j] = oml->evals[j+1];
+        oml->moveList.moves[j] = oml->moveList.moves[j+1];
+        
+        oml->evals[j+1] = tempI;
+        oml->moveList.moves[j+1] = tempM;
+      }
+    }
+  }
+}
 void printNow(){
   struct timespec start;
   clock_gettime(CLOCK_MONOTONIC, &start);
@@ -65,33 +84,44 @@ int nmax(Board *b, int depth, int alpha, int beta, long long quitTime){
   return bestEval;
 }
 
-
 Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime){
+  long long startTime = getTimeMS();
   Move bestMove = createNullMove();
   bool quitSearch = false;
+  MoveList ml = createMoveList();
+  generateMoves(&b, &ml);
+  if(ml.end == 0) return bestMove;//return a nullmove if in checkmate
+  orderedMoveList oml;
+  oml.moveList = ml;
+  for(int i = 0; i<255; i++) oml.evals[i] = 0;
   for(int depth = 1; depth<=maxDepth; depth++){
+    orderMoves(&oml);
     nodesSearched = 0;
-    MoveList ml = createMoveList();
-    generateMoves(&b, &ml);
-    if(ml.end == 0) return bestMove;//return a nullmove if in checkmate
-
     int bestEval = N_INF;//any move is better than no moves
     //Because we are the root of the tree, there is no beta value and we just use the constant value N_INF.
     //We technically could use a beta and set it to N_INF, but that would be the same as just using the constant.
     //This is a little confusing, and this large comment is overkill that just fills space, but I dont care
-    for(int i = 0; i<ml.end; i++){
-      makeMove(&b,&ml.moves[i]);
+    Move bestSoFar = createNullMove();
+    bool hasSearchedFirstMove = false;
+    for(int i = 0; i<oml.moveList.end; i++){
+      Move currentMove = oml.moveList.moves[i];
+      makeMove(&b,&currentMove);
       int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime);
-      unmakeMove(&b,&ml.moves[i]);
+      unmakeMove(&b,&currentMove);
       if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}
+      oml.evals[i] = eval;
       if(eval>bestEval){
         bestEval = eval;
-        bestMove = ml.moves[i];
+        bestSoFar = currentMove;
       }
+      hasSearchedFirstMove = true;
     }
-    printf("Nodes searched: %d\n",nodesSearched);
-    if(quitSearch) {printf("\nbreaking\n");break;}
+    if(hasSearchedFirstMove) bestMove = bestSoFar;
+    long long now = getTimeMS();
+    printf("info nodes %d depth %d time %lld\n",nodesSearched,depth,now-startTime);
+    if(quitSearch) break;
   }
+  if(isNullMove(&bestMove)) bestMove = ml.moves[0];//if we didnt complete any search just choose the first move
   return bestMove;
 };
 
