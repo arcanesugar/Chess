@@ -1,6 +1,7 @@
 A c chess program that runs in the console\
 \
-To start in uci mode, edit the first line of settings.txt to be "mode uci"
+./main To start in cli mode
+./main uci To start in uci mode
 
 ## CLI 
 A list of commands can be accessed with "hlp" or "help"\
@@ -27,6 +28,8 @@ Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a 
 Add wtime/btime and wint/binc options to go
 
 ## Changelog
+- better UI
+    - Mode is now determined with command line arguments instead of settings file
 - UCI
     - Added the ability to cancel searches
     - Added time constrained searches
