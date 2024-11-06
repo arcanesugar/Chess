@@ -55,7 +55,14 @@ void playAgainstSelf(ConsoleState *state);
 
 void getNextInput(ConsoleState *state) {
   printf(">>");
+  rstr prev = createRstr();
+  rstrSet(&prev,state->lastInput.buf);
   rstrFromStream(&state->lastInput, stdin);
+  if(rstrLen(&state->lastInput) == 0){
+    rstrSet(&state->lastInput, prev.buf);
+    printf("no command given, repeating last (%s)\n", prev.buf);
+  } 
+  destroyRstr(&prev);
   state->printBoard = true;
 }
 void initEngine(){
@@ -103,6 +110,7 @@ void runConsoleInterface(const char* fen){
     if(rstrEquals(&state.lastInput, "help")) {showHelpMenu(); continue;}
     if(rstrEquals(&state.lastInput, "quit")) quit = true;
   }
+  destroyRstr(&state.lastInput);
   cleanupEngine();
 }
 
