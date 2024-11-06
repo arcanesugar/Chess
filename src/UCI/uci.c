@@ -29,10 +29,9 @@ typedef struct UCIstate{
   bool initialised;
 
   pthread_t searchThread;
+  Move searchResult;//also readonly unless you are the search thread
   int searchState;//should be read only unless you are the search thread
   bool quitSearch;//if set to true the search thread should exit as soon as possible
-  Move searchResult;//also readonly unless you are the search thread
-  int searchMode;
   int searchDepth;
   int searchTime;
 }UCIstate;
@@ -40,22 +39,7 @@ typedef struct UCIstate{
 void* doSearch(void* args){
   UCIstate *state = (UCIstate*)args;
   state->searchState = SEARCHING;
-  state->searchResult = createEmptyMove();
-  //this isnt nessicary unless the search is never called
-  //but "bestmove h1h1" is a pretty good indicator that something went wrong
-  //so its helpful for debugging
-  
-  switch(state->searchMode){
-    case DEPTH:
-      state->searchResult = search(state->board,state->searchDepth);
-      break;
-    case INFINITE:
-      state->searchResult = searchUntilTrue(state->board,&state->quitSearch);
-      break;
-    case TIMED:
-      state->searchResult = searchForMs(state->board,state->searchTime);
-      break;
-  }
+  state->searchResult = iterativeDeepeningSearch(state->board,state->searchDepth,state->searchTime,&state->quitSearch);
   char moveStr[10] = "";
   moveToString(state->searchResult, moveStr);
   printf("bestmove %s\n",moveStr);
@@ -65,26 +49,27 @@ void* doSearch(void* args){
 
 void go(TokenList *args, UCIstate *state){
   if(state->searchState != IDLE) return;
+  //default to an infinite search
+  state->searchDepth = 256;
+  state->searchTime  = 0;
   state->quitSearch = false;
-  state->searchMode = DEPTH;
-  state->searchDepth = 1;
+  
   int tokenIndex = 1;
   while(tokenIndex<args->len){
     if(rstrEqual(&args->tokens[tokenIndex], "depth")){
       state->searchDepth = atoi(args->tokens[tokenIndex+1].buf);
-      state->searchMode = DEPTH;
       tokenIndex+=2;
       continue;
     }
     if(rstrEqual(&args->tokens[tokenIndex], "movetime")){
       state->searchTime = atoi(args->tokens[tokenIndex+1].buf);
       if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
-      state->searchMode = TIMED;
       tokenIndex+=2;
       continue;
     }
     if(rstrEqual(&args->tokens[tokenIndex], "infinite")){
-      state->searchMode = INFINITE;
+      state->searchDepth = 256;
+      state->searchTime  = 0;
       tokenIndex++;
       continue;
     }

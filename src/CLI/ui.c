@@ -128,7 +128,7 @@ void showHelpMenu(){
 }
 
 void makeBestMove(Board *boardptr){
-  Move best = search(*boardptr, 4);
+  Move best = iterativeDeepeningSearch(*boardptr, 256, 2000, NULL);
   if(isNullMove(&best)){
     printf("No legal moves(Checkmate)\n");
     return;

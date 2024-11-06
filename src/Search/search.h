@@ -2,10 +2,8 @@
 
 #include "../Core/board.h"
 
-Move search(Board b, int depth);//search uses minimax but returns a move instead of an evaluation
-Move searchForMs(Board b, int ms);
+Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWhenTrue);
 
 //testing
 void runMoveGenerationTest(Board *board);
 void runMoveGenerationSuite();
-Move searchUntilTrue(Board b, bool *quitWhenTrue);

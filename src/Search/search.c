@@ -123,16 +123,6 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
   return bestMove;
 };
 
-Move searchForMs(Board b, int ms){
-  return iterativeDeepeningSearch(b,255,ms,NULL);
-}
-Move searchUntilTrue(Board b, bool *quitWhenTrue){
-  return iterativeDeepeningSearch(b,256,0,quitWhenTrue);
-}
-Move search(Board b, int depth){
-  return iterativeDeepeningSearch(b,depth,0,NULL);
-}
-
 u64 perftTest(Board *b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
