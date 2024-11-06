@@ -8,3 +8,4 @@ Move searchForMs(Board b, int ms);
 //testing
 void runMoveGenerationTest(Board *board);
 void runMoveGenerationSuite();
+Move searchUntilTrue(Board b, bool *quitWhenTrue);

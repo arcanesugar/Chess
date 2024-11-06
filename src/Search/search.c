@@ -47,7 +47,7 @@ long long getTimeMS(){//guess what this does? your right! it get the time in mil
   return t.tv_sec * 1000 + ( t.tv_nsec + 500000 ) / 1000000 ;
 }
 
-int nmax(Board *b, int depth, int alpha, int beta, long long quitTime){
+int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bool *quitIfTrue){
   //alpha is the best score we are able to achieve (we being whoevers turn it is)
   //and beta is the best score the opponent is able to achieve
   //why alpha and beta? I dont know, it probably made more sense in original minimax
@@ -61,10 +61,11 @@ int nmax(Board *b, int depth, int alpha, int beta, long long quitTime){
     if(quitTime != 0){
       if(getTimeMS()>quitTime) {return NULL_EVAL;}
     }
+    if(quitIfTrue != NULL && *quitIfTrue) return NULL_EVAL;
     makeMove(b,&ml.moves[i]);
     //a move that is good for the opponent is equally bad for us, so we negate all evaluations(including the return)
     //we also swap alpha and beta, because we will be the opponent in the child search
-    int eval = -nmax(b,depth-1,-beta, -alpha, quitTime);
+    int eval = -nmax(b,depth-1,-beta, -alpha, quitTime, quitIfTrue);
     unmakeMove(b,&ml.moves[i]);
     if(eval == NULL_EVAL | eval == -NULL_EVAL) return NULL_EVAL;
 
@@ -84,7 +85,7 @@ int nmax(Board *b, int depth, int alpha, int beta, long long quitTime){
   return bestEval;
 }
 
-Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime){
+Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime, bool *quitWhenTrue){
   long long startTime = getTimeMS();
   Move bestMove = createNullMove();
   bool quitSearch = false;
@@ -106,7 +107,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime){
     for(int i = 0; i<oml.moveList.end; i++){
       Move currentMove = oml.moveList.moves[i];
       makeMove(&b,&currentMove);
-      int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime);
+      int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime, quitWhenTrue);
       unmakeMove(&b,&currentMove);
       if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}
       oml.evals[i] = eval;
@@ -126,11 +127,13 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, long long quitTime){
 };
 
 Move searchForMs(Board b, int ms){
-  return iterativeDeepeningSearch(b,255,getTimeMS()+ms);
+  return iterativeDeepeningSearch(b,255,getTimeMS()+ms,NULL);
 }
-
+Move searchUntilTrue(Board b, bool *quitWhenTrue){
+  return iterativeDeepeningSearch(b,256,0,quitWhenTrue);
+}
 Move search(Board b, int depth){
-  return iterativeDeepeningSearch(b,depth,0);
+  return iterativeDeepeningSearch(b,depth,0,NULL);
 }
 
 u64 perftTest(Board *b, int depth, bool root){

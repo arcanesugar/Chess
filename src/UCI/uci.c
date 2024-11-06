@@ -40,7 +40,6 @@ typedef struct UCIstate{
 void* doSearch(void* args){
   UCIstate *state = (UCIstate*)args;
   state->searchState = SEARCHING;
-
   state->searchResult = createEmptyMove();
   //this isnt nessicary unless the search is never called
   //but "bestmove h1h1" is a pretty good indicator that something went wrong
@@ -50,6 +49,7 @@ void* doSearch(void* args){
     case DEPTH:
       state->searchResult = search(state->board,state->searchDepth);
     case INFINITE:
+      state->searchResult = searchUntilTrue(state->board,&state->quitSearch);
     break;
     case TIMED:
       state->searchResult = searchForMs(state->board,state->searchTime);
@@ -64,7 +64,7 @@ void* doSearch(void* args){
 
 void go(TokenList *args, UCIstate *state){
   if(state->searchState != IDLE) return;
-
+  state->quitSearch = false;
   state->searchMode = DEPTH;
   state->searchDepth = 1;
   if(rstrEqual(&args->tokens[1], "depth")){
@@ -75,6 +75,9 @@ void go(TokenList *args, UCIstate *state){
     state->searchTime = atoi(args->tokens[2].buf);
     if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
     state->searchMode = TIMED;
+  }
+  if(rstrEqual(&args->tokens[1], "infinite")){
+    state->searchMode = INFINITE;
   }
   pthread_create(&state->searchThread,NULL,doSearch,state);
 }
@@ -146,6 +149,7 @@ void runUCI(){
     
     if(state.initialised){
       if(rstrEqual(&tl.tokens[0], "go")){go(&tl, &state); continue;}
+      if(rstrEqual(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
     }
     //debug commands
     if(rstrEqual(&tl.tokens[0], "d")){
