@@ -17,7 +17,7 @@ struct ConsoleState {
   MoveStack history;
   bool printBoard;
   Board board;
-  char lastInput[INPUT_MAX_LEN];
+  rstr lastInput;
 };
 
 MoveStack createMoveStack(){
@@ -55,12 +55,7 @@ void playAgainstSelf(ConsoleState *state);
 
 void getNextInput(ConsoleState *state) {
   printf(">>");
-  char temp[INPUT_MAX_LEN];
-  if(fgets(temp,INPUT_MAX_LEN,stdin) == NULL) return;
-  if(strlen(temp) > 1) {
-    temp[strlen(temp)-1] = '\0';//remove newline character
-    strcpy(state->lastInput,temp);
-  }
+  rstrFromStream(&state->lastInput, stdin);
   state->printBoard = true;
 }
 void initEngine(){
@@ -81,31 +76,31 @@ void runConsoleInterface(const char* fen){
   state.printBoard = true;
   state.board = boardFromFEN(fen);
   state.history = createMoveStack();
-  state.lastInput[0] = '\0';
+  state.lastInput = createRstr();
   bool quit = false;
   initEngine();
   while (!quit) {
     if(state.printBoard) printBoard(state.settings,state.board,0);
     getNextInput(&state);
-    if(strcmp(state.lastInput, "mve") == 0) {makeMoveFromConsole(&state); continue;}
-    if(strcmp(state.lastInput, "evl") == 0) {printf("%f\n",evaluate(&state.board)); continue;}
-    if(strcmp(state.lastInput, "bst") == 0) {makeBestMove(&state); continue;}
-    if(strcmp(state.lastInput, "dsp") == 0) {displaySettings(&state); continue;}
-    if(strcmp(state.lastInput, "lgl") == 0) {printLegalMoves(&state); continue;}
-    if(strcmp(state.lastInput, "rnd") == 0) {makeRandomMove(&state); continue;}
-    if(strcmp(state.lastInput, "trn") == 0) {whosTurnIsIt(&state); continue;}
-    if(strcmp(state.lastInput, "hlp") == 0) {showHelpMenu(); continue;}
-    if(strcmp(state.lastInput, "sch") == 0) {searchForMagics(); continue;}
-    if(strcmp(state.lastInput, "tst") == 0) {runMoveGenerationTest(&state.board); continue;}
-    if(strcmp(state.lastInput, "mgs") == 0) {runMoveGenerationSuite(); continue;}
-    if(strcmp(state.lastInput, "und") == 0) {undoLastMove(&state);  continue;}
-    if(strcmp(state.lastInput, "dbg") == 0) {showDebugView(&state); continue;}
-    if(strcmp(state.lastInput, "psq") == 0) {printPsqt(state.settings); continue;}
-    if(strcmp(state.lastInput, "ply") == 0) {playAgainstSelf(&state); continue;}
-    if(strcmp(state.lastInput, "q") == 0) quit = true;
+    if(rstrEquals(&state.lastInput, "mve")) {makeMoveFromConsole(&state); continue;}
+    if(rstrEquals(&state.lastInput, "evl")) {printf("%f\n",evaluate(&state.board)); continue;}
+    if(rstrEquals(&state.lastInput, "bst")) {makeBestMove(&state); continue;}
+    if(rstrEquals(&state.lastInput, "dsp")) {displaySettings(&state); continue;}
+    if(rstrEquals(&state.lastInput, "lgl")) {printLegalMoves(&state); continue;}
+    if(rstrEquals(&state.lastInput, "rnd")) {makeRandomMove(&state); continue;}
+    if(rstrEquals(&state.lastInput, "trn")) {whosTurnIsIt(&state); continue;}
+    if(rstrEquals(&state.lastInput, "hlp")) {showHelpMenu(); continue;}
+    if(rstrEquals(&state.lastInput, "sch")) {searchForMagics(); continue;}
+    if(rstrEquals(&state.lastInput, "tst")) {runMoveGenerationTest(&state.board); continue;}
+    if(rstrEquals(&state.lastInput, "mgs")) {runMoveGenerationSuite(); continue;}
+    if(rstrEquals(&state.lastInput, "und")) {undoLastMove(&state);  continue;}
+    if(rstrEquals(&state.lastInput, "dbg")) {showDebugView(&state); continue;}
+    if(rstrEquals(&state.lastInput, "psq")) {printPsqt(state.settings); continue;}
+    if(rstrEquals(&state.lastInput, "ply")) {playAgainstSelf(&state); continue;}
+    if(rstrEquals(&state.lastInput, "q")) quit = true;
 
 
-    if(strcmp(state.lastInput, "help") == 0) {showHelpMenu(); continue;}
+    if(rstrEquals(&state.lastInput, "help")) {showHelpMenu(); continue;}
   }
   cleanupEngine();
 }
@@ -207,7 +202,7 @@ void makeMoveFromConsole(ConsoleState *state){
   printf("move(eg e2e4, a7a8n)\n");
   printf("castle with \"ks\" and \"qs\"\n");
   getNextInput(state);
-  Move move = moveFromStr(state->lastInput);
+  Move move = moveFromStr(state->lastInput.buf);
   MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
   bool isLegal = false;
@@ -220,7 +215,7 @@ void makeMoveFromConsole(ConsoleState *state){
   if(!isLegal){
     printf("This move is not legal, continue? (y/N)\n");
     getNextInput(state);
-    if(state->lastInput[0] != 'y') return;
+    if(state->lastInput.buf[0] != 'y') return;
   }
   makeMove(&state->board,&move);
   moveStackPush(&state->history,move);
@@ -239,9 +234,9 @@ void displaySettings(ConsoleState *state){
     printf("  1 - Use ASCII Pieces\n");
     printf("  q - Done\n");
     getNextInput(state);
-    if(state->lastInput[0] == 'q') return;
-    if(!isdigit(state->lastInput[0])) continue;
-    switch(atoi(state->lastInput)){
+    if(state->lastInput.buf[0] == 'q') return;
+    if(!isdigit(state->lastInput.buf[0])) continue;
+    switch(atoi(state->lastInput.buf)){
       case 0:
         setUnicodePieces(&state->settings);
       break;

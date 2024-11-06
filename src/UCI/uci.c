@@ -56,18 +56,18 @@ void go(TokenList *args, UCIstate *state){
   
   int tokenIndex = 1;
   while(tokenIndex<args->len){
-    if(rstrEqual(&args->tokens[tokenIndex], "depth")){
+    if(rstrEquals(&args->tokens[tokenIndex], "depth")){
       state->searchDepth = atoi(args->tokens[tokenIndex+1].buf);
       tokenIndex+=2;
       continue;
     }
-    if(rstrEqual(&args->tokens[tokenIndex], "movetime")){
+    if(rstrEquals(&args->tokens[tokenIndex], "movetime")){
       state->searchTime = atoi(args->tokens[tokenIndex+1].buf);
       if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
       tokenIndex+=2;
       continue;
     }
-    if(rstrEqual(&args->tokens[tokenIndex], "infinite")){
+    if(rstrEquals(&args->tokens[tokenIndex], "infinite")){
       state->searchDepth = 256;
       state->searchTime  = 0;
       tokenIndex++;
@@ -80,19 +80,18 @@ void go(TokenList *args, UCIstate *state){
 
 void position(TokenList *args, UCIstate *state){
   int movesStart = 0;
-  if(rstrEqual(&args->tokens[1], "fen")){
+  if(rstrEquals(&args->tokens[1], "fen")){
     state->board = boardFromFEN(args->tokens[2].buf);
     if(args->len == 3) return;
-    if(rstrEqual(&args->tokens[3], "moves")){
+    if(rstrEquals(&args->tokens[3], "moves")){
       movesStart = 4;
     }
   }
-  if(rstrEqual(&args->tokens[1], "startpos")){
+  if(rstrEquals(&args->tokens[1], "startpos")){
     state->board = boardFromFEN(STARTPOS_FEN);
     if(args->len == 2) return;
-    if(rstrEqual(&args->tokens[2], "moves")){
+    if(rstrEquals(&args->tokens[2], "moves"))
       movesStart = 3;
-    }
   }
   if(movesStart !=0 && args->len>movesStart){
     for(int tokenIndex = movesStart; tokenIndex<args->len; tokenIndex++){
@@ -138,17 +137,17 @@ void runUCI(){
       state.searchState = IDLE;
     }
     if(tl.len == 0) continue;
-    if(rstrEqual(&tl.tokens[0], "position")){position(&tl, &state); continue;}
-    if(rstrEqual(&tl.tokens[0], "quit")){quit = true; continue;}
-    if(rstrEqual(&tl.tokens[0], "isready")){isready(&state);}
-    if(rstrEqual(&tl.tokens[0], "uci")){uci(); continue;}
+    if(rstrEquals(&tl.tokens[0], "position")){position(&tl, &state); continue;}
+    if(rstrEquals(&tl.tokens[0], "quit")){quit = true; continue;}
+    if(rstrEquals(&tl.tokens[0], "isready")){isready(&state);}
+    if(rstrEquals(&tl.tokens[0], "uci")){uci(); continue;}
     
     if(state.initialised){
-      if(rstrEqual(&tl.tokens[0], "go")){go(&tl, &state); continue;}
-      if(rstrEqual(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
+      if(rstrEquals(&tl.tokens[0], "go")){go(&tl, &state); continue;}
+      if(rstrEquals(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
     }
     //debug commands
-    if(rstrEqual(&tl.tokens[0], "d")){
+    if(rstrEquals(&tl.tokens[0], "d")){
       printSettings ps = createDefaultPrintSettings();
       printBoard(ps, state.board, 0);
     }

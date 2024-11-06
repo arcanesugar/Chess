@@ -17,10 +17,10 @@ void loadSettings(){
     if(rstrGetChar(&line,0) == '\0') continue;//line is empty
     if(rstrGetChar(&line,0) == '#') continue;
     tokeniseRstr(&line,&tl);
-    if(rstrEqual(&tl.tokens[0],"mode")){
+    if(rstrEquals(&tl.tokens[0],"mode")){
       settings.mode = -1;
-      if(rstrEqual(&tl.tokens[1],"cli")) settings.mode = MODE_CLI;
-      if(rstrEqual(&tl.tokens[1],"uci")) settings.mode = MODE_UCI;
+      if(rstrEquals(&tl.tokens[1],"cli")) settings.mode = MODE_CLI;
+      if(rstrEquals(&tl.tokens[1],"uci")) settings.mode = MODE_UCI;
       if(settings.mode == -1) fprintf(stderr,"[error] invalid mode (%s) on line %d of settings.txt\n",tl.tokens[1].buf,lineNumber);
     }
     lineNumber++;

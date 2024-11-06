@@ -45,7 +45,7 @@ void rstrAppend(rstr *str, const char *cstr){
   strcat(str->buf,cstr);
 }
 
-bool rstrEqual(rstr *str, const char *cstr){
+bool rstrEquals(rstr *str, const char *cstr){
   return (strcmp(str->buf,cstr) == 0);
 }
 
