@@ -15,7 +15,11 @@
 
 static int nodesSearched = 0;
 
-int nmax(Board *b, int depth, int alpha){
+int nmax(Board *b, int depth, int alpha, int beta){
+  //alpha is the best score we are able to achieve (we being whoevers turn it is)
+  //and beta is the best score the opponent is able to achieve
+  //why alpha and beta? I dont know, it probably made more sense in original minimax
+  //or maybe whoever named them made it intentionally confusing
   if(depth == 0){nodesSearched++; return evaluate(b);}
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
@@ -23,13 +27,20 @@ int nmax(Board *b, int depth, int alpha){
   int bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
     makeMove(b,&ml.moves[i]);
-    int eval = -nmax(b,depth-1,-bestEval);//a move that is good for the opponent is equally bad for us
+    //a move that is good for the opponent is equally bad for us, so we negate all evaluations(including the return)
+    //we also swap alpha and beta, because we will be the opponent in the child search
+    int eval = -nmax(b,depth-1,-beta, -alpha);
     unmakeMove(b,&ml.moves[i]);
     if(eval>bestEval){
       bestEval = eval;
     }
-    if(eval>alpha){
-      //if this position is better for us than the best position from the parent loop, it will not get picked
+    if(bestEval>alpha){
+      alpha = bestEval;
+    }
+    if(beta<=alpha){
+      //if the best score the opponent can get is less than the best score we can get, that means 
+      //the opponent can force us into a worse score somewere else in the tree,
+      //and therefore will never let us get here meaning we can prune the search
       break;
     }
   }
@@ -41,19 +52,22 @@ Move search(Board b, int depth){
   Move bestMove = createNullMove();
   MoveList ml = createMoveList();
   generateMoves(&b, &ml);
-  if(ml.end == 0) return bestMove;//checkmate is the worst possible outcome (for the side whos turn it is)
+  if(ml.end == 0) return bestMove;//return a nullmove if in checkmate
   
-  int bestEval = N_INF;
+  int bestEval = N_INF;//any move is better than no moves
+  //Because we are the root of the tree, there is no beta value and we just use the constant value N_INF.
+  //We technically could use a beta and set it to N_INF, but that would be the same as just using the constant.
+  //This is a little confusing, and neccisitates this large comment, but I dont care
   for(int i = 0; i<ml.end; i++){
     makeMove(&b,&ml.moves[i]);
-    int eval = -nmax(&b,depth-1, -bestEval);//a move that is good for the opponent is equally bad for us
+    int eval = -nmax(&b,depth-1, N_INF,-bestEval);
     unmakeMove(&b,&ml.moves[i]);
     if(eval>bestEval){
       bestEval = eval;
       bestMove = ml.moves[i];
     }
   }
-  //printf("Nodes searched: %d\n",nodesSearched);
+  printf("Nodes searched: %d\n",nodesSearched);
   return bestMove;
 }
 

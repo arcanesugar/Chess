@@ -9,6 +9,7 @@ Commands are case sensetive\
 When no command is entered, the last is repeated
   
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
+
 ## UCI
 Supported commands:\
 (the order of commands after go shouldn't matter)
@@ -26,6 +27,7 @@ Add wtime/btime and wint/binc options to go
 
 ## Changelog
 - UCI
+    - Added actual alpha/beta pruning
     - Added i/o folder
     - Added settings.txt
     - Added tokenizer

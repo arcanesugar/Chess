@@ -26,6 +26,7 @@ enum SEARCH_MODES{
 typedef struct UCIstate{
   Board board;
   int state;
+  bool initialised;
 
   pthread_t searchThread;
   int searchState;//should be read only unless you are the search thread
@@ -98,9 +99,9 @@ void position(TokenList *args, UCIstate *state){
   }
 }
 
-void isready(bool *initialised){
-  if(!*initialised){
-    *initialised = true;
+void isready(UCIstate *state){
+  if(!state->initialised){
+    state->initialised = true;
     initEval();
     initMoveGenerator();   
   }
@@ -119,11 +120,11 @@ void runUCI(){
   TokenList tl;
   createTokenList(&tl);
   rstr input = createRstr();
-  bool initialised = false;
   bool quit = false;
   UCIstate state;
   state.searchState = IDLE;
   state.board = boardFromFEN(STARTPOS_FEN);
+  state.initialised = false;
   while(!quit){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
@@ -134,10 +135,10 @@ void runUCI(){
     if(tl.len == 0) continue;
     if(rstrEqual(&tl.tokens[0], "position")){position(&tl, &state); continue;}
     if(rstrEqual(&tl.tokens[0], "quit")){quit = true; continue;}
-    if(rstrEqual(&tl.tokens[0], "isready")){isready(&initialised);}
+    if(rstrEqual(&tl.tokens[0], "isready")){isready(&state);}
     if(rstrEqual(&tl.tokens[0], "uci")){uci(); continue;}
-
-    if(initialised){
+    
+    if(state.initialised){
       if(rstrEqual(&tl.tokens[0], "go")){go(&tl, &state); continue;}
     }
     //debug commands
@@ -148,7 +149,7 @@ void runUCI(){
   }
   if(state.searchState == DONE)//just in case
     pthread_join(state.searchThread ,NULL);
-  if(initialised){
+  if(state.initialised){
     cleanupMoveGenerator();
     //eval doesnt need to be cleaned up
   }
