@@ -1,19 +1,38 @@
-A c chess program that runs in the console
+A c chess program that runs in the console\
+\
+To start in uci mode, edit the first line of settings.txt to be "mode uci"
 
-## UI
+## CLI 
 A list of commands can be accessed with "hlp" or "help"\
 If pieces are not displating properly, try switching to ASCII with ">>dsp"\
 Commands are case sensetive\
 When no command is entered, the last is repeated
   
 Loading a position from a fen string is supported, but currently requires editing the main.cpp file\
-UCI is not supported yet
+
+## UCI
+Supported commands:\
+(the order of commands after go shouldn't matter)
+- uci
+- quit
+- position \[fen \<fenstring\> | startpos\]  moves \<move1\> .... \<movei\>
+- isready
+- go \[depth \<x\> | movetime \<x\> | infinite\]
+- stop
 
 ## TODO
 Refactor ui code
 Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a magic)
+Add wtime/btime and wint/binc options to go
 
 ## Changelog
+- UCI
+    - Added actual alpha/beta pruning
+    - Added i/o folder
+    - Added settings.txt
+    - Added tokenizer
+    - Added String struct for i/o
+      
 - search (merged 11/1/24)
     - added basic pruning
     - switched to nmax search

@@ -72,11 +72,8 @@ void moveToString(Move move, char *target){
   fromStr[1] = '1'+(getFrom(&move)/8);
   toStr[1] = '1'+(getTo(&move)/8);
   
-  strcpy(target, "[");
   strcat(target,fromStr);
-  strcat(target, "->");
   strcat(target,toStr);
-  strcat(target, "]");
   if(isPromotion(&move)){
     switch(getPromotionPiece(&move)%6){
       case BISHOP:

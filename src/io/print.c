@@ -4,6 +4,13 @@
 #include "../Core/bitboard.h"
 #include "../Search/eval.h"
 
+printSettings createDefaultPrintSettings(){
+  printSettings ps;
+  setASCIIPieces(&ps);
+  setLightColor(&ps, "47");
+  setDarkColor(&ps, "103");
+  return ps;
+}
 void setLightColor(printSettings *settings, const char *colorID){
   settings->lightColor[0] = 0;
   strcat(settings->lightColor,"\x1b[");

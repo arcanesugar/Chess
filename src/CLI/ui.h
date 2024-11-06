@@ -10,4 +10,4 @@ struct MoveStack{
 };
 typedef struct MoveStack MoveStack;
 
-void runConsoleInterface(Board *boardptr);
+void runConsoleInterface(const char* fen);

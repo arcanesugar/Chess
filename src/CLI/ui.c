@@ -7,7 +7,7 @@
 #include "../Movegen/movegen.h"
 #include "../Search/search.h"
 #include "../Search/eval.h"
-#include "print.h"
+#include "../io/print.h"
 #include "ui.h"
 
 typedef struct ConsoleState ConsoleState;
@@ -51,6 +51,7 @@ void makeRandomMove();
 void printLegalMoves();
 void makeBestMove(Board *boardptr);
 void showDebugView();
+void playAgainstSelf();
 
 void getNextInput() {
   printf(">>");
@@ -62,38 +63,50 @@ void getNextInput() {
   }
   consoleState.printBoard = true;
 }
-
-void runConsoleInterface(Board *boardptr){
+void initEngine(){
+  printf("[creating move generator]\n");
+  initMoveGenerator();
+  initEval();
+}
+void cleanupEngine(){
+  cleanupMagics();
+}
+void runConsoleInterface(const char* fen){
+  printf("[creating board]\n");
+  Board board = boardFromFEN(fen);
   setUnicodePieces(&consoleState.settings);
   setLightColor(&consoleState.settings, "47");
   setDarkColor(&consoleState.settings, "103");
   consoleState.printBoard = true;
-  consoleState.boardptr = boardptr;
+  consoleState.boardptr = &board;
   consoleState.history = createMoveStack();
   consoleState.lastInput[0] = '\0';
   bool quit = false;
+  initEngine();
   while (!quit) {
-    if(consoleState.printBoard) printBoard(consoleState.settings,*boardptr,0);
+    if(consoleState.printBoard) printBoard(consoleState.settings,*consoleState.boardptr,0);
     getNextInput();
     if(strcmp(consoleState.lastInput, "mve") == 0) {makeMoveFromConsole(); continue;}
-    if(strcmp(consoleState.lastInput, "evl") == 0) {printf("%f\n",evaluate(boardptr)); continue;}
-    if(strcmp(consoleState.lastInput, "bst") == 0) {makeBestMove(boardptr); continue;}
+    if(strcmp(consoleState.lastInput, "evl") == 0) {printf("%f\n",evaluate(consoleState.boardptr)); continue;}
+    if(strcmp(consoleState.lastInput, "bst") == 0) {makeBestMove(consoleState.boardptr); continue;}
     if(strcmp(consoleState.lastInput, "dsp") == 0) {displaySettings(); continue;}
     if(strcmp(consoleState.lastInput, "lgl") == 0) {printLegalMoves(); continue;}
     if(strcmp(consoleState.lastInput, "rnd") == 0) {makeRandomMove(); continue;}
     if(strcmp(consoleState.lastInput, "trn") == 0) {whosTurnIsIt(); continue;}
     if(strcmp(consoleState.lastInput, "hlp") == 0) {showHelpMenu(); continue;}
     if(strcmp(consoleState.lastInput, "sch") == 0) {searchForMagics(); continue;}
-    if(strcmp(consoleState.lastInput, "tst") == 0) {runMoveGenerationTest(boardptr); continue;}
+    if(strcmp(consoleState.lastInput, "tst") == 0) {runMoveGenerationTest(consoleState.boardptr); continue;}
     if(strcmp(consoleState.lastInput, "mgs") == 0) {runMoveGenerationSuite(); continue;}
     if(strcmp(consoleState.lastInput, "und") == 0) {undoLastMove();  continue;}
     if(strcmp(consoleState.lastInput, "dbg") == 0) {showDebugView(); continue;}
     if(strcmp(consoleState.lastInput, "psq") == 0) {printPsqt(consoleState.settings); continue;}
+    if(strcmp(consoleState.lastInput, "ply") == 0) {playAgainstSelf(); continue;}
     if(strcmp(consoleState.lastInput, "q") == 0) quit = true;
 
 
     if(strcmp(consoleState.lastInput, "help") == 0) {showHelpMenu(); continue;}
   }
+  cleanupEngine();
 }
 
 void showHelpMenu(){
@@ -105,6 +118,7 @@ void showHelpMenu(){
   printf("  lgl - List legal moves\n");
   printf("  dsp - Display settings\n");
   printf("  hlp - Show this list\n");
+  printf("  ply - Play against self\n");
   printf("  q   - Quit\n");
 
   printf("\n---Debug commands---\n");
@@ -115,9 +129,22 @@ void showHelpMenu(){
   printf("  tst - Run move generation test on current position\n");
   printf("  mgs - Run move generation test suite\n");
 }
-
+void playAgainstSelf(){
+  bool checkmate = false;
+  while(!checkmate){
+    Move best = iterativeDeepeningSearch(*consoleState.boardptr, 256, 2000, NULL);
+    if(isNullMove(&best)){
+      checkmate = true;
+    }
+    makeMove(consoleState.boardptr,&best);
+    moveStackPush(&consoleState.history,best);
+    consoleState.printBoard = false;
+    printMoveOnBoard(consoleState.settings, *consoleState.boardptr, best);
+  }
+  printf("checkmate");
+}
 void makeBestMove(Board *boardptr){
-  Move best = search(*boardptr, 4);
+  Move best = iterativeDeepeningSearch(*boardptr, 256, 2000, NULL);
   if(isNullMove(&best)){
     printf("No legal moves(Checkmate)\n");
     return;
@@ -173,7 +200,7 @@ void printLegalMoves(){
   consoleState.printBoard = false;
 }
 
-byte squareNameToIndex(char *squareName, int startIndex) {
+static byte squareNameToIndex(char *squareName, int startIndex) {
   byte squareIndex =
       ((squareName[startIndex+1] - '0' - 1) * 8) + (7 - (squareName[startIndex] - 'a'));
   return squareIndex;

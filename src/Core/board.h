@@ -29,7 +29,9 @@ struct Board{
 };
 typedef struct Board Board;
 
-Board boardFromFEN(char* fen);
+Board boardFromFEN(const char* fen);
 bool validateBoard(Board board);
 void makeMove(Board *board, Move *m);
 void unmakeMove(Board *board, Move *m);
+
+#define STARTPOS_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"

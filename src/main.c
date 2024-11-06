@@ -1,20 +1,18 @@
-#include <stdio.h>
-#include "Core/board.h"
-#include "ui/ui.h"
-#include "Movegen/movegen.h"
-#include "Movegen/Magic/magic.h"
-#include "Search/eval.h"
+#include "CLI/ui.h"
+#include "UCI/uci.h"
+
+#include "settings.h"
 
 int main() {
-  printf("[creating board...]\n");
-  char fen[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  Board board = boardFromFEN(fen);
-  generateBoardMasks();
-  printf("[creating move generator]\n");
-  initMoveGenerator();
-  initEval();
-  printf("[beginning consoleInterface...]\n");
-  runConsoleInterface(&board);
-  cleanupMagics();
+  loadSettings();
+  switch(settings.mode){
+    case MODE_UCI:
+      runUCI();
+      break;
+    case MODE_CLI:
+      runConsoleInterface(STARTPOS_FEN);
+      break;
+  }
+
   return 0;
 }
