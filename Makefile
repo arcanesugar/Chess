@@ -17,7 +17,7 @@ all:$(BINNAME)
 $(BINNAME):$(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) -lm
 
-%.o:%.c Makefile needsRebuild
+%.o:%.c Makefile
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 -include $(DEP)
