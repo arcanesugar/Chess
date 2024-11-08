@@ -219,6 +219,7 @@ void makeMoveFromConsole(ConsoleState *state){
   bool isLegal = false;
   for(int i  =0; i<legalMoves.end; i++){
     if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
+      move = legalMoves.moves[i];
       isLegal = true;
       break;
     }
