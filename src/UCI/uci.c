@@ -110,7 +110,6 @@ void uci(){
   printf("uciok\n");
 }
 
-
 void runUCI(){
   TokenList tl;
   createTokenList(&tl);
