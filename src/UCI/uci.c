@@ -95,21 +95,11 @@ void position(TokenList *args, UCIstate *state){
   }
   if(movesStart !=0 && args->len>movesStart){
     for(int tokenIndex = movesStart; tokenIndex<args->len; tokenIndex++){
-      Move move = moveFromStr(args->tokens[tokenIndex].buf);
+      Move move = moveFromStr(args->tokens[tokenIndex].buf,state->board);
       if(isNullMove(&move)) continue;
       makeMove(&state->board,&move);
     }
   }
-}
-
-void isready(UCIstate *state){
-  if(!state->initialised){
-    state->initialised = true;
-    initEval();
-    initMoveGenerator();   
-  }
-  printf("readyok\n");
-  return;
 }
 
 void uci(){
@@ -130,6 +120,8 @@ void runUCI(){
   state.searchState = IDLE;
   state.board = boardFromFEN(STARTPOS_FEN);
   state.initialised = false;
+  initEval();
+  initMoveGenerator();
   while(!quit){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
@@ -140,7 +132,7 @@ void runUCI(){
     if(tl.len == 0) continue;
     if(rstrEquals(&tl.tokens[0], "position")){position(&tl, &state); continue;}
     if(rstrEquals(&tl.tokens[0], "quit")){quit = true; continue;}
-    if(rstrEquals(&tl.tokens[0], "isready")){isready(&state);}
+    if(rstrEquals(&tl.tokens[0], "isready")){printf("readyok\n");}
     if(rstrEquals(&tl.tokens[0], "uci")){uci(); continue;}
     
     if(state.initialised){

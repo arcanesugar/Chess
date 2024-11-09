@@ -29,7 +29,8 @@ Add wtime/btime and wint/binc options to go
 
 ## Changelog
 - better-ui
-    - UCI position command ignores invalid moves
+    - CLI no longer supports cheating
+    - UCI position command ignores invalid or illegal moves
     - MoveFromStr now checks if a move is valid
     - Mode is now determined with command line arguments instead of settings file
 

@@ -20,7 +20,7 @@ static byte squareNameToIndex(char *squareName, int startIndex) {
   return squareIndex;
 }
 
-Move moveFromStr(char *str){
+Move moveFromStr(char *str, Board board){
   Move move = createEmptyMove();
   if(strcmp(str, "ks") == 0){setSpecialMoveData(&move,CASTLE_KINGSIDE); return move;}
   if(strcmp(str, "qs") == 0){setSpecialMoveData(&move,CASTLE_QUEENSIDE); return move;}
@@ -45,6 +45,17 @@ Move moveFromStr(char *str){
     }
     setPromotion(&move,piece);
   };
+  struct MoveList legalMoves;
+  generateMoves(&board, &legalMoves);
+  bool isLegal = false;
+  for(int i  =0; i<legalMoves.end; i++){
+    if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
+      move = legalMoves.moves[i];
+      isLegal = true;
+      break;
+    }
+  }
+  if(!isLegal) return createNullMove();
 
   return move;
 };

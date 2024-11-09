@@ -213,23 +213,9 @@ void makeMoveFromConsole(ConsoleState *state){
   printf("move(eg e2e4, a7a8n)\n");
   printf("castle with \"ks\" and \"qs\"\n");
   getNextInput(state);
-  Move move = moveFromStr(state->lastInput.buf);
-  if(isNullMove(&move)) {printf("Invalid move\n");return;}
-  MoveList legalMoves;
-  generateMoves(&state->board, &legalMoves);
-  bool isLegal = false;
-  for(int i  =0; i<legalMoves.end; i++){
-    if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
-      move = legalMoves.moves[i];
-      isLegal = true;
-      break;
-    }
-  }
-  if(!isLegal){
-    printf("This move is not legal, continue? (y/N)\n");
-    getNextInput(state);
-    if(state->lastInput.buf[0] != 'y') return;
-  }
+  Move move = moveFromStr(state->lastInput.buf,state->board);
+  if(isNullMove(&move)) {printf("Invalid or illegal move\n");return;}
+
   makeMove(&state->board,&move);
   moveStackPush(&state->history,move);
   printMoveOnBoard(state->settings, state->board, move);
