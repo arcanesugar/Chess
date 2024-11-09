@@ -50,6 +50,7 @@ void moveListAppend(struct MoveList *ml, Move m){
   ml->moves[ml->end] = m;
   ml->end++;
 }
+
 void moveListRemove(struct MoveList *ml, byte index){
   for (byte i = index; i < ml->end; i++)
     ml->moves[i] = ml->moves[i + 1]; // copy next element left

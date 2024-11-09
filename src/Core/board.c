@@ -134,7 +134,7 @@ Board boardFromFEN(const char *fen){
   if(strchr(parsed[2], 'q')) board.flags |= BLACK_QUEENSIDE_BIT;
   
   board.enPassanTarget = EN_PASSAN_NULL;
-  if(parsed[3][0] != '-') board.enPassanTarget = squareNameToIndex(parsed[3],0);
+  if(parsed[3][0] != '-' && strlen(parsed[3])>1) board.enPassanTarget = squareNameToIndex(parsed[3],0);
   return board;
 }
 
