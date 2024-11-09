@@ -214,6 +214,7 @@ void makeMoveFromConsole(ConsoleState *state){
   printf("castle with \"ks\" and \"qs\"\n");
   getNextInput(state);
   Move move = moveFromStr(state->lastInput.buf);
+  if(isNullMove(&move)) {printf("Invalid move\n");return;}
   MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
   bool isLegal = false;

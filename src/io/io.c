@@ -14,8 +14,6 @@ bool rstrFromStream(rstr *str, FILE* stream){
   return eof;
 }
 
-void moveToRstr(rstr *str, Move *m){
-}
 static byte squareNameToIndex(char *squareName, int startIndex) {
   byte squareIndex =
       ((squareName[startIndex+1] - '0' - 1) * 8) + (7 - (squareName[startIndex] - 'a'));
@@ -26,6 +24,12 @@ Move moveFromStr(char *str){
   Move move = createEmptyMove();
   if(strcmp(str, "ks") == 0){setSpecialMoveData(&move,CASTLE_KINGSIDE); return move;}
   if(strcmp(str, "qs") == 0){setSpecialMoveData(&move,CASTLE_QUEENSIDE); return move;}
+
+  if(str[0] < 'a' || str[0] > 'h') return createNullMove();
+  if(str[2] < 'a' || str[2] > 'h') return createNullMove();
+
+  if(str[1] < '1' || str[1] > '8') return createNullMove();
+  if(str[3] < '1' || str[3] > '8') return createNullMove();
 
   setFrom(&move,squareNameToIndex(str,0));
   setTo(&move,squareNameToIndex(str,2));

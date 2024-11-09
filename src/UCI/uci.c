@@ -96,6 +96,7 @@ void position(TokenList *args, UCIstate *state){
   if(movesStart !=0 && args->len>movesStart){
     for(int tokenIndex = movesStart; tokenIndex<args->len; tokenIndex++){
       Move move = moveFromStr(args->tokens[tokenIndex].buf);
+      if(isNullMove(&move)) continue;
       makeMove(&state->board,&move);
     }
   }
