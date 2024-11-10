@@ -4,12 +4,11 @@
 #include "../Core/bitboard.h"
 #include "../Search/eval.h"
 
-printSettings createDefaultPrintSettings(){
-  printSettings ps;
-  setASCIIPieces(&ps);
-  ps.lightColor = 47;
-  ps.lightColor = 103;
-  return ps;
+
+void initPrintSettings(printSettings *settings){
+  setUnicodePieces(settings);
+  settings->lightColor = 47;
+  settings->darkColor = 103;
 }
 
 void setASCIIPieces(printSettings *settings){

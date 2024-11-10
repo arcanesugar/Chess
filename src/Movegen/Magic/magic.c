@@ -26,13 +26,13 @@ static u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
 static u64 bishopBlockers[64][BISHOP_BLOCKERS_PER_SQUARE];
 static int numBishopBlockers[64];
 
-void generateRookBlockers();
-void generateBishopBlockers();
+static void generateRookBlockers();
+static void generateBishopBlockers();
 
-void generateRookMasks();
-void generateBishopMasks();
-void fillRookMoves();
-void fillBishopMoves();
+static void generateRookMasks();
+static void generateBishopMasks();
+static void fillRookMoves();
+static void fillBishopMoves();
 
 void initMagics(){
   generateRookMasks();
@@ -70,7 +70,7 @@ u64 bishopLookup(u64 blockers, byte square){
 }
 
 //initialisation
-void fillRookMoves() {
+static void fillRookMoves() {
   for(int i = 0; i<64; i++){
     int size = rookMagics[i].max + 1;
     rookMoves[i] = (u64*)malloc(sizeof(u64)*size);
@@ -97,7 +97,7 @@ void fillRookMoves() {
   }
 }
 
-void fillBishopMoves() {
+static void fillBishopMoves() {
   for(int i = 0; i<64; i++){
     int size = bishopMagics[i].max + 1;
     bishopMoves[i] = (u64*)malloc(sizeof(u64)*size);
@@ -126,18 +126,18 @@ void fillBishopMoves() {
 
 //random functions from https://www.chessprogramming.org/Looking_for_Magics
 //modified slightly to fit naming convention
-u64 random_uint64() {
+static u64 random_uint64() {
   u64 u1, u2, u3, u4;
   u1 = (u64)(random()) & 0xFFFF; u2 = (u64)(random()) & 0xFFFF;
   u3 = (u64)(random()) & 0xFFFF; u4 = (u64)(random()) & 0xFFFF;
   return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
 }
 
-u64 random_u64_fewbits() {
+static u64 random_u64_fewbits() {
   return random_uint64() & random_uint64() & random_uint64();
 }
 
-void generateRookMasks() {
+static void generateRookMasks() {
   for (int rank = 0; rank < 8; rank++) {   // y
     for (int file = 0; file < 8; file++) { // x
       u64 mask = (u64)0;
@@ -148,7 +148,7 @@ void generateRookMasks() {
   }
 }
 
-void generateBishopMasks() {
+static void generateBishopMasks() {
   int directions[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
   for (int rank = 0; rank < 8; rank++) {   // y
     for (int file = 0; file < 8; file++) { // x
@@ -168,7 +168,7 @@ void generateBishopMasks() {
   }
 }
 
-void generateRookBlockers(){
+static void generateRookBlockers(){
   for(int i = 0; i<64; i++){
     u64 mask = rookMasks[i];
     u64 blocker = 0;
@@ -180,7 +180,7 @@ void generateRookBlockers(){
     }
   }
 }
-void generateBishopBlockers(){
+static void generateBishopBlockers(){
   for(int i = 0; i<64; i++){
     u64 mask = bishopMasks[i];
     u64 blocker = 0;
@@ -213,7 +213,7 @@ static u64 bishopPlaygroundSize;
 static u64 rookPlaygroundSize;
 static int searchCounter = 0;
 
-bool testMagic(Magic *magic, u64 *blockers, int numBlockers, playgroundChunk *playground, int playgroundSize, u64 (*eml)(u64,byte), byte emlc){
+static bool testMagic(Magic *magic, u64 *blockers, int numBlockers, playgroundChunk *playground, int playgroundSize, u64 (*eml)(u64,byte), byte emlc){
   //eml = Exisiting Magic Lookup
   //emlc = eml char argument
   u64 max = 0;
@@ -232,7 +232,7 @@ bool testMagic(Magic *magic, u64 *blockers, int numBlockers, playgroundChunk *pl
   return true;
 }
 
-void* magicSearch(void* vargp){
+static void* magicSearch(void* vargp){
   bishopPlaygroundSize = 0;
   rookPlaygroundSize = 0;
   Magic newRookMagics[64];

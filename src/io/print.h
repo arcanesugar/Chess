@@ -9,10 +9,9 @@ struct printSettings{
   int darkColor;
   int lightColor;
 };
-
 typedef struct printSettings printSettings;
 
-printSettings createDefaultPrintSettings();
+void initPrintSettings(printSettings *settings);
 void setUnicodePieces(printSettings *settings);
 void setASCIIPieces(printSettings *settings);
 

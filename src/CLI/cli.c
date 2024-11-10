@@ -20,7 +20,7 @@ struct ConsoleState {
   bool inputRepeatable;
 };
 
-void getNextInput(ConsoleState *state) {
+static void getNextInput(ConsoleState *state) {
   printf(">>");
   rstr prev = createRstr();
   rstrSet(&prev,state->lastInput.buf);
@@ -34,7 +34,7 @@ void getNextInput(ConsoleState *state) {
   state->inputRepeatable = false;
 }
 
-void playAgainstSelf(ConsoleState *state){
+static void playAgainstSelf(ConsoleState *state){
   bool checkmate = false;
   while(!checkmate){
     Move best = iterativeDeepeningSearch(state->board, 256, 2000, NULL);
@@ -49,7 +49,7 @@ void playAgainstSelf(ConsoleState *state){
   printf("checkmate");
 }
 
-void makeBestMove(ConsoleState *state){
+static void makeBestMove(ConsoleState *state){
   state->inputRepeatable = true;
   Move best = iterativeDeepeningSearch(state->board, 256, 2000, NULL);
   if(isNullMove(&best)){
@@ -62,7 +62,7 @@ void makeBestMove(ConsoleState *state){
   printMoveOnBoard(state->settings, state->board, best);
 }
 
-void undoLastMove(ConsoleState *state){
+static void undoLastMove(ConsoleState *state){
   state->inputRepeatable = true;
   if(moveListEmpty(state->history)){
     printf("No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\x1b[0m\n");
@@ -75,7 +75,7 @@ void undoLastMove(ConsoleState *state){
   moveListPop(&state->history);
 }
 
-void makeRandomMove(ConsoleState *state){
+static void makeRandomMove(ConsoleState *state){
   state->inputRepeatable = true;
   MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
@@ -91,7 +91,7 @@ void makeRandomMove(ConsoleState *state){
   state->printBoard = false;
 }
 
-void printLegalMoves(ConsoleState *state){
+static void printLegalMoves(ConsoleState *state){
   MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
   if(moveListEmpty(legalMoves)){printf("No legal moves (checkmate)\n"); return;}
@@ -102,7 +102,7 @@ void printLegalMoves(ConsoleState *state){
   state->printBoard = false;
 }
 
-void makeMoveFromConsole(ConsoleState *state){
+static void makeMoveFromConsole(ConsoleState *state){
   printf("move(eg e2e4, a7a8n)\n");
   printf("castle with \"ks\" and \"qs\"\n");
   getNextInput(state);
@@ -135,7 +135,7 @@ static int pickColor(ConsoleState *state){
   }
 }
 
-void displaySettings(ConsoleState *state){
+static void displaySettings(ConsoleState *state){
   bool done = false;
   while(!done){
     printf("---Display Settings---\n  ");
@@ -173,7 +173,7 @@ void displaySettings(ConsoleState *state){
   }
 }
 
-void showDebugView(ConsoleState *state){
+static void showDebugView(ConsoleState *state){
   state->printBoard = false;
   for(int i = 0; i<14; i++){
     printBitboardOnBoard(state->settings, state->board, state->board.bitboards[i]);
@@ -189,7 +189,7 @@ void showDebugView(ConsoleState *state){
   printf("\n");
 }
 
-void showHelpMenu(){
+static void showHelpMenu(){
   printf("---Help---\n");
   printf("  mve - Make move\n");
   printf("  rnd - Random move\n");
@@ -213,9 +213,7 @@ void showHelpMenu(){
 
 void runConsoleInterface(const char* fen){
   ConsoleState state;
-  setUnicodePieces(&state.settings);
-  state.settings.lightColor = 47;
-  state.settings.darkColor = 103;
+  initPrintSettings(&state.settings);
   state.printBoard = true;
   state.board = boardFromFEN(fen);
   state.history = createMoveList();

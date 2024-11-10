@@ -130,7 +130,8 @@ void runUCI(){
       if(rstrEquals(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
     //debug commands
     if(rstrEquals(&tl.tokens[0], "d")){
-      printSettings ps = createDefaultPrintSettings();
+      printSettings ps;
+      initPrintSettings(&ps);
       printBoard(ps, state.board, 0);
     }
   }

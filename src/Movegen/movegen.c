@@ -10,19 +10,17 @@ u64 kingMoves[64];
 void createKnightTable();//fills the knight moves array, does not do actual move generation
 void createKingTable();//see above comment
 
-void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares);
-void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags);
+static void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares);
+static void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags);
+static void addDiagonalMoves(Board *board, int square, MoveList *moves);
+static void addOrthogonalMoves(Board *board, int square, MoveList *moves);
+static void addSlidingMoves(Board *board, MoveList *moves);
+static void addPawnMoves(Board *board, MoveList *moves);
+static void addKnightMoves(Board *board, MoveList *moves);
+static void addKingMoves(Board *board, MoveList *moves);
+static void addCastlingMoves(Board *board, MoveList *moves);
 
-void addDiagonalMoves(Board *board, int square, MoveList *moves);
-void addOrthogonalMoves(Board *board, int square, MoveList *moves);
-
-void addSlidingMoves(Board *board, MoveList *moves);
-void addPawnMoves(Board *board, MoveList *moves);
-void addKnightMoves(Board *board, MoveList *moves);
-void addKingMoves(Board *board, MoveList *moves);
-void addCastlingMoves(Board *board, MoveList *moves);
-
-void filterLegalMoves(Board *board, MoveList *moves);
+static void filterLegalMoves(Board *board, MoveList *moves);
 
 void initMoveGenerator(){
   generateBoardMasks();
@@ -60,7 +58,7 @@ void generateMoves(Board *board, MoveList *moves) {
   filterLegalMoves(board, moves);
 }
 
-void filterLegalMoves(Board *board, MoveList *moves){
+static void filterLegalMoves(Board *board, MoveList *moves){
   for(int i = moves->end-1; i>=0; i--){
     makeMove(board,&moves->moves[i]);
     byte kingSquare = bitScanForward(board->bitboards[color+KING]);
@@ -105,7 +103,7 @@ bool isAttacked(Board *board, byte square, byte opponentColor){
   return false;
 }
 
-void addSlidingMoves(Board *board, MoveList *moves) {
+static void addSlidingMoves(Board *board, MoveList *moves) {
   u64 orthogonalPieces = board->bitboards[color + ROOK] | board->bitboards[color + QUEEN];
   u64 diagonalPieces = board->bitboards[color + BISHOP] | board->bitboards[color + QUEEN];
   while (orthogonalPieces) {
@@ -116,17 +114,17 @@ void addSlidingMoves(Board *board, MoveList *moves) {
   }
 }
 
-void addOrthogonalMoves(Board *board, int square, MoveList *moves) {
+static void addOrthogonalMoves(Board *board, int square, MoveList *moves) {
   u64 destinations = rookLookup(board->occupancy,square) & (~friendlyBitboard);
   addMovesToSquares(moves, square, destinations);
 };
 
-void addDiagonalMoves(Board *board, int square, MoveList *moves) {
+static void addDiagonalMoves(Board *board, int square, MoveList *moves) {
   u64 destinations = bishopLookup(board->occupancy,square) & (~friendlyBitboard);
   addMovesToSquares(moves, square, destinations);
 };
 
-void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags){
+static void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags){
   while (targets) {
     byte to = popls1b(&targets);
     if(to<8 || to>55){ 
@@ -147,7 +145,7 @@ void addMovesFromOffset(MoveList *moves, int offset, u64 targets, byte flags){
   }
 }
 
-void addPawnMoves(Board *board, MoveList *moves) {
+static void addPawnMoves(Board *board, MoveList *moves) {
   int dir = board->flags & WHITE_TO_MOVE_BIT ? 1 : -1;
   u64 leftFileMask = (board->flags & WHITE_TO_MOVE_BIT) ? fileMasks[7] : fileMasks[0];
   u64 rightFileMask = (board->flags & WHITE_TO_MOVE_BIT) ? fileMasks[0] : fileMasks[7];
@@ -188,7 +186,7 @@ void addPawnMoves(Board *board, MoveList *moves) {
   }
 }
 
-void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares){
+static void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares){
   while (squares) {
     Move move = createEmptyMove();
     setTo(&move, popls1b(&squares));
@@ -197,7 +195,7 @@ void addMovesToSquares(MoveList *moves, int fromSquare, u64 squares){
   }
 }
 
-void addKnightMoves(Board *board, MoveList *moves) {
+static void addKnightMoves(Board *board, MoveList *moves) {
   u64 friendlyKnights = board->bitboards[color + KNIGHT];
   while (friendlyKnights) {
     int square = popls1b(&friendlyKnights);
@@ -205,13 +203,13 @@ void addKnightMoves(Board *board, MoveList *moves) {
     addMovesToSquares(moves, square, targets);
   }
 }
-void addKingMoves(Board *board, MoveList *moves) {
+static void addKingMoves(Board *board, MoveList *moves) {
   int square = bitScanForward(board->bitboards[color + KING]);
   u64 targets = kingMoves[square] & (~friendlyBitboard);
   addMovesToSquares(moves, square, targets);
 }
 
-void addCastlingMoves(Board *board, MoveList *moves){
+static void addCastlingMoves(Board *board, MoveList *moves){
   if(isAttacked(board,(byte)bitScanForward(board->bitboards[color+KING]),opponentColor)) return;//cannot castle out of check
   u64 mustBeEmpty[4] = {6ULL,112ULL,432345564227567616ULL,8070450532247928832ULL};
   byte mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
