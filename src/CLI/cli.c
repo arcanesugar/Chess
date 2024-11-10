@@ -114,25 +114,59 @@ void makeMoveFromConsole(ConsoleState *state){
   state->printBoard = false;
 }
 
+static int pickColor(ConsoleState *state){
+  printf("Choose a color (some may be identical)\n");
+  for(int i = 0; i<16;i++){
+    if(i<8) printf(" %d:  \x1b[4%dm  \x1b[0m",i,i);
+    if(i>=8 && i<10)printf(" %d:  \x1b[10%dm  \x1b[0m",i,i-8);
+    if(i>= 10)printf(" %d: \x1b[10%dm  \x1b[0m",i,i-8);
+    if((i+1)%3 == 0) printf("\n");
+  }
+  printf("\n");
+  getNextInput(state);
+  if(!rstrIsNumber(&state->lastInput)) return -1;
+  int num = atoi(state->lastInput.buf);
+  if(num<0 || num>15) return -1;
+  if(num<8){
+    return 40+atoi(state->lastInput.buf);
+  }else{
+    return 100+(atoi(state->lastInput.buf)-8);
+  }
+}
+
 void displaySettings(ConsoleState *state){
   bool done = false;
   while(!done){
     printf("---Display Settings---\n  ");
     for(int i = 0; i<12; i++)
       printf("%s ", state->settings.pieceCharacters[i]);
-    printf("\n  Dark %s  \x1b[0m Light %s  \x1b[0m\n", state->settings.darkColor, state->settings.lightColor);
+    printf("\n  Dark \x1b[%dm  \x1b[0m Light \x1b[%dm  \x1b[0m\n", state->settings.darkColor, state->settings.lightColor);
     printf("  0 - Use Unicode Pieces\n");
     printf("  1 - Use ASCII Pieces\n");
+    printf("  2 - Set Light Color\n");
+    printf("  3 - Set Dark Color\n");
     printf("  q - Done\n");
     getNextInput(state);
     if(state->lastInput.buf[0] == 'q') return;
     if(!isdigit(state->lastInput.buf[0])) continue;
+
+    int newColor = 0;
     switch(atoi(state->lastInput.buf)){
       case 0:
         setUnicodePieces(&state->settings);
       break;
       case 1:
         setASCIIPieces(&state->settings);
+      break;
+      case 2:
+        newColor = pickColor(state);
+        if(newColor != -1)
+          state->settings.lightColor = newColor;
+      break;
+      case 3:
+        newColor = pickColor(state);
+        if(newColor != -1)
+          state->settings.darkColor = newColor;
       break;
     }
   }
@@ -178,10 +212,9 @@ void showHelpMenu(){
 
 void runConsoleInterface(const char* fen){
   ConsoleState state;
-  printf("[creating board]\n");
   setUnicodePieces(&state.settings);
-  setLightColor(&state.settings, "47");
-  setDarkColor(&state.settings, "103");
+  state.settings.lightColor = 47;
+  state.settings.darkColor = 103;
   state.printBoard = true;
   state.board = boardFromFEN(fen);
   state.history = createMoveList();

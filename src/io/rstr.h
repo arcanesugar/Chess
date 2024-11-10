@@ -21,3 +21,4 @@ bool rstrEquals(rstr *str, const char *cstr);
 void rstrSetChar(rstr *str, int index, char c);
 void rstrAppendChar(rstr *str, char c);
 char rstrGetChar(rstr *str, int index);//returns 0 if the index is out of range
+bool rstrIsNumber(rstr *str);

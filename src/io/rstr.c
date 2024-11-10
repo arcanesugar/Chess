@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 void rstrResize(rstr *str, int newCapacity){
   str->size = sizeof(char)*(newCapacity+1);
@@ -65,4 +66,11 @@ char rstrGetChar(rstr *str, int index){
   return str->buf[index];
 }
 
-
+bool rstrIsNumber(rstr *str){
+  int len = rstrLen(str);
+  if(len == 0) return false;
+  for(int i = 0; i<len; i++){
+    if(!(isdigit(str->buf[i]) || isspace(str->buf[i]))) return false;
+  }
+  return true;
+}
