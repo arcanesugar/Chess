@@ -1,6 +1,6 @@
 A c chess program that runs in the console\
 \
-./main To start in cli mode
+./main     To start in cli mode\
 ./main uci To start in uci mode
 
 ## CLI 
