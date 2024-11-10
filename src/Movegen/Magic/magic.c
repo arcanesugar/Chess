@@ -396,8 +396,7 @@ int loadMagics(){
   }
   int index = 0;
   bool rook = true;
-  TokenList tl;
-  createTokenList(&tl);
+  TokenList tl = createTokenList();
   while(!rstrFromStream(&line, file)){
     if(rstrEquals(&line,"Bishop")){
       index = 0;

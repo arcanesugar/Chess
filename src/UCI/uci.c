@@ -107,9 +107,8 @@ void uci(){
 }
 
 void runUCI(){
-  TokenList tl;
-  createTokenList(&tl);
   rstr input = createRstr();
+  TokenList tl = createTokenList();
   bool quit = false;
   UCIstate state;
   state.searchState = IDLE;
