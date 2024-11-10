@@ -47,6 +47,7 @@ MoveList createMoveList(){
 }
 
 void moveListAppend(MoveList *ml, Move m){
+  if(ml->end>=MOVE_LIST_MAX) return;
   ml->moves[ml->end] = m;
   ml->end++;
 }

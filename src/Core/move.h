@@ -42,8 +42,9 @@ bool isNullMove(Move* move);
 
 void moveToString(Move move, char *target);
 
+#define MOVE_LIST_MAX 219
 struct MoveList{
-  Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is just a beter number(and adds room for psedeo legal moves)
+  Move moves[MOVE_LIST_MAX];
   byte end;
 };
 typedef struct MoveList MoveList;

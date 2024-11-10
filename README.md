@@ -29,6 +29,7 @@ Add wtime/btime and wint/binc options to go
 
 ## Changelog
 - better-ui
+    - Board colors in cli can be changed
     - Side to move shown under the board
     - CLI no longer supports cheating
     - UCI position command ignores invalid or illegal moves

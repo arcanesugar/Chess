@@ -20,7 +20,6 @@ void setASCIIPieces(printSettings *settings){
   }
 };
 
-
 void setUnicodePieces(printSettings *settings){
   char pieces[13][6] = {
     "\u2659", "\u2657", "\u2658", "\u2656", "\u2655", "\u2654",   
@@ -35,7 +34,7 @@ void printBoard(printSettings settings, Board board, u64 highlighted){
   if(!validateBoard(board)){
     printf("\x1b[31m[error]Board is invalid\x1b[0m\n");
   }
-  printf(" a b c d e f g h\n");
+  printf("\n a b c d e f g h\n");
   for(int file = 7; file>=0; file--){
     printf("\x1b[0m%c",'1'+file);
     for(int rank = 7; rank>=0; rank--){

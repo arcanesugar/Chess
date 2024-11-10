@@ -53,7 +53,7 @@ void makeBestMove(ConsoleState *state){
   state->inputRepeatable = true;
   Move best = iterativeDeepeningSearch(state->board, 256, 2000, NULL);
   if(isNullMove(&best)){
-    printf("No legal moves(Checkmate)\n");
+    printf("No legal moves (checkmate)\n");
     return;
   }
   makeMove(&state->board,&best);
@@ -94,6 +94,7 @@ void makeRandomMove(ConsoleState *state){
 void printLegalMoves(ConsoleState *state){
   MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
+  if(moveListEmpty(legalMoves)){printf("No legal moves (checkmate)\n"); return;}
   printf("%i moves printed\n", legalMoves.end);
   for (int i = 0; i < legalMoves.end; i++) {
     printMoveOnBoard(state->settings, state->board, legalMoves.moves[i]);

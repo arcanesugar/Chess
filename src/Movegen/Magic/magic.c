@@ -8,6 +8,7 @@
 
 #include "../../Core/bitboard.h"
 #include "../../Core/board.h"
+#include "../../io/io.h"
 
 static Magic rookMagics[64];
 static Magic bishopMagics[64];
@@ -366,15 +367,15 @@ void saveMagics(){
     printf("[error] Could not open magics.txt\n");
     return;
   }
-  fprintf(file,"magicfile2.0\n");
+  fprintf(file,"magicfile2.1\n");
   for(int i = 0; i<64; i++){
     Magic m = rookMagics[i];
-    fprintf(file,"%llu|%d|%d\n",m.magic,m.shift,m.max);
+    fprintf(file,"%llu %d %d\n",m.magic,m.shift,m.max);
   }
   fprintf(file,"Bishop\n");
   for(int i = 0; i<64; i++){
     Magic m = bishopMagics[i];
-    fprintf(file,"%llu|%d|%d\n",m.magic,m.shift,m.max);
+    fprintf(file,"%llu %d %d\n",m.magic,m.shift,m.max);
   }
   fclose(file);
 };
@@ -385,42 +386,38 @@ int loadMagics(){
     printf("[error] Could not open magics.txt\n");
     return -1;
   }
-  char line[255];
-  if(fgets(line,255,file) == NULL) return -1;
-  if(strcmp(line,"magicfile2.0\n") != 0){
+  rstr line = createRstr();
+  rstrFromStream(&line, file);
+  if(!rstrEquals(&line,"magicfile2.1")){
+    destroyRstr(&line);
+    fclose(file);
     printf("Magic file unrecognised, try regenerating with sch\n");
     return -1;
   }
   int index = 0;
   bool rook = true;
-  while(fgets(line,255,file)){
-    if(strcmp(line,"Bishop\n") == 0){
+  TokenList tl;
+  createTokenList(&tl);
+  while(!rstrFromStream(&line, file)){
+    if(rstrEquals(&line,"Bishop")){
       index = 0;
       rook = false;
       continue;
     }
-    char tokens[3][100];
-    int tokenIndex = 0;
-    tokens[0][0] = '\0';
-    for(int i = 0; i<strlen(line)-1; i++){
-      if(line[i] == '|'){
-        tokenIndex ++;
-        tokens[tokenIndex][0] = '\0';
-        continue;
-      }
-      strcatchar(tokens[tokenIndex],line[i]);
-    }
+    tokeniseRstr(&line,&tl);
     char *endptr = NULL;
     Magic magic;
-    magic.magic = strtoull(tokens[0],&endptr,10);
-    magic.shift = atoi(tokens[1]);
-    magic.max = atoi(tokens[2]);
+    magic.magic = strtoull(tl.tokens[0].buf,&endptr,10);
+    magic.shift = atoi(tl.tokens[1].buf);
+    magic.max = atoi(tl.tokens[2].buf);
     if(rook){
       rookMagics[index++] = magic;
     }else{
       bishopMagics[index++] = magic;
     }
   }
+  destroyRstr(&line);
+  destroyTokenList(&tl);
   fclose(file);
   return 0;
 };
