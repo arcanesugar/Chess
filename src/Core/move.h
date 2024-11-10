@@ -46,7 +46,10 @@ struct MoveList{
   Move moves[255];//maximum number of legal moves possible in a position is 218, 255 is just a beter number(and adds room for psedeo legal moves)
   byte end;
 };
+typedef struct MoveList MoveList;
 
-struct MoveList createMoveList();
-void moveListAppend(struct MoveList *ml, Move m);
-void moveListRemove(struct MoveList *ml, byte index);//very slow
+MoveList createMoveList();
+void moveListAppend(MoveList *ml, Move m);
+void moveListRemove(MoveList *ml, byte index);//very slow
+bool moveListEmpty(MoveList ml);
+void moveListPop(MoveList *ml);

@@ -6,7 +6,6 @@
 #include "../io/rstr.h"
 #include "../Core/board.h"
 #include "../Search/search.h"
-#include "../Search/eval.h"
 #include "../Movegen/movegen.h"
 #include "../io/print.h"
 #include "../io/tokens.h"
@@ -23,10 +22,10 @@ enum SEARCH_MODES{
   TIMED,
   INFINITE,
 };
+
 typedef struct UCIstate{
   Board board;
   int state;
-  bool initialised;
 
   pthread_t searchThread;
   Move searchResult;//also readonly unless you are the search thread
@@ -118,9 +117,6 @@ void runUCI(){
   UCIstate state;
   state.searchState = IDLE;
   state.board = boardFromFEN(STARTPOS_FEN);
-  state.initialised = false;
-  initEval();
-  initMoveGenerator();
   while(!quit){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
@@ -134,10 +130,8 @@ void runUCI(){
     if(rstrEquals(&tl.tokens[0], "isready")){printf("readyok\n");}
     if(rstrEquals(&tl.tokens[0], "uci")){uci(); continue;}
     
-    if(state.initialised){
       if(rstrEquals(&tl.tokens[0], "go")){go(&tl, &state); continue;}
       if(rstrEquals(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
-    }
     //debug commands
     if(rstrEquals(&tl.tokens[0], "d")){
       printSettings ps = createDefaultPrintSettings();
@@ -146,10 +140,6 @@ void runUCI(){
   }
   if(state.searchState == DONE)//just in case
     pthread_join(state.searchThread ,NULL);
-  if(state.initialised){
-    cleanupMoveGenerator();
-    //eval doesnt need to be cleaned up
-  }
   destroyTokenList(&tl);
   destroyRstr(&input);
 }

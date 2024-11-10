@@ -14,105 +14,28 @@
 typedef struct ConsoleState ConsoleState;
 struct ConsoleState {
   printSettings settings;
-  MoveStack history;
+  MoveList history;
   bool printBoard;
   Board board;
   rstr lastInput;
+  bool inputRepeatable;
 };
-
-MoveStack createMoveStack(){
-  MoveStack ms;
-  ms.top = -1;
-  return ms;
-}
-void moveStackPush(MoveStack *ms, Move m){
-  ms->moves[++ms->top] = m;
-}
-Move moveStackPeek(MoveStack *ms){
-  return ms->moves[ms->top];
-}
-bool moveStackPop(MoveStack *ms){
-  if(ms->top == 1) return false;
-  ms->top--;
-  return true;
-}
-bool moveStackEmpty(MoveStack ms){
-  if(ms.top == -1) return true;
-  return false;
-}
-
-//function prototypes so runConsoleInterface can be at the top of the file
-void showHelpMenu();
-void displaySettings(ConsoleState *state);
-void whosTurnIsIt(ConsoleState *state);
-void makeMoveFromConsole(ConsoleState *state);
-void undoLastMove(ConsoleState *state);
-void makeRandomMove(ConsoleState *state);
-void printLegalMoves(ConsoleState *state);
-void makeBestMove(ConsoleState *state);
-void showDebugView(ConsoleState *state);
-void playAgainstSelf(ConsoleState *state);
 
 void getNextInput(ConsoleState *state) {
   printf(">>");
   rstr prev = createRstr();
   rstrSet(&prev,state->lastInput.buf);
   rstrFromStream(&state->lastInput, stdin);
-  if(rstrLen(&state->lastInput) == 0){
+  if(rstrLen(&state->lastInput) == 0 && state->inputRepeatable){
     rstrSet(&state->lastInput, prev.buf);
     printf("no command given, repeating last (%s)\n", prev.buf);
   } 
   destroyRstr(&prev);
   state->printBoard = true;
-}
-void initEngine(){
-  printf("[creating move generator]\n");
-  initMoveGenerator();
-  initEval();
-}
-void cleanupEngine(){
-  cleanupMagics();
+  state->inputRepeatable = false;
 }
 
-void runConsoleInterface(const char* fen){
-  ConsoleState state;
-  printf("[creating board]\n");
-  setUnicodePieces(&state.settings);
-  setLightColor(&state.settings, "47");
-  setDarkColor(&state.settings, "103");
-  state.printBoard = true;
-  state.board = boardFromFEN(fen);
-  state.history = createMoveStack();
-  state.lastInput = createRstr();
-  bool quit = false;
-  initEngine();
-  while (!quit) {
-    if(state.printBoard) printBoard(state.settings,state.board,0);
-    getNextInput(&state);
-    if(rstrEquals(&state.lastInput, "mve")) {makeMoveFromConsole(&state); continue;}
-    if(rstrEquals(&state.lastInput, "evl")) {printf("%f\n",evaluate(&state.board)); continue;}
-    if(rstrEquals(&state.lastInput, "bst")) {makeBestMove(&state); continue;}
-    if(rstrEquals(&state.lastInput, "dsp")) {displaySettings(&state); continue;}
-    if(rstrEquals(&state.lastInput, "lgl")) {printLegalMoves(&state); continue;}
-    if(rstrEquals(&state.lastInput, "rnd")) {makeRandomMove(&state); continue;}
-    if(rstrEquals(&state.lastInput, "trn")) {whosTurnIsIt(&state); continue;}
-    if(rstrEquals(&state.lastInput, "hlp")) {showHelpMenu(); continue;}
-    if(rstrEquals(&state.lastInput, "sch")) {searchForMagics(); continue;}
-    if(rstrEquals(&state.lastInput, "tst")) {runMoveGenerationTest(&state.board); continue;}
-    if(rstrEquals(&state.lastInput, "mgs")) {runMoveGenerationSuite(); continue;}
-    if(rstrEquals(&state.lastInput, "und")) {undoLastMove(&state);  continue;}
-    if(rstrEquals(&state.lastInput, "dbg")) {showDebugView(&state); continue;}
-    if(rstrEquals(&state.lastInput, "psq")) {printPsqt(state.settings); continue;}
-    if(rstrEquals(&state.lastInput, "ply")) {playAgainstSelf(&state); continue;}
-    if(rstrEquals(&state.lastInput, "q")) quit = true;
 
-
-    if(rstrEquals(&state.lastInput, "help")) {showHelpMenu(); continue;}
-    if(rstrEquals(&state.lastInput, "quit")) quit = true;
-  }
-  destroyRstr(&state.lastInput);
-  cleanupEngine();
-}
 
 void showHelpMenu(){
   printf("---Help---\n");
@@ -145,7 +68,7 @@ void playAgainstSelf(ConsoleState *state){
       checkmate = true;
     }
     makeMove(&state->board,&best);
-    moveStackPush(&state->history,best);
+    moveListAppend(&state->history,best);
     state->printBoard = false;
     printMoveOnBoard(state->settings, state->board, best);
   }
@@ -153,28 +76,29 @@ void playAgainstSelf(ConsoleState *state){
 }
 
 void makeBestMove(ConsoleState *state){
+  state->inputRepeatable = true;
   Move best = iterativeDeepeningSearch(state->board, 256, 2000, NULL);
   if(isNullMove(&best)){
     printf("No legal moves(Checkmate)\n");
     return;
   }
   makeMove(&state->board,&best);
-  moveStackPush(&state->history,best);
+  moveListAppend(&state->history,best);
   state->printBoard = false;
   printMoveOnBoard(state->settings, state->board, best);
 }
 
 void undoLastMove(ConsoleState *state){
-  if(moveStackEmpty(state->history)){
+  state->inputRepeatable = true;
+  if(moveListEmpty(state->history)){
     printf("No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m\n");
     return;
   }
-  Move m = moveStackPeek(&state->history);
+  Move m = state->history.moves[state->history.end-1];
   unmakeMove(&state->board,&m);
   printMoveOnBoard(state->settings,state->board, m);
   state->printBoard = false;
-
-  state->history.top--;
+  moveListPop(&state->history);
 }
 
 void whosTurnIsIt(ConsoleState *state){
@@ -185,6 +109,7 @@ void whosTurnIsIt(ConsoleState *state){
 }
 
 void makeRandomMove(ConsoleState *state){
+  state->inputRepeatable = true;
   struct MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
   if(legalMoves.end <= 0) {
@@ -194,7 +119,7 @@ void makeRandomMove(ConsoleState *state){
   }
   Move move = legalMoves.moves[rand()%legalMoves.end];
   makeMove(&state->board,&move);
-  moveStackPush(&state->history,move);
+  moveListAppend(&state->history,move);
   printMoveOnBoard(state->settings, state->board, move);
   state->printBoard = false;
 }
@@ -217,7 +142,7 @@ void makeMoveFromConsole(ConsoleState *state){
   if(isNullMove(&move)) {printf("Invalid or illegal move\n");return;}
 
   makeMove(&state->board,&move);
-  moveStackPush(&state->history,move);
+  moveListAppend(&state->history,move);
   printMoveOnBoard(state->settings, state->board, move);
   state->printBoard = false;
 }
@@ -260,4 +185,42 @@ void showDebugView(ConsoleState *state){
     }
   }
   printf("\n");
+}
+
+void runConsoleInterface(const char* fen){
+  ConsoleState state;
+  printf("[creating board]\n");
+  setUnicodePieces(&state.settings);
+  setLightColor(&state.settings, "47");
+  setDarkColor(&state.settings, "103");
+  state.printBoard = true;
+  state.board = boardFromFEN(fen);
+  state.history = createMoveList();
+  state.lastInput = createRstr();
+  state.inputRepeatable = false;
+  bool quit = false;
+  while (!quit) {
+    if(state.printBoard) printBoard(state.settings,state.board,0);
+    getNextInput(&state);
+    if(rstrEquals(&state.lastInput, "mve")) {makeMoveFromConsole(&state); continue;}
+    if(rstrEquals(&state.lastInput, "evl")) {printf("%f\n",evaluate(&state.board)); continue;}
+    if(rstrEquals(&state.lastInput, "bst")) {makeBestMove(&state); continue;}
+    if(rstrEquals(&state.lastInput, "dsp")) {displaySettings(&state); continue;}
+    if(rstrEquals(&state.lastInput, "lgl")) {printLegalMoves(&state); continue;}
+    if(rstrEquals(&state.lastInput, "rnd")) {makeRandomMove(&state); continue;}
+    if(rstrEquals(&state.lastInput, "trn")) {whosTurnIsIt(&state); continue;}
+    if(rstrEquals(&state.lastInput, "hlp")) {showHelpMenu(); continue;}
+    if(rstrEquals(&state.lastInput, "sch")) {searchForMagics(); continue;}
+    if(rstrEquals(&state.lastInput, "tst")) {runMoveGenerationTest(&state.board); continue;}
+    if(rstrEquals(&state.lastInput, "mgs")) {runMoveGenerationSuite(); continue;}
+    if(rstrEquals(&state.lastInput, "und")) {undoLastMove(&state);  continue;}
+    if(rstrEquals(&state.lastInput, "dbg")) {showDebugView(&state); continue;}
+    if(rstrEquals(&state.lastInput, "psq")) {printPsqt(state.settings); continue;}
+    if(rstrEquals(&state.lastInput, "ply")) {playAgainstSelf(&state); continue;}
+    if(rstrEquals(&state.lastInput, "q")) quit = true;
+    
+    if(rstrEquals(&state.lastInput, "help")) {showHelpMenu(); continue;}
+    if(rstrEquals(&state.lastInput, "quit")) quit = true;
+  }
+  destroyRstr(&state.lastInput);
 }
