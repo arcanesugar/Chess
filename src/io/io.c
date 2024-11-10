@@ -49,6 +49,14 @@ Move moveFromStr(char *str, Board board){
       isLegal = true;
       break;
     }
+    if(isKingside(&legalMoves.moves[i])){
+      if(strcmp(str,"e1g1") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
+      if(strcmp(str,"e1c1") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
+    }
+    if(isQueenside(&legalMoves.moves[i])){
+      if(strcmp(str,"e8g8") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
+      if(strcmp(str,"e8c8") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
+    }
   }
   if(!isLegal) return createNullMove();
 

@@ -7,7 +7,6 @@
 #include "../Movegen/movegen.h"
 #include "../Search/search.h"
 #include "../Search/eval.h"
-#include "../io/print.h"
 #include "../io/io.h"
 #include "cli.h"
 
@@ -28,36 +27,11 @@ void getNextInput(ConsoleState *state) {
   rstrFromStream(&state->lastInput, stdin);
   if(rstrLen(&state->lastInput) == 0 && state->inputRepeatable){
     rstrSet(&state->lastInput, prev.buf);
-    printf("no command given, repeating last (%s)\n", prev.buf);
+    printf("repeating last (%s)\n", prev.buf);
   } 
   destroyRstr(&prev);
   state->printBoard = true;
   state->inputRepeatable = false;
-}
-
-
-
-void showHelpMenu(){
-  printf("---Help---\n");
-  printf("  mve - Make move\n");
-  printf("  rnd - Random move\n");
-  printf("  und - Undo last move\n");
-  printf("  trn - Who's turn is it\n");
-  printf("  lgl - List legal moves\n");
-  printf("  dsp - Display settings\n");
-  printf("  hlp - Show this list\n");
-  printf("  ply - Play against self\n");
-  printf("  q  - Quit\n\n");
-  
-  printf("  help - Show this list\n");
-  printf("  quit - Quit\n");
-  printf("\n---Debug commands---\n");
-  printf("  dbg - Debug View\n");
-  printf("  psq - Show piece square tables\n");
-  printf("  evl - Show positions evaluation\n");
-  printf("  sch - Search for magic numbers\n");
-  printf("  tst - Run move generation test on current position\n");
-  printf("  mgs - Run move generation test suite\n");
 }
 
 void playAgainstSelf(ConsoleState *state){
@@ -91,7 +65,7 @@ void makeBestMove(ConsoleState *state){
 void undoLastMove(ConsoleState *state){
   state->inputRepeatable = true;
   if(moveListEmpty(state->history)){
-    printf("No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\n\x1b[0m\n");
+    printf("No more move history is avalible\n\x1b[2m(If you believe this is a mistake, contact your local library)\x1b[0m\n");
     return;
   }
   Move m = state->history.moves[state->history.end-1];
@@ -101,16 +75,9 @@ void undoLastMove(ConsoleState *state){
   moveListPop(&state->history);
 }
 
-void whosTurnIsIt(ConsoleState *state){
-  if (state->board.flags & WHITE_TO_MOVE_BIT) {
-    printf("White to move"); return;
-  }
-  printf("Black to move"); return;
-}
-
 void makeRandomMove(ConsoleState *state){
   state->inputRepeatable = true;
-  struct MoveList legalMoves;
+  MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
   if(legalMoves.end <= 0) {
     printf("No legal moves\n");
@@ -125,7 +92,7 @@ void makeRandomMove(ConsoleState *state){
 }
 
 void printLegalMoves(ConsoleState *state){
-  struct MoveList legalMoves;
+  MoveList legalMoves;
   generateMoves(&state->board, &legalMoves);
   printf("%i moves printed\n", legalMoves.end);
   for (int i = 0; i < legalMoves.end; i++) {
@@ -187,6 +154,28 @@ void showDebugView(ConsoleState *state){
   printf("\n");
 }
 
+void showHelpMenu(){
+  printf("---Help---\n");
+  printf("  mve - Make move\n");
+  printf("  rnd - Random move\n");
+  printf("  und - Undo last move in history\n");
+  printf("  lgl - List legal moves\n");
+  printf("  dsp - Display settings\n");
+  printf("  hlp - Show this list\n");
+  printf("  ply - Play against self\n");
+  printf("  q  - Quit\n\n");
+  
+  printf("  help - Show this list\n");
+  printf("  quit - Quit\n");
+  printf("\n---Debug commands---\n");
+  printf("  dbg - Debug View\n");
+  printf("  psq - Show piece square tables\n");
+  printf("  evl - Show evaluation of current position\n");
+  printf("  sch - Search for magic numbers\n");
+  printf("  tst - Run move generation test on current position\n");
+  printf("  mgs - Run move generation test suite\n");
+}
+
 void runConsoleInterface(const char* fen){
   ConsoleState state;
   printf("[creating board]\n");
@@ -208,7 +197,6 @@ void runConsoleInterface(const char* fen){
     if(rstrEquals(&state.lastInput, "dsp")) {displaySettings(&state); continue;}
     if(rstrEquals(&state.lastInput, "lgl")) {printLegalMoves(&state); continue;}
     if(rstrEquals(&state.lastInput, "rnd")) {makeRandomMove(&state); continue;}
-    if(rstrEquals(&state.lastInput, "trn")) {whosTurnIsIt(&state); continue;}
     if(rstrEquals(&state.lastInput, "hlp")) {showHelpMenu(); continue;}
     if(rstrEquals(&state.lastInput, "sch")) {searchForMagics(); continue;}
     if(rstrEquals(&state.lastInput, "tst")) {runMoveGenerationTest(&state.board); continue;}

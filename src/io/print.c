@@ -11,6 +11,7 @@ printSettings createDefaultPrintSettings(){
   setDarkColor(&ps, "103");
   return ps;
 }
+
 void setLightColor(printSettings *settings, const char *colorID){
   settings->lightColor[0] = 0;
   strcat(settings->lightColor,"\x1b[");
@@ -70,7 +71,11 @@ void printBoard(printSettings settings, Board board, u64 highlighted){
     strcat(str,"\n");
   }
   strcat(str," a b c d e f g h\n");
-  strcat(str,"");
+  if(board.flags&WHITE_TO_MOVE_BIT){
+    strcat(str,"  White to move\n");
+  }else{
+    strcat(str,"  Black to move\n");
+  }
   printf("%s",str);
 };
 
