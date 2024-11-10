@@ -6,10 +6,6 @@
 #include "../io/rstr.h"
 #include "../Core/board.h"
 #include "../Search/search.h"
-#include "../Search/eval.h"
-#include "../Movegen/movegen.h"
-#include "../io/print.h"
-#include "../io/tokens.h"
 #include "../io/io.h"
 
 
@@ -23,10 +19,10 @@ enum SEARCH_MODES{
   TIMED,
   INFINITE,
 };
+
 typedef struct UCIstate{
   Board board;
   int state;
-  bool initialised;
 
   pthread_t searchThread;
   Move searchResult;//also readonly unless you are the search thread
@@ -95,20 +91,11 @@ void position(TokenList *args, UCIstate *state){
   }
   if(movesStart !=0 && args->len>movesStart){
     for(int tokenIndex = movesStart; tokenIndex<args->len; tokenIndex++){
-      Move move = moveFromStr(args->tokens[tokenIndex].buf);
+      Move move = moveFromStr(args->tokens[tokenIndex].buf,state->board);
+      if(isNullMove(&move)) continue;
       makeMove(&state->board,&move);
     }
   }
-}
-
-void isready(UCIstate *state){
-  if(!state->initialised){
-    state->initialised = true;
-    initEval();
-    initMoveGenerator();   
-  }
-  printf("readyok\n");
-  return;
 }
 
 void uci(){
@@ -119,16 +106,13 @@ void uci(){
   printf("uciok\n");
 }
 
-
 void runUCI(){
-  TokenList tl;
-  createTokenList(&tl);
   rstr input = createRstr();
+  TokenList tl = createTokenList();
   bool quit = false;
   UCIstate state;
   state.searchState = IDLE;
   state.board = boardFromFEN(STARTPOS_FEN);
-  state.initialised = false;
   while(!quit){
     rstrFromStream(&input,stdin);
     tokeniseRstr(&input,&tl);
@@ -139,25 +123,20 @@ void runUCI(){
     if(tl.len == 0) continue;
     if(rstrEquals(&tl.tokens[0], "position")){position(&tl, &state); continue;}
     if(rstrEquals(&tl.tokens[0], "quit")){quit = true; continue;}
-    if(rstrEquals(&tl.tokens[0], "isready")){isready(&state);}
+    if(rstrEquals(&tl.tokens[0], "isready")){printf("readyok\n");}
     if(rstrEquals(&tl.tokens[0], "uci")){uci(); continue;}
     
-    if(state.initialised){
       if(rstrEquals(&tl.tokens[0], "go")){go(&tl, &state); continue;}
       if(rstrEquals(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
-    }
     //debug commands
     if(rstrEquals(&tl.tokens[0], "d")){
-      printSettings ps = createDefaultPrintSettings();
+      printSettings ps;
+      initPrintSettings(&ps);
       printBoard(ps, state.board, 0);
     }
   }
   if(state.searchState == DONE)//just in case
     pthread_join(state.searchThread ,NULL);
-  if(state.initialised){
-    cleanupMoveGenerator();
-    //eval doesnt need to be cleaned up
-  }
   destroyTokenList(&tl);
   destroyRstr(&input);
 }

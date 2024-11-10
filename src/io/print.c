@@ -4,25 +4,11 @@
 #include "../Core/bitboard.h"
 #include "../Search/eval.h"
 
-printSettings createDefaultPrintSettings(){
-  printSettings ps;
-  setASCIIPieces(&ps);
-  setLightColor(&ps, "47");
-  setDarkColor(&ps, "103");
-  return ps;
-}
-void setLightColor(printSettings *settings, const char *colorID){
-  settings->lightColor[0] = 0;
-  strcat(settings->lightColor,"\x1b[");
-  strcat(settings->lightColor,colorID);
-  strcat(settings->lightColor,"m");
-}
 
-void setDarkColor(printSettings *settings, const char *colorID){
-  settings->darkColor[0] = 0;
-  strcat(settings->darkColor,"\x1b[");
-  strcat(settings->darkColor,colorID);
-  strcat(settings->darkColor,"m");
+void initPrintSettings(printSettings *settings){
+  setUnicodePieces(settings);
+  settings->lightColor = 47;
+  settings->darkColor = 103;
 }
 
 void setASCIIPieces(printSettings *settings){
@@ -32,7 +18,6 @@ void setASCIIPieces(printSettings *settings){
     settings->pieceCharacters[i][1] = '\0';
   }
 };
-
 
 void setUnicodePieces(printSettings *settings){
   char pieces[13][6] = {
@@ -45,33 +30,30 @@ void setUnicodePieces(printSettings *settings){
 };
 
 void printBoard(printSettings settings, Board board, u64 highlighted){
-  char str[5000] = "\n";
   if(!validateBoard(board)){
-    strcat(str,"\x1b[31m[error]Board is invalid\x1b[0m\n");
+    printf("\x1b[31m[error]Board is invalid\x1b[0m\n");
   }
-  strcat(str," a b c d e f g h\n");
+  printf("\n a b c d e f g h\n");
   for(int file = 7; file>=0; file--){
-    strcat(str, "\x1b[0m");
-    strcatchar(str,'1'+file);
+    printf("\x1b[0m%c",'1'+file);
     for(int rank = 7; rank>=0; rank--){
       if((file+rank)% 2 == 0){
-        strcat(str,settings.lightColor);
+        printf("\x1b[%dm",settings.lightColor);
       }else{
-        strcat(str,settings.darkColor);
+        printf("\x1b[%dm",settings.darkColor);
       }
-      if(getBit(highlighted,getSquareIndex(file, rank))) strcat(str,"\x1b[45m");
+      if(getBit(highlighted,getSquareIndex(file, rank))) printf("\x1b[45m");
       char *piece = settings.pieceCharacters[board.squares[getSquareIndex(file,rank)]];
-      strcat(str,"\x1b[30m");
-      strcat(str,piece);
-      strcat(str," \x1b[0m");
+      printf("\x1b[30m%s \x1b[0m",piece);
     }
-    strcat(str, "\x1b[0m");
-    strcatchar(str,'1'+file);
-    strcat(str,"\n");
+    printf("\x1b[0m%c\n",'1'+file);
   }
-  strcat(str," a b c d e f g h\n");
-  strcat(str,"");
-  printf("%s",str);
+  printf(" a b c d e f g h\n");
+  if(board.flags&WHITE_TO_MOVE_BIT){
+    printf("  White to move\n");
+  }else{
+    printf("  Black to move\n");
+  }
 };
 
 void printMoveOnBoard(printSettings settings, Board board, Move m){

@@ -28,8 +28,14 @@ Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a 
 Add wtime/btime and wint/binc options to go
 
 ## Changelog
-- better UI
+- better-ui
+    - Board colors in cli can be changed
+    - Side to move shown under the board
+    - CLI no longer supports cheating
+    - UCI position command ignores invalid or illegal moves
+    - MoveFromStr now checks if a move is valid
     - Mode is now determined with command line arguments instead of settings file
+
 - UCI
     - Added the ability to cancel searches
     - Added time constrained searches

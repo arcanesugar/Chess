@@ -14,18 +14,17 @@ bool rstrFromStream(rstr *str, FILE* stream){
   return eof;
 }
 
-void moveToRstr(rstr *str, Move *m){
-}
-static byte squareNameToIndex(char *squareName, int startIndex) {
-  byte squareIndex =
-      ((squareName[startIndex+1] - '0' - 1) * 8) + (7 - (squareName[startIndex] - 'a'));
-  return squareIndex;
-}
 
-Move moveFromStr(char *str){
+Move moveFromStr(char *str, Board board){
   Move move = createEmptyMove();
   if(strcmp(str, "ks") == 0){setSpecialMoveData(&move,CASTLE_KINGSIDE); return move;}
   if(strcmp(str, "qs") == 0){setSpecialMoveData(&move,CASTLE_QUEENSIDE); return move;}
+
+  if(str[0] < 'a' || str[0] > 'h') return createNullMove();
+  if(str[2] < 'a' || str[2] > 'h') return createNullMove();
+
+  if(str[1] < '1' || str[1] > '8') return createNullMove();
+  if(str[3] < '1' || str[3] > '8') return createNullMove();
 
   setFrom(&move,squareNameToIndex(str,0));
   setTo(&move,squareNameToIndex(str,2));
@@ -41,6 +40,25 @@ Move moveFromStr(char *str){
     }
     setPromotion(&move,piece);
   };
+  struct MoveList legalMoves;
+  generateMoves(&board, &legalMoves);
+  bool isLegal = false;
+  for(int i  =0; i<legalMoves.end; i++){
+    if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
+      move = legalMoves.moves[i];
+      isLegal = true;
+      break;
+    }
+    if(isKingside(&legalMoves.moves[i])){
+      if(strcmp(str,"e1g1") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
+      if(strcmp(str,"e1c1") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
+    }
+    if(isQueenside(&legalMoves.moves[i])){
+      if(strcmp(str,"e8g8") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
+      if(strcmp(str,"e8c8") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
+    }
+  }
+  if(!isLegal) return createNullMove();
 
   return move;
 };

@@ -29,6 +29,7 @@ struct Board{
 };
 typedef struct Board Board;
 
+byte squareNameToIndex(char *squareName, int startIndex);
 Board boardFromFEN(const char* fen);
 bool validateBoard(Board board);
 void makeMove(Board *board, Move *m);

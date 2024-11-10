@@ -9,6 +9,6 @@ extern u64 kingMoves[64];
 
 void initMoveGenerator();
 void cleanupMoveGenerator();
-void generateMoves(Board *board, MoveList *moves);
 
+void generateMoves(Board *board, MoveList *moves);
 bool isAttacked(Board *board, byte square, byte opponentColor);

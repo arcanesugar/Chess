@@ -25,7 +25,7 @@ orderedMoveList createOrderedMoveList(MoveList ml){
   for(int i = 0; i<255; i++) oml.evals[i] = 0;
   return oml;
 }
-void orderMoves(orderedMoveList *oml){//orders the moves high to low based on the evals list
+static void orderMoves(orderedMoveList *oml){//orders the moves high to low based on the evals list
   for(int i = 0; i<oml->moveList.end; i++){
     for(int j = 0; j<i-1; j++){
       if(oml->evals[j]<oml->evals[j+1]){
@@ -40,13 +40,13 @@ void orderMoves(orderedMoveList *oml){//orders the moves high to low based on th
     }
   }
 }
-long long getTimeMS(){//guess what this does? your right! it get the time in miliseconds. Good job
+static long long getTimeMS(){//guess what this does? your right! it get the time in miliseconds. Good job
   struct timespec t;
   clock_gettime ( CLOCK_MONOTONIC , & t ) ;
   return t.tv_sec * 1000 + ( t.tv_nsec + 500000 ) / 1000000 ;
 }
 
-int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bool *quitIfTrue){
+static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bool *quitIfTrue){
   //alpha is the best score we are able to achieve (we being whoevers turn it is)
   //and beta is the best score the opponent is able to achieve
   //why alpha and beta? I dont know, it probably made more sense in original minimax
@@ -123,7 +123,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
   return bestMove;
 };
 
-u64 perftTest(Board *b, int depth, bool root){
+static u64 perftTest(Board *b, int depth, bool root){
   if(depth <= 0){return 1;}
   u64 count = 0;
   MoveList moves = createMoveList();

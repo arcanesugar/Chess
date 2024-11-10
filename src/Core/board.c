@@ -61,10 +61,20 @@ bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
   return true;
 }
 
+byte squareNameToIndex(char *squareName, int startIndex) {
+  byte squareIndex =
+      ((squareName[startIndex+1] - '0' - 1) * 8) + (7 - (squareName[startIndex] - 'a'));
+  return squareIndex;
+}
+
 Board boardFromFEN(const char *fen){
   Board board;
   char parsed[6][100];
   int index = 0;
+  for(int i = 0; i<6; i++){
+    parsed[i][0] = '-';
+    parsed[i][1] = '\0';
+  }
   parsed[0][0] = '\0';
   for(int i = 0; i<strlen(fen); i++){
     if(fen[i] == ' '){
@@ -122,8 +132,9 @@ Board boardFromFEN(const char *fen){
   if(strchr(parsed[2], 'Q')) board.flags |= WHITE_QUEENSIDE_BIT;
   if(strchr(parsed[2], 'k')) board.flags |= BLACK_KINGSIDE_BIT;
   if(strchr(parsed[2], 'q')) board.flags |= BLACK_QUEENSIDE_BIT;
-
+  
   board.enPassanTarget = EN_PASSAN_NULL;
+  if(parsed[3][0] != '-' && strlen(parsed[3])>1) board.enPassanTarget = squareNameToIndex(parsed[3],0);
   return board;
 }
 

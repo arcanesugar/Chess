@@ -5,16 +5,13 @@
 
 struct printSettings{
   char pieceCharacters[14][6];
-  char darkColor[10];
-  char lightColor[10];
+  //\x1b[<color>m
+  int darkColor;
+  int lightColor;
 };
-
 typedef struct printSettings printSettings;
 
-printSettings createDefaultPrintSettings();
-//set light and dark color will result in \x1b[colorIDm
-void setLightColor(printSettings *settings, const char *colorID);
-void setDarkColor(printSettings *settings, const char *colorID);
+void initPrintSettings(printSettings *settings);
 void setUnicodePieces(printSettings *settings);
 void setASCIIPieces(printSettings *settings);
 

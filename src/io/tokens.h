@@ -8,6 +8,7 @@ struct TokenList{
 };
 typedef struct TokenList TokenList;
 
-void tokeniseRstr(rstr *source, TokenList *tl);
+TokenList createTokenList();
 void destroyTokenList(TokenList *tl);
-void createTokenList(TokenList *tl);
+
+void tokeniseRstr(rstr *source, TokenList *tl);

@@ -42,18 +42,26 @@ Move createEmptyMove(){Move m; m.move = 0; m.unmakeData = 0; return m;}
 bool isNullMove(Move* move){return !(move->move|move->unmakeData);}
 
 //Move List
-struct MoveList createMoveList(){
-  struct MoveList ml; ml.end = 0; return ml;
+MoveList createMoveList(){
+  MoveList ml; ml.end = 0; return ml;
 }
 
-void moveListAppend(struct MoveList *ml, Move m){
+void moveListAppend(MoveList *ml, Move m){
+  if(ml->end>=MOVE_LIST_MAX) return;
   ml->moves[ml->end] = m;
   ml->end++;
 }
-void moveListRemove(struct MoveList *ml, byte index){
+
+void moveListRemove(MoveList *ml, byte index){
   for (byte i = index; i < ml->end; i++)
     ml->moves[i] = ml->moves[i + 1]; // copy next element left
   ml->end-=1;
+}
+bool moveListEmpty(MoveList ml){
+  return (ml.end == 0);
+}
+void moveListPop(MoveList *ml){
+  ml->end--;
 }
 
 void moveToString(Move move, char *target){

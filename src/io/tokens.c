@@ -1,16 +1,20 @@
 #include "tokens.h"
 
-void createTokenList(TokenList *tl){
-  tl->len = 0;
+TokenList createTokenList(){
+  TokenList tl;
+  tl.len = 0;
   for(int i = 0; i<MAX_TOKENS; i++){
-    tl->tokens[i].buf = NULL;
+    tl.tokens[i].buf = NULL;
   }
+  return tl;
 }
 
 void destroyTokenList(TokenList *tl){
   tl->len = 0;
   for(int i = 0; i<MAX_TOKENS; i++){
-    destroyRstr(&tl->tokens[i]);
+    if(tl->tokens[i].buf != NULL){
+      destroyRstr(&tl->tokens[i]);
+    }
   }
 }
 
