@@ -1,6 +1,7 @@
 #include "uci.h"
 #include <stdio.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "../Core/types.h"
 #include "../io/rstr.h"
@@ -43,58 +44,56 @@ void* doSearch(void* args){
   return NULL;
 };
 
-void go(TokenList *args, UCIstate *state){
+void go(char* saveptr, UCIstate *state){
   if(state->searchState != IDLE) return;
   //default to an infinite search
   state->searchDepth = 256;
   state->searchTime  = 0;
   state->quitSearch = false;
   
-  int tokenIndex = 1;
-  while(tokenIndex<args->len){
-    if(rstrEquals(&args->tokens[tokenIndex], "depth")){
-      state->searchDepth = atoi(args->tokens[tokenIndex+1].buf);
-      tokenIndex+=2;
+  char *tokenptr;
+  while(1){//never a bad idea
+    tokenptr = strtok_r(NULL," ",&saveptr);
+    if(tokenptr == NULL) break;
+    if(strcmp(tokenptr,"depth") == 0){
+      state->searchDepth = atoi(strtok_r(NULL," ",&saveptr));
       continue;
     }
-    if(rstrEquals(&args->tokens[tokenIndex], "movetime")){
-      state->searchTime = atoi(args->tokens[tokenIndex+1].buf);
+    if(strcmp(tokenptr,"movetime") == 0){
+      state->searchTime = atoi(strtok_r(NULL," ",&saveptr));
       if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
-      tokenIndex+=2;
       continue;
     }
-    if(rstrEquals(&args->tokens[tokenIndex], "infinite")){
+    if(strcmp(tokenptr,"infinite") == 0){
       state->searchDepth = 256;
       state->searchTime  = 0;
-      tokenIndex++;
       continue;
     }
-    tokenIndex++;
   }
   pthread_create(&state->searchThread,NULL,doSearch,state);
 }
 
-void position(TokenList *args, UCIstate *state){
-  int movesStart = 0;
-  if(rstrEquals(&args->tokens[1], "fen")){
-    state->board = boardFromFEN(args->tokens[2].buf);
-    if(args->len == 3) return;
-    if(rstrEquals(&args->tokens[3], "moves")){
-      movesStart = 4;
+void position(char* saveptr, UCIstate *state){
+  char *tokenptr = strtok_r(NULL, " ", &saveptr);
+  if(strcmp(tokenptr,"fen") == 0){
+    rstr fen = createRstr();
+    for(int i = 0; i<6; i++){
+      tokenptr = strtok_r(NULL, " ", &saveptr);
+      if(!tokenptr || strcmp(tokenptr,"moves")) break;
+      rstrAppend(&fen,tokenptr);
     }
+    state->board = boardFromFEN(fen.buf);
   }
-  if(rstrEquals(&args->tokens[1], "startpos")){
+  else{//"startpos" assumed
     state->board = boardFromFEN(STARTPOS_FEN);
-    if(args->len == 2) return;
-    if(rstrEquals(&args->tokens[2], "moves"))
-      movesStart = 3;
+    strtok_r(NULL, " ", &saveptr);//consume "moves" token (if present)
   }
-  if(movesStart !=0 && args->len>movesStart){
-    for(int tokenIndex = movesStart; tokenIndex<args->len; tokenIndex++){
-      Move move = moveFromStr(args->tokens[tokenIndex].buf,state->board);
-      if(isNullMove(&move)) continue;
-      makeMove(&state->board,&move);
-    }
+  while(1){
+    tokenptr = strtok_r(NULL, " ", &saveptr);
+    if(!tokenptr) break;
+    Move move = moveFromStr(tokenptr,state->board);
+    if(isNullMove(&move)) continue;
+    makeMove(&state->board,&move);
   }
 }
 
@@ -108,35 +107,37 @@ void uci(){
 
 void runUCI(){
   rstr input = createRstr();
-  TokenList tl = createTokenList();
   bool quit = false;
   UCIstate state;
   state.searchState = IDLE;
   state.board = boardFromFEN(STARTPOS_FEN);
+  setvbuf(stdout, NULL, _IONBF, 0);//turn off buffering for stdout(line buffering would also work, but just in case)
   while(!quit){
     rstrFromStream(&input,stdin);
-    tokeniseRstr(&input,&tl);
     if(state.searchState == DONE){//I know that this wont happen until an input is provided, but it works for now
       pthread_join(state.searchThread ,NULL);
       state.searchState = IDLE;
     }
-    if(tl.len == 0) continue;
-    if(rstrEquals(&tl.tokens[0], "position")){position(&tl, &state); continue;}
-    if(rstrEquals(&tl.tokens[0], "quit")){quit = true; continue;}
-    if(rstrEquals(&tl.tokens[0], "isready")){printf("readyok\n");}
-    if(rstrEquals(&tl.tokens[0], "uci")){uci(); continue;}
+    char *saveptr;
+    char *tokenptr;
+    tokenptr = strtok_r(input.buf," ",&saveptr);
+    if(strcmp(tokenptr, "position") == 0){position(saveptr, &state); continue;}
+    if(strcmp(tokenptr, "quit") == 0){quit = true; continue;}
+    if(strcmp(tokenptr, "isready") == 0){printf("readyok\n");}
+    if(strcmp(tokenptr, "uci") == 0){uci(); continue;}
+    if(strcmp(tokenptr, "go") == 0){go(saveptr, &state); continue;}
+    if(strcmp(tokenptr, "stop") == 0){state.quitSearch = true; continue;}
     
-      if(rstrEquals(&tl.tokens[0], "go")){go(&tl, &state); continue;}
-      if(rstrEquals(&tl.tokens[0], "stop")){state.quitSearch = true; continue;}
     //debug commands
-    if(rstrEquals(&tl.tokens[0], "d")){
+    if(strcmp(tokenptr, "d") == 0){
       printSettings ps;
       initPrintSettings(&ps);
       printBoard(ps, state.board, 0);
     }
   }
-  if(state.searchState == DONE)//just in case
+  if(state.searchState != IDLE){//just in case
+    state.quitSearch = true;
     pthread_join(state.searchThread ,NULL);
-  destroyTokenList(&tl);
+  }
   destroyRstr(&input);
 }
