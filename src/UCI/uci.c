@@ -37,10 +37,12 @@ typedef struct UCIstate{
 
 static void allocateTime(UCIstate* state){//bad but technically functional
   if(state->searchTime !=0) return;
-  float time = state->wtime;
+  float time = state->btime;
   if(state->board.flags & WHITE_TO_MOVE_BIT)
-    time = state->btime;
+    time = state->wtime;
   state->searchTime = time/50;//assume the game will end in 25 moves(50 half moves)
+  state->searchTime -=2;// the engine tends to take around 2ms to quit a search
+  if(state->searchTime<=0) state->searchTime = 1;
 }
 
 static void* doSearch(void* args){
