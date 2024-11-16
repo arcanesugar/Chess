@@ -24,6 +24,8 @@ enum SEARCH_MODES{
 typedef struct UCIstate{
   Board board;
   int state;
+  int wtime;
+  int btime;
 
   pthread_t searchThread;
   Move searchResult;//also readonly unless you are the search thread
@@ -33,8 +35,17 @@ typedef struct UCIstate{
   int searchTime;
 }UCIstate;
 
-void* doSearch(void* args){
+static void allocateTime(UCIstate* state){//bad but technically functional
+  if(state->searchTime !=0) return;
+  float time = state->wtime;
+  if(state->board.flags & WHITE_TO_MOVE_BIT)
+    time = state->btime;
+  state->searchTime = time/50;//assume the game will end in 25 moves(50 half moves)
+}
+
+static void* doSearch(void* args){
   UCIstate *state = (UCIstate*)args;
+  allocateTime(state);
   state->searchState = SEARCHING;
   state->searchResult = iterativeDeepeningSearch(state->board,state->searchDepth,state->searchTime,&state->quitSearch);
   char moveStr[10] = "";
@@ -44,7 +55,7 @@ void* doSearch(void* args){
   return NULL;
 };
 
-void go(char* saveptr, UCIstate *state){
+static void go(char* saveptr, UCIstate *state){
   if(state->searchState != IDLE) return;
   //default to an infinite search
   state->searchDepth = 256;
@@ -64,16 +75,24 @@ void go(char* saveptr, UCIstate *state){
       if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
       continue;
     }
+    if(strcmp(tokenptr,"wtime") == 0){
+      state->wtime = atoi(strtok_r(NULL," ",&saveptr));
+      continue;
+    }
+    if(strcmp(tokenptr,"btime") == 0){
+      state->btime = atoi(strtok_r(NULL," ",&saveptr));
+      continue;
+    }
     if(strcmp(tokenptr,"infinite") == 0){
       state->searchDepth = 256;
       state->searchTime  = 0;
-      continue;
+      break;
     }
   }
   pthread_create(&state->searchThread,NULL,doSearch,state);
 }
 
-void position(char* saveptr, UCIstate *state){
+static void position(char* saveptr, UCIstate *state){
   char *tokenptr = strtok_r(NULL, " ", &saveptr);
   if(strcmp(tokenptr,"fen") == 0){
     rstr fen = createRstr();
@@ -97,7 +116,7 @@ void position(char* saveptr, UCIstate *state){
   }
 }
 
-void uci(){
+static void uci(){
   //send name and author of engine
   printf("id name "ENGINE_NAME"\n");
   printf("id author "AUTHOR"\n");
