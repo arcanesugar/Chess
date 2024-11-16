@@ -26,6 +26,8 @@ typedef struct UCIstate{
   int state;
   int wtime;
   int btime;
+  int movesToGo;//moves untill the next time controll 
+  bool suddenDeath;
 
   pthread_t searchThread;
   Move searchResult;//also readonly unless you are the search thread
@@ -37,10 +39,12 @@ typedef struct UCIstate{
 
 static void allocateTime(UCIstate* state){//bad but technically functional
   if(state->searchTime !=0) return;
+  if(state->wtime == 0 && state->btime == 0) return;
   float time = state->btime;
   if(state->board.flags & WHITE_TO_MOVE_BIT)
     time = state->wtime;
-  state->searchTime = time/50;//assume the game will end in 25 moves(50 half moves)
+  if(state->suddenDeath)state->searchTime = time/50;//assume the game will end in 25 moves(50 half moves)
+  else state->searchTime = time/state->movesToGo;//assume the game will end in 25 moves(50 half moves)
   state->searchTime -=2;// the engine tends to take around 2ms to quit a search
   if(state->searchTime<=0) state->searchTime = 1;
 }
@@ -62,6 +66,9 @@ static void go(char* saveptr, UCIstate *state){
   //default to an infinite search
   state->searchDepth = 256;
   state->searchTime  = 0;
+  state->suddenDeath = true;
+  state->btime = 0;
+  state->wtime = 0;
   state->quitSearch = false;
   
   char *tokenptr;
@@ -75,6 +82,11 @@ static void go(char* saveptr, UCIstate *state){
     if(strcmp(tokenptr,"movetime") == 0){
       state->searchTime = atoi(strtok_r(NULL," ",&saveptr));
       if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
+      continue;
+    }
+    if(strcmp(tokenptr,"movestogo") == 0){
+      state->movesToGo = atoi(strtok_r(NULL," ",&saveptr));
+      state->suddenDeath = false;
       continue;
     }
     if(strcmp(tokenptr,"wtime") == 0){
