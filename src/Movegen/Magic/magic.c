@@ -396,19 +396,17 @@ int loadMagics(){
   }
   int index = 0;
   bool rook = true;
-  TokenList tl = createTokenList();
   while(!rstrFromStream(&line, file)){
     if(rstrEquals(&line,"Bishop")){
       index = 0;
       rook = false;
       continue;
     }
-    tokeniseRstr(&line,&tl);
-    char *endptr = NULL;
+    char *saveptr;
     Magic magic;
-    magic.magic = strtoull(tl.tokens[0].buf,&endptr,10);
-    magic.shift = atoi(tl.tokens[1].buf);
-    magic.max = atoi(tl.tokens[2].buf);
+    magic.magic = strtoull(strtok_r(line.buf," ",&saveptr),NULL,10);
+    magic.shift = atoi(strtok_r(NULL," ",&saveptr));
+    magic.max   = atoi(strtok_r(NULL," ",&saveptr));
     if(rook){
       rookMagics[index++] = magic;
     }else{
@@ -416,7 +414,6 @@ int loadMagics(){
     }
   }
   destroyRstr(&line);
-  destroyTokenList(&tl);
   fclose(file);
   return 0;
 };
