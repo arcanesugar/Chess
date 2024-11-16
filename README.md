@@ -28,6 +28,9 @@ Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a 
 Add wtime/btime and wint/binc options to go
 
 ## Changelog
+- uci-fixes
+  - added wtime,btime and movestogo to uci
+  - fixed fen strings crashing the program
 - better-ui
     - Board colors in cli can be changed
     - Side to move shown under the board
