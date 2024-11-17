@@ -30,6 +30,7 @@ struct Board{
 typedef struct Board Board;
 
 byte squareNameToIndex(char *squareName, int startIndex);
+byte charToPiece(char c);
 Board boardFromFEN(const char* fen);
 char getSideToMove(Board *board);
 char getOpponentColor(Board *board);

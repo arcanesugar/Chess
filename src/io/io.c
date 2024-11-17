@@ -29,6 +29,7 @@ Move moveFromStr(char *str, Board board){
   setFrom(&move,squareNameToIndex(str,0));
   setTo(&move,squareNameToIndex(str,2));
   if(strlen(str) == 5){
+    printf("%c",str[4]);
     byte piece;
     switch(str[4]){
       case 'p': piece = PAWN; break;
@@ -45,7 +46,7 @@ Move moveFromStr(char *str, Board board){
   bool isLegal = false;
   for(int i  =0; i<legalMoves.end; i++){
     if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
-      move = legalMoves.moves[i];
+      if(isEnPassan(&legalMoves.moves[i])) setSpecialMoveData(&move, EN_PASSAN);
       isLegal = true;
       break;
     }

@@ -73,24 +73,25 @@ byte squareNameToIndex(char *squareName, int startIndex) {
   return squareIndex;
 }
 
+byte charToPiece(char c){
+  byte color = isupper(c) ? WHITE : BLACK;
+  switch(tolower(c)){
+    case 'p': return PAWN+color;
+    case 'b': return BISHOP+color;
+    case 'n': return KNIGHT+color;
+    case 'r': return ROOK+color;
+    case 'k': return KING+color;
+    case 'q': return QUEEN+color;
+  }
+  return EMPTY;
+}
+
 Board boardFromFEN(const char *fen){
   Board board;
-  char parsed[6][100];
-  int index = 0;
-  for(int i = 0; i<6; i++){
-    parsed[i][0] = '-';
-    parsed[i][1] = '\0';
-  }
-  parsed[0][0] = '\0';
-  for(int i = 0; i<strlen(fen); i++){
-    if(fen[i] == ' '){
-      parsed[++index][0] = '\0';
-      continue;
-    }
-    char temp[2] = "";
-    temp[0] = fen[i];
-    strcat(parsed[index], temp);
-  }
+  char *saveptr;
+  char fencpy[500];
+  strcpy(fencpy,fen);
+  char *token = strtok_r(fencpy," ",&saveptr);
   for(int bbindex = 0; bbindex<14; bbindex++){
     board.bitboards[bbindex] = (u64)0;
   }
@@ -99,52 +100,43 @@ Board boardFromFEN(const char *fen){
     board.squares[squareIndex] = EMPTY;
   }
   int squareIndex = 63;
-  for(int i = 0; i<strlen(parsed[0]); i++){
-    char c = parsed[0][i];
+  for(int i = 0; i<strlen(token); i++){
+    char c = token[i];
     if(c == '/') continue;
     if(isdigit(c)){
-      for(int i = 0; i<c-'0'; i++){
-        board.squares[squareIndex] = EMPTY;
-        squareIndex -=1;
-      }
-    }else{
-      int color = isupper(c) ? WHITE : BLACK;
-      int piece = 0;
-      switch(tolower(c)){
-        case 'p': piece = PAWN; break;
-        case 'b': piece = BISHOP; break;
-        case 'n': piece = KNIGHT; break;
-        case 'r': piece = ROOK; break;
-        case 'k': piece = KING; break;
-        case 'q': piece = QUEEN; break;
-      }
-      setBit(&board.bitboards[color+piece],squareIndex);
-      setBit(&board.occupancy, squareIndex);
-      if(color == WHITE)
-        setBit(&board.bitboards[WHITE_PIECES],squareIndex);
-      else
-        setBit(&board.bitboards[BLACK_PIECES],squareIndex);
-      board.squares[squareIndex] = color+piece;
-      squareIndex-=1;
+      squareIndex -= c-'0'; 
+      continue;
     }
+    int piece = charToPiece(c);
+    board.squares[squareIndex] = piece;
+    setBit(&board.bitboards[piece], squareIndex);
+    setBit(&board.occupancy, squareIndex);
+    if(getPieceColor(piece) == WHITE)
+      setBit(&board.bitboards[WHITE_PIECES],squareIndex);
+    else
+      setBit(&board.bitboards[BLACK_PIECES],squareIndex);
+    squareIndex-=1;
     if(squareIndex<0){break;}
   }
+
   //set board->flags
   board.flags = (u64)0;
-  if(strcmp(parsed[1],"w") == 0)
+  if(strcmp(strtok_r(NULL," ",&saveptr),"w") == 0)
     board.flags |= WHITE_TO_MOVE_BIT;
 
-  if(strchr(parsed[2], 'K')) board.flags |= WHITE_KINGSIDE_BIT;
-  if(strchr(parsed[2], 'Q')) board.flags |= WHITE_QUEENSIDE_BIT;
-  if(strchr(parsed[2], 'k')) board.flags |= BLACK_KINGSIDE_BIT;
-  if(strchr(parsed[2], 'q')) board.flags |= BLACK_QUEENSIDE_BIT;
+  token = strtok_r(NULL," ",&saveptr);
+  if(strchr(token, 'K')) board.flags |= WHITE_KINGSIDE_BIT;
+  if(strchr(token, 'Q')) board.flags |= WHITE_QUEENSIDE_BIT;
+  if(strchr(token, 'k')) board.flags |= BLACK_KINGSIDE_BIT;
+  if(strchr(token, 'q')) board.flags |= BLACK_QUEENSIDE_BIT;
   
+  token = strtok_r(NULL," ",&saveptr);
   board.enPassanTarget = EN_PASSAN_NULL;
-  if(parsed[3][0] != '-' && strlen(parsed[3])>1) board.enPassanTarget = squareNameToIndex(parsed[3],0);
+  if(token[0] != '-' && strlen(token)>1) board.enPassanTarget = squareNameToIndex(token,0);
   return board;
 }
 
-void movePiece(Board *board, byte fromSquare, byte toSquare, byte type, byte capturedPiece){
+static void movePiece(Board *board, byte fromSquare, byte toSquare, byte type, byte capturedPiece){
   board->squares[fromSquare] = EMPTY;
   board->squares[toSquare] = type;
 
@@ -198,9 +190,6 @@ void makeMove(Board *board, Move *m){
 
   byte to = getTo(m);
   byte from = getFrom(m);
-  if(from < color){
-    //std::cout<<"WRONG COLOR\n";
-  }
   if(isPromotion(m)){
     resetBit(&board->bitboards[board->squares[from]], from);
     setBit(&board->bitboards[color+getPromotionPiece(m)],from);
@@ -241,7 +230,7 @@ void makeMove(Board *board, Move *m){
   }
   
   //Update en passan target
-  if(fromPiece == PAWN || fromPiece == BLACK+PAWN){
+  if(fromPiece == color+PAWN){
     if(abs(to-from)>9){//double forward move
       board->enPassanTarget = to;
       if(board->flags&WHITE_TO_MOVE_BIT){

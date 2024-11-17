@@ -107,7 +107,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
     for(int i = 0; i<orderedMoves.moveList.end; i++){
       Move currentMove = orderedMoves.moveList.moves[i];
       makeMove(&b,&currentMove);
-      if(inCheck(&b,getOpponentColor(&b))){unmakeMove(&b,&ml.moves[i]); continue;}//opponent will be the side that made the move
+      if(inCheck(&b,getOpponentColor(&b))){unmakeMove(&b,&ml.moves[i]); continue;}
       int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime, quitWhenTrue);
       unmakeMove(&b,&currentMove);
       if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}

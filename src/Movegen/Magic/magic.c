@@ -10,12 +10,14 @@
 #include "../../Core/board.h"
 #include "../../io/io.h"
 
+
+u64 rookMasks[64];
+u64 bishopMasks[64];
+
 static Magic rookMagics[64];
 static Magic bishopMagics[64];
 static u64 *rookMoves[64];//key, moves bitboard 
 static u64 *bishopMoves[64];//key, moves bitboard 
-u64 rookMasks[64];
-u64 bishopMasks[64];
 
 //The rook and bishop blocker tables are only used when creating the moves tables or during a magic search
 //They should probobly be moved to local variables, but it works for now
