@@ -29,6 +29,19 @@ void setUnicodePieces(printSettings *settings){
   }
 };
 
+void printBitboard(u64 bb){
+  printf("\n a b c d e f g h\n");
+  for(int file = 7; file>=0; file--){
+    printf("\x1b[0m%c",'1'+file);
+    for(int rank = 7; rank>=0; rank--){
+      if(getBit(bb,getSquareIndex(file, rank))) printf("\x1b[45m");
+      printf("  \x1b[0m");
+    }
+    printf("\x1b[0m%c\n",'1'+file);
+  }
+  printf(" a b c d e f g h\n");
+  
+}
 void printBoard(printSettings settings, Board board, u64 highlighted){
   if(!validateBoard(board)){
     printf("\x1b[31m[error]Board is invalid\x1b[0m\n");

@@ -7,7 +7,7 @@
 int main(int argc, char *argv[]) {
   initMoveGenerator();
   initEval();
-  if(argc>1 && strcmp(argv[1],"uci") == 0)//argc[0] is the name of the program, so theres always at least 1 argument
+  if(argc>1 && strcmp(argv[1],"uci") == 0)
     runUCI();
   else
     runConsoleInterface(STARTPOS_FEN);

@@ -22,11 +22,10 @@ static u64 *bishopMoves[64];//key, moves bitboard
 //The rook and bishop blocker tables are only used when creating the moves tables or during a magic search
 //They should probobly be moved to local variables, but it works for now
 
-#define ROOK_BLOCKERS_PER_SQUARE 16384
-#define BISHOP_BLOCKERS_PER_SQUARE 16384//technically every bishop square has a different amount of blockers, but this is the max
-static u64 rookBlockers[64][ROOK_BLOCKERS_PER_SQUARE];
-static u64 bishopBlockers[64][BISHOP_BLOCKERS_PER_SQUARE];
+static u64 rookBlockers[64][4096];
+static u64 bishopBlockers[64][4096];
 static int numBishopBlockers[64];
+static int numRookBlockers[64];
 
 static void generateRookBlockers();
 static void generateBishopBlockers();
@@ -79,7 +78,7 @@ static void fillRookMoves() {
   }
   generateRookBlockers();
   for (int i = 0; i < 64; i++) {
-    for (int blockerIndex = 0; blockerIndex<ROOK_BLOCKERS_PER_SQUARE; blockerIndex++) {
+    for (int blockerIndex = 0; blockerIndex<numRookBlockers[i]; blockerIndex++) {
       u64 blocker = rookBlockers[i][blockerIndex];
       u64 moves = (u64)0;
       int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
@@ -143,7 +142,8 @@ static void generateRookMasks() {
   for (int rank = 0; rank < 8; rank++) {   // y
     for (int file = 0; file < 8; file++) { // x
       u64 mask = (u64)0;
-      mask = fileMasks[file] | rankMasks[rank];
+      mask |= fileMasks[file] & 72057594037927680ULL;
+      mask |= rankMasks[rank] & 9114861777597660798ULL;
       resetBit(&mask, (rank * 8) + file);
       rookMasks[(rank * 8) + file] = mask;
     }
@@ -165,6 +165,7 @@ static void generateBishopMasks() {
         }
       }
       resetBit(&mask, (rank * 8) + file);
+      mask &= 35604928818740736ULL;
       bishopMasks[(rank * 8) + file] = mask;
     }
   }
@@ -174,6 +175,7 @@ static void generateRookBlockers(){
   for(int i = 0; i<64; i++){
     u64 mask = rookMasks[i];
     u64 blocker = 0;
+    numRookBlockers[i] = pow(2,bitcount(mask));
     for(int j = 0; j<pow(2,bitcount(mask));j++){
       blocker |= ~mask;
       blocker +=1;
@@ -195,12 +197,7 @@ static void generateBishopBlockers(){
     }
   }
 }
-
-
 //Magic generation
-
-
-//playground is just the first word I thought of
 
 static bool quitSearch = false;
 static bool startFromScratch = false;
@@ -235,61 +232,49 @@ static bool testMagic(Magic *magic, u64 *blockers, int numBlockers, playgroundCh
 }
 
 static void* magicSearch(void* vargp){
-  bishopPlaygroundSize = 0;
-  rookPlaygroundSize = 0;
+  bishopPlaygroundSize = 4096;
+  rookPlaygroundSize = 4096;
   Magic newRookMagics[64];
   Magic newBishopMagics[64];
-  u64 (*rookLookupFunction)(u64,byte);
-  u64 (*bishopLookupFunction)(u64,byte);
-  if(startFromScratch){
-    //more than enough room
-    rookLookupFunction = NULL;
-    bishopLookupFunction = NULL;
-    rookPlaygroundSize   = 200000;
-    bishopPlaygroundSize = 200000;
-    for(int i = 0; i<64; i++){
-      newRookMagics[i].max = rookPlaygroundSize;
-      newBishopMagics[i].max = bishopPlaygroundSize;
-    }
-  }else{
+  u64 (*rookLookupFunction)(u64,byte) = NULL;
+  u64 (*bishopLookupFunction)(u64,byte) = NULL;
+  for(int i = 0; i<64; i++){
+    newRookMagics[i].max = rookPlaygroundSize;
+    newBishopMagics[i].max = bishopPlaygroundSize;
+  }
+
+  if(!startFromScratch){
     for(int i = 0; i<64; i++){
       newRookMagics[i] = rookMagics[i];
       newBishopMagics[i] = bishopMagics[i];
     }
-    int maxRook = 0;
-    int maxBishop = 0;
-    for(int i = 0; i<64; i++){
-      if(rookMagics[i].max>maxRook) maxRook = rookMagics[i].max;
-      if(bishopMagics[i].max>maxBishop) maxBishop = bishopMagics[i].max;
-    }
-    rookPlaygroundSize = maxRook+1;
-    bishopPlaygroundSize = maxBishop+1;
     rookLookupFunction = rookLookup;
     bishopLookupFunction = bishopLookup;
   }
+
   //calloc initilises everything to 0 which is important
   rookPlayground   = calloc(rookPlaygroundSize,sizeof(playgroundChunk));
   bishopPlayground = calloc(bishopPlaygroundSize,sizeof(playgroundChunk));
-  int shiftWiggle = 61;
+  searchCounter = 1;
   while(!quitSearch){
     for(int square = 0;square<64;square++){
       if(quitSearch) break;
       searchCounter++;
       Magic magic;
       magic.magic = random_u64_fewbits();
-      magic.shift = shiftWiggle-bitcount(rookMasks[square]);
+      magic.shift = 64-bitcount(rookMasks[square]);
       //using new*Magics[square].max as the playground size means only a better magic will be valid,
       //this does assume that the initial max is within range, which it is
       if(testMagic(
         &magic,
-        rookBlockers[square], ROOK_BLOCKERS_PER_SQUARE,
+        rookBlockers[square], numRookBlockers[square],
         rookPlayground,newRookMagics[square].max,
         rookLookupFunction,square
       )){
         newRookMagics[square] = magic;
       }
 
-      magic.shift = shiftWiggle-bitcount(bishopMasks[square]);
+      magic.shift = 64-bitcount(bishopMasks[square]);
       if(testMagic(
         &magic,
         bishopBlockers[square], numBishopBlockers[square],
@@ -315,7 +300,6 @@ static void* magicSearch(void* vargp){
         bishopTableSize += newBishopMagics[i].max + 1;
       }
     }
-    if(rookTableSize == 64 && bishopTableSize == 64 && shiftWiggle<64) shiftWiggle++;
     printf("\x1b[3A");
     printf("Press enter to quit search\n");
     printf("Rook magics %i/64 %i KiB\n", foundRook, ((rookTableSize*8)/1000));
