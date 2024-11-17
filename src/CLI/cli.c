@@ -92,13 +92,21 @@ static void makeRandomMove(ConsoleState *state){
 }
 
 static void printLegalMoves(ConsoleState *state){
-  MoveList legalMoves;
-  generateMoves(&state->board, &legalMoves);
-  if(moveListEmpty(legalMoves)){printf("No legal moves (checkmate)\n"); return;}
-  printf("%i moves printed\n", legalMoves.end);
-  for (int i = 0; i < legalMoves.end; i++) {
-    printMoveOnBoard(state->settings, state->board, legalMoves.moves[i]);
+  MoveList moves;
+  generateMoves(&state->board, &moves);
+  bool checkmate = true;
+  int l = 0;
+  for (int i = 0; i < moves.end; i++) {
+    makeMove(&state->board, &moves.moves[i]);
+    if(!inCheck(&state->board, getOpponentColor(&state->board))){
+      printMoveOnBoard(state->settings, state->board, moves.moves[i]);
+      l++;
+    }
+    unmakeMove(&state->board, &moves.moves[i]);
   }
+  printf("%i moves printed", l);
+  if(checkmate) printf("(checkmate)");
+  printf("\n");
   state->printBoard = false;
 }
 
