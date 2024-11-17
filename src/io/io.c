@@ -45,6 +45,7 @@ Move moveFromStr(char *str, Board board){
   generateMoves(&board, &legalMoves);
   bool isLegal = false;
   for(int i  =0; i<legalMoves.end; i++){
+
     if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
       if(isEnPassan(&legalMoves.moves[i])) setSpecialMoveData(&move, EN_PASSAN);
       isLegal = true;
@@ -60,6 +61,8 @@ Move moveFromStr(char *str, Board board){
     }
   }
   if(!isLegal) return createNullMove();
-
+  makeMove(&board, &move);
+  if(inCheck(&board,getOpponentColor(&board))) return createNullMove();
+  unmakeMove(&board, &move);
   return move;
 };
