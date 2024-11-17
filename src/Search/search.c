@@ -79,6 +79,7 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
 Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWhenTrue){
   long long startTime = getTimeMS();
   long long quitTime = startTime + (timeLimit - 2);
+  if(timeLimit == 0) quitTime = 0;
   MoveList moves = createMoveList();
   generateMoves(&b, &moves);
   byte color = getSideToMove(&b);
