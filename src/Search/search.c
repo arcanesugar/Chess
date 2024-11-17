@@ -7,6 +7,7 @@
 #include "../Core/types.h"
 #include "../Movegen/movegen.h"
 #include "eval.h"
+#include "../Core/bitboard.h"
 
 //because -INF must equal N_INF, INT MIN cannot be used
 //(-INT_MIN >INT_MAX so it overflows)
@@ -62,6 +63,7 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
     }
     if(quitIfTrue != NULL && *quitIfTrue) return NULL_EVAL;
     makeMove(b,&ml.moves[i]);
+    if(inCheck(b,getOpponentColor(b))){unmakeMove(b,&ml.moves[i]); continue;}//opponent will be the side that made the move
     //a move that is good for the opponent is equally bad for us, so we negate all evaluations(including the return)
     //we also swap alpha and beta, because we will be the opponent in the child search
     int eval = -nmax(b,depth-1,-beta, -alpha, quitTime, quitIfTrue);
@@ -105,6 +107,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
     for(int i = 0; i<orderedMoves.moveList.end; i++){
       Move currentMove = orderedMoves.moveList.moves[i];
       makeMove(&b,&currentMove);
+      if(inCheck(&b,getOpponentColor(&b))){unmakeMove(&b,&ml.moves[i]); continue;}//opponent will be the side that made the move
       int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime, quitWhenTrue);
       unmakeMove(&b,&currentMove);
       if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}
@@ -130,6 +133,7 @@ static u64 perftTest(Board *b, int depth, bool root){
   generateMoves(b, &moves);
   for(byte i = 0; i<moves.end;i++){
     makeMove(b,&moves.moves[i]);
+    if(inCheck(b,getOpponentColor(b))){unmakeMove(b,&moves.moves[i]); continue;}//opponent will be the side that made the move
     u64 found = perftTest(b, depth-1,0);
     unmakeMove(b,&moves.moves[i]);
     if(root){

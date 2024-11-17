@@ -20,8 +20,6 @@ static void addKnightMoves(Board *board, MoveList *moves);
 static void addKingMoves(Board *board, MoveList *moves);
 static void addCastlingMoves(Board *board, MoveList *moves);
 
-static void filterLegalMoves(Board *board, MoveList *moves);
-
 void initMoveGenerator(){
   generateBoardMasks();
   initMagics();
@@ -33,11 +31,10 @@ void cleanupMoveGenerator(){
   cleanupMagics();
 }
 
-
-u64 friendlyBitboard;
-u64 enemyBitboard;
-byte color;
-byte opponentColor;
+static u64 friendlyBitboard;
+static u64 enemyBitboard;
+static byte color;
+static byte opponentColor;
 
 void generateMoves(Board *board, MoveList *moves) {
   friendlyBitboard = (board->flags & WHITE_TO_MOVE_BIT)
@@ -46,8 +43,8 @@ void generateMoves(Board *board, MoveList *moves) {
   enemyBitboard = (board->flags & WHITE_TO_MOVE_BIT)
      ? board->bitboards[BLACK_PIECES]
      : board->bitboards[WHITE_PIECES];
-  color = (board->flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  opponentColor = (color == WHITE)? BLACK : WHITE;
+  color = getSideToMove(board);
+  opponentColor = getOpponentColor(board);
   moves->end = 0;
 
   addPawnMoves(board, moves);
@@ -55,20 +52,12 @@ void generateMoves(Board *board, MoveList *moves) {
   addKnightMoves(board, moves);
   addKingMoves(board, moves);
   addCastlingMoves(board, moves);
-  filterLegalMoves(board, moves);
 }
 
-static void filterLegalMoves(Board *board, MoveList *moves){
-  for(int i = moves->end-1; i>=0; i--){
-    makeMove(board,&moves->moves[i]);
-    byte kingSquare = bitScanForward(board->bitboards[color+KING]);
-    bool isLegal = !isAttacked(board, kingSquare, opponentColor);
-    unmakeMove(board,&moves->moves[i]);
-    moves->moves[i].unmakeData = 0;
-    if(!isLegal){
-      moveListRemove(moves,i);
-    }
-  }
+bool inCheck(Board *board, byte color){
+  opponentColor = (color == WHITE)? BLACK : WHITE;
+  byte kingSquare = bitScanForward(board->bitboards[color+KING]);
+  return isAttacked(board,kingSquare,opponentColor);
 }
 
 bool isAttacked(Board *board, byte square, byte opponentColor){

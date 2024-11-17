@@ -31,6 +31,12 @@ void generateBoardMasks(){
   generateFileMasks();
 }
 
+char getSideToMove(Board *board){
+  return (board->flags & WHITE_TO_MOVE_BIT)? WHITE:BLACK;
+}
+char getOpponentColor(Board *board){
+  return (board->flags & WHITE_TO_MOVE_BIT)? BLACK:WHITE;
+}
 bool validateBoard(Board board) {//Way too expensive to use ouside of debugging
   if(bitScanForward(board.bitboards[WHITE+KING]) == -1) return false;
   if(bitScanForward(board.bitboards[BLACK+KING]) == -1) return false;

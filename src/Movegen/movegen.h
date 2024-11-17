@@ -12,3 +12,4 @@ void cleanupMoveGenerator();
 
 void generateMoves(Board *board, MoveList *moves);
 bool isAttacked(Board *board, byte square, byte opponentColor);
+bool inCheck(Board *board, byte color);
