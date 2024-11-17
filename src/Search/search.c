@@ -16,27 +16,18 @@
 #define NULL_EVAL 88888
 
 static int nodesSearched = 0;
-typedef struct orderedMoveList{
-  MoveList moveList;
-  int evals[255];
-}orderedMoveList;
-orderedMoveList createOrderedMoveList(MoveList ml){
-  orderedMoveList oml;
-  oml.moveList = ml;
-  for(int i = 0; i<255; i++) oml.evals[i] = 0;
-  return oml;
-}
-static void orderMoves(orderedMoveList *oml){//orders the moves high to low based on the evals list
-  for(int i = 0; i<oml->moveList.end; i++){
+
+static void orderMoves(MoveList *ml, int *evaluations){//orders the moves high to low based on the evals list
+  for(int i = 0; i<ml->end; i++){
     for(int j = 0; j<i-1; j++){
-      if(oml->evals[j]<oml->evals[j+1]){
-        int tempI =  oml->evals[j];
-        Move tempM =  oml->moveList.moves[j];
-        oml->evals[j] = oml->evals[j+1];
-        oml->moveList.moves[j] = oml->moveList.moves[j+1];
+      if(evaluations[j]<evaluations[j+1]){
+        int tempI =  evaluations[j];
+        Move tempM =  ml->moves[j];
+        evaluations[j] = evaluations[j+1];
+        ml->moves[j] = ml->moves[j+1];
         
-        oml->evals[j+1] = tempI;
-        oml->moveList.moves[j+1] = tempM;
+        evaluations[j+1] = tempI;
+        ml->moves[j+1] = tempM;
       }
     }
   }
@@ -55,7 +46,6 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
   if(depth == 0){nodesSearched++; return evaluate(b);}
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
-  if(ml.end == 0){ nodesSearched++; return N_INF;}//checkmate is the worst possible outcome (for the side whos turn it is)
   int bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
     if(quitTime != 0){
@@ -88,41 +78,40 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
 
 Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWhenTrue){
   long long startTime = getTimeMS();
-  long long quitTime = startTime+timeLimit;
-  if(timeLimit == 0) quitTime = 0;
-  
-  MoveList ml = createMoveList();
-  generateMoves(&b, &ml);
-  if(ml.end == 0) return createNullMove();
-  orderedMoveList orderedMoves = createOrderedMoveList(ml);
-  
-  Move bestMove = createNullMove();
-  bool quitSearch = false;
-  for(int depth = 1; depth<=maxDepth; depth++){
-    orderMoves(&orderedMoves);
+  long long quitTime = startTime + (timeLimit - 2);
+  MoveList moves = createMoveList();
+  generateMoves(&b, &moves);
+  byte color = getSideToMove(&b);
+  Move bestMove = moves.moves[0];
+  int evaluations[255];
+  for(int i= 0; i<255; i++) evaluations[i] = N_INF;
+
+  for(int depth = 1; depth <= maxDepth; depth++){
     nodesSearched = 0;
-    int bestEval = N_INF;//any move is better than no moves
-    Move bestSoFar = createNullMove();
-    bool hasSearchedFirstMove = false;
-    for(int i = 0; i<orderedMoves.moveList.end; i++){
-      Move currentMove = orderedMoves.moveList.moves[i];
-      makeMove(&b,&currentMove);
-      if(inCheck(&b,getOpponentColor(&b))){unmakeMove(&b,&ml.moves[i]); continue;}
-      int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime, quitWhenTrue);
-      unmakeMove(&b,&currentMove);
-      if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}
-      orderedMoves.evals[i] = eval;
+    int bestEval = N_INF;
+    orderMoves(&moves, evaluations);
+    bool checkmate = true;
+    for(int i = 0; i<moves.end;i++){
+
+      makeMove(&b,&moves.moves[i]);
+      if(inCheck(&b,color)){unmakeMove(&b,&moves.moves[i]); continue;}
+      int eval = -nmax(&b, depth-1,N_INF,-bestEval,quitTime,quitWhenTrue);
+      if(eval == NULL_EVAL | eval == -NULL_EVAL) {
+        printf("info nodes %d depth %d time %lld\n", nodesSearched, depth, getTimeMS() - startTime);
+        return bestMove;
+      }
+      unmakeMove(&b,&moves.moves[i]);
+      checkmate = false;
+      evaluations[i] = eval;
       if(eval>bestEval){
         bestEval = eval;
-        bestSoFar = currentMove;
+        bestMove = moves.moves[i];
       }
-      hasSearchedFirstMove = true;
     }
-    if(hasSearchedFirstMove) bestMove = bestSoFar;
-    printf("info nodes %d depth %d time %lld\n",nodesSearched,depth,getTimeMS()-startTime);
-    if(quitSearch) break;
+    if(checkmate) return createNullMove();
+    printf("info nodes %d depth %d time %lld\n", nodesSearched, depth, getTimeMS() - startTime);
   }
-  if(isNullMove(&bestMove)) bestMove = ml.moves[0];//if we didnt complete any search just choose the first move
+
   return bestMove;
 };
 
@@ -131,9 +120,10 @@ static u64 perftTest(Board *b, int depth, bool root){
   u64 count = 0;
   MoveList moves = createMoveList();
   generateMoves(b, &moves);
+  byte color = getSideToMove(b);
   for(byte i = 0; i<moves.end;i++){
     makeMove(b,&moves.moves[i]);
-    if(inCheck(b,getOpponentColor(b))){unmakeMove(b,&moves.moves[i]); continue;}//opponent will be the side that made the move
+    if(inCheck(b,color)){unmakeMove(b,&moves.moves[i]); continue;}
     u64 found = perftTest(b, depth-1,0);
     unmakeMove(b,&moves.moves[i]);
     if(root){
