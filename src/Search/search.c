@@ -32,6 +32,7 @@ static void orderMoves(MoveList *ml, int *evaluations){//orders the moves high t
     }
   }
 }
+
 static long long getTimeMS(){//guess what this does? your right! it get the time in miliseconds. Good job
   struct timespec t;
   clock_gettime ( CLOCK_MONOTONIC , & t ) ;
@@ -41,24 +42,26 @@ static long long getTimeMS(){//guess what this does? your right! it get the time
 static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bool *quitIfTrue){
   //alpha is the best score we are able to achieve (we being whoevers turn it is)
   //and beta is the best score the opponent is able to achieve
-  //why alpha and beta? I dont know, it probably made more sense in original minimax
-  //or maybe whoever named them made it intentionally confusing
+  //They are called alpha and beta because using the greek alphabet to name things makes
+  //programmers feel smart
+  
+  if(depth<=1 && quitTime != 0 && getTimeMS()>=quitTime)
+    return NULL_EVAL;
+  if(quitIfTrue != NULL && *quitIfTrue)
+    return NULL_EVAL;
   if(depth == 0){nodesSearched++; return evaluate(b);}
+
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
   int bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
-    if(quitTime != 0){
-      if(getTimeMS()>quitTime) {return NULL_EVAL;}
-    }
-    if(quitIfTrue != NULL && *quitIfTrue) return NULL_EVAL;
     makeMove(b,&ml.moves[i]);
     if(inCheck(b,getOpponentColor(b))){unmakeMove(b,&ml.moves[i]); continue;}//opponent will be the side that made the move
     //a move that is good for the opponent is equally bad for us, so we negate all evaluations(including the return)
     //we also swap alpha and beta, because we will be the opponent in the child search
     int eval = -nmax(b,depth-1,-beta, -alpha, quitTime, quitIfTrue);
+    if(eval == -NULL_EVAL) return NULL_EVAL;//if we're exiting the search we dont need to unmake the move
     unmakeMove(b,&ml.moves[i]);
-    if(eval == NULL_EVAL | eval == -NULL_EVAL) return NULL_EVAL;
 
     if(eval>bestEval){
       bestEval = eval;
@@ -78,7 +81,7 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
 
 Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWhenTrue){
   long long startTime = getTimeMS();
-  long long quitTime = startTime + (timeLimit - 2);
+  long long quitTime = startTime + timeLimit;
   if(timeLimit == 0) quitTime = 0;
   MoveList moves = createMoveList();
   generateMoves(&b, &moves);
@@ -86,7 +89,6 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
   Move bestMove = moves.moves[0];
   int evaluations[255];
   for(int i= 0; i<255; i++) evaluations[i] = N_INF;
-
   for(int depth = 1; depth <= maxDepth; depth++){
     nodesSearched = 0;
     int bestEval = N_INF;
@@ -97,7 +99,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
       makeMove(&b,&moves.moves[i]);
       if(inCheck(&b,color)){unmakeMove(&b,&moves.moves[i]); continue;}
       int eval = -nmax(&b, depth-1,N_INF,-bestEval,quitTime,quitWhenTrue);
-      if(eval == NULL_EVAL | eval == -NULL_EVAL) {
+      if(eval == -NULL_EVAL) {
         printf("info nodes %d depth %d time %lld\n", nodesSearched, depth, getTimeMS() - startTime);
         return bestMove;
       }

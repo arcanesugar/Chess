@@ -45,7 +45,6 @@ static void allocateTime(UCIstate* state){//bad but technically functional
     time = state->wtime;
   if(state->suddenDeath)state->searchTime = time/50;//assume the game will end in 25 moves(50 half moves)
   else state->searchTime = time/state->movesToGo;//assume the game will end in 25 moves(50 half moves)
-  state->searchTime -=2;// the engine tends to take around 2ms to quit a search
   if(state->searchTime<=0) state->searchTime = 1;
 }
 
@@ -81,7 +80,6 @@ static void go(char* saveptr, UCIstate *state){
     }
     if(strcmp(tokenptr,"movetime") == 0){
       state->searchTime = atoi(strtok_r(NULL," ",&saveptr));
-      if(state->searchTime >2) state->searchTime -=2;//make sure we quit before the search time is up
       continue;
     }
     if(strcmp(tokenptr,"movestogo") == 0){
