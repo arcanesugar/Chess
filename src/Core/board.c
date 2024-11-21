@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include "../Search/zobrist.h"
 #include "../Core/bitboard.h"
 #include "../Core/types.h"
 
@@ -12,6 +13,7 @@ u64 fileMasks[8];
 
 int getSquareIndex(int rank, int file){return (rank*8) + file;};
 
+byte getBoardCastlingRights(Board *b){return b->flags>>1;}
 void generateRankMasks() {
   for (int i = 0; i < 8; i++) {
     rankMasks[i] = (u64)255 << (8 * i);
@@ -141,8 +143,11 @@ static void movePiece(Board *board, byte fromSquare, byte toSquare, byte type, b
   board->squares[toSquare] = type;
 
   resetBit(&board->bitboards[type],fromSquare);
+  board->zobrist ^= zobristTable[type][fromSquare];
   setBit(&board->bitboards[type],toSquare);
+  board->zobrist ^= zobristTable[type][toSquare];
   resetBit(&board->bitboards[capturedPiece],toSquare);
+  if(capturedPiece != EMPTY) board->zobrist ^= zobristTable[capturedPiece][toSquare];
 
   if(type>=BLACK){
     resetBit(&board->bitboards[BLACK_PIECES], fromSquare);
@@ -159,8 +164,8 @@ void makeMove(Board *board, Move *m){
   int color = (board->flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
   setCastlingRights(m, (board->flags&(0b00011110))>>1);
   setEnPassanTarget(m, board->enPassanTarget);
-  board->enPassanTarget = EN_PASSAN_NULL;
   if(isKingside(m)){
+    board->enPassanTarget = EN_PASSAN_NULL;
     //this side can no longer castle
     if(color == WHITE) board->flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) board->flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -171,9 +176,11 @@ void makeMove(Board *board, Move *m){
 
     board->flags ^= WHITE_TO_MOVE_BIT;
     board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
+    genZobristKey(board);
     return;
   }
   if(isQueenside(m)){
+    board->enPassanTarget = EN_PASSAN_NULL;
     //this side can no longer castle
     if(color == WHITE) board->flags &= ~(WHITE_CASTLING_RIGHTS);
     if(color == BLACK) board->flags &= ~(BLACK_CASTLING_RIGHTS);
@@ -185,6 +192,7 @@ void makeMove(Board *board, Move *m){
 
     board->flags ^= WHITE_TO_MOVE_BIT;
     board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
+    genZobristKey(board);
     return;
   }
 
@@ -194,6 +202,7 @@ void makeMove(Board *board, Move *m){
     resetBit(&board->bitboards[board->squares[from]], from);
     setBit(&board->bitboards[color+getPromotionPiece(m)],from);
     board->squares[from] = color+getPromotionPiece(m);
+    genZobristKey(board);
   }
   byte fromPiece = board->squares[from];
   byte toPiece = board->squares[to];
@@ -206,6 +215,7 @@ void makeMove(Board *board, Move *m){
     }else{
       board->flags &= ~(BLACK_CASTLING_RIGHTS);
     }
+    genZobristKey(board);
   }
   
   //update castling rights
@@ -213,6 +223,7 @@ void makeMove(Board *board, Move *m){
   for(int i = 0; i<4; i++){
     if(from == rookSquares[i] || to == rookSquares[i]){
       board->flags &= ~(WHITE_KINGSIDE_BIT<<i);
+      genZobristKey(board);
     }
   }
 
@@ -222,14 +233,18 @@ void makeMove(Board *board, Move *m){
       resetBit(&board->bitboards[BLACK+PAWN],to-8);
       resetBit(&board->bitboards[BLACK_PIECES],to-8);
       board->squares[to-8] = EMPTY;
+      genZobristKey(board);
     }else{
       resetBit(&board->bitboards[WHITE+PAWN],to+8);
       resetBit(&board->bitboards[WHITE_PIECES],to+8);
       board->squares[to+8] = EMPTY;
+      genZobristKey(board);
     }
   }
   
   //Update en passan target
+  board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
+  board->enPassanTarget = EN_PASSAN_NULL;
   if(fromPiece == color+PAWN){
     if(abs(to-from)>9){//double forward move
       board->enPassanTarget = to;
@@ -240,7 +255,9 @@ void makeMove(Board *board, Move *m){
       }
     }
   }
+  board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
 
+  board->zobrist ^= zobristSideToMove;
   board->flags ^= WHITE_TO_MOVE_BIT;
   board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
 }
@@ -257,6 +274,7 @@ void unmakeMove(Board *board, Move *m){
     board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     board->flags  |= getCastlingRights(m)<<1;
     board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
+    genZobristKey(board);
     return;
   }
   if(isQueenside(m)){
@@ -268,6 +286,7 @@ void unmakeMove(Board *board, Move *m){
     board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
     board->flags  |= getCastlingRights(m)<<1;
     board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
+    genZobristKey(board);
     return;
   }
 
@@ -319,4 +338,5 @@ void unmakeMove(Board *board, Move *m){
   board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
   board->flags  |= getCastlingRights(m)<<1;
   board->occupancy = board->bitboards[WHITE_PIECES]|board->bitboards[BLACK_PIECES];
+  genZobristKey(board);
 }

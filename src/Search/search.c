@@ -8,6 +8,7 @@
 #include "../Movegen/movegen.h"
 #include "eval.h"
 #include "../Core/bitboard.h"
+#include "zobrist.h"
 
 //because -INF must equal N_INF, INT MIN cannot be used
 //(-INT_MIN >INT_MAX so it overflows)
@@ -51,6 +52,10 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
     return NULL_EVAL;
   if(depth == 0){nodesSearched++; return evaluate(b);}
 
+  ttEntry *e = transpositionLookup(b->zobrist);
+  if(e != NULL && e->depth>=depth){
+    return e->eval;
+  }
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
   int bestEval = N_INF;
@@ -73,9 +78,14 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
       //if the best score the opponent can get is less than the best score we can get, that means 
       //the opponent can force us into a worse score somewere else in the tree,
       //and therefore will never let us get here meaning we can prune the search
-      break;
+      return bestEval;
     }
   }
+  ttEntry entry;
+  entry.depth = depth;
+  entry.eval = bestEval;
+  entry.key = b->zobrist;
+  transpositionWrite(&entry);
   return bestEval;
 }
 
@@ -119,7 +129,7 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
 };
 
 static u64 perftTest(Board *b, int depth, bool root){
-  if(depth <= 0){return 1;}
+  if(depth <= 0){if(!validateZobrist(*b)) printf("INVALID_ZOBRIST\n");return 1;}
   u64 count = 0;
   MoveList moves = createMoveList();
   generateMoves(b, &moves);
@@ -185,6 +195,7 @@ void runMoveGenerationSuite(){
   Board board;
   for(int i = 0; i<8; i++){
     board = boardFromFEN(positions[i]);
+    genZobristKey(&board);
     u64 found = perftTest(&board,depths[i],false);
     sum += found;
     printf("Depth: %i Found: ",depths[i]);
