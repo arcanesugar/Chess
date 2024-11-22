@@ -45,7 +45,6 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
   //and beta is the best score the opponent is able to achieve
   //They are called alpha and beta because using the greek alphabet to name things makes
   //programmers feel smart
-  
   if(depth<=1 && quitTime != 0 && getTimeMS()>=quitTime)
     return NULL_EVAL;
   if(quitIfTrue != NULL && *quitIfTrue)
@@ -56,7 +55,8 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
     return e->eval;
   } 
 
-  if(depth == 0){nodesSearched++; return evaluate(b);}
+  nodesSearched++;
+  if(depth == 0){ return evaluate(b);}
 
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
