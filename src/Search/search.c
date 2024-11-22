@@ -53,7 +53,6 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
 
   ttEntry *e = transpositionLookup(b->zobrist);
   if(e != NULL && e->depth>=depth){
-    printf("ttt hit\n");
     return e->eval;
   } 
 
