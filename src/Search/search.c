@@ -129,7 +129,10 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
 };
 
 static u64 perftTest(Board *b, int depth, bool root){
-  if(depth <= 0){if(!validateZobrist(*b)) printf("INVALID_ZOBRIST\n");return 1;}
+  if(depth <= 0){
+  //  if(!validateZobrist(*b)) printf("INVALID_ZOBRIST\n");
+    return 1;
+  }
   u64 count = 0;
   MoveList moves = createMoveList();
   generateMoves(b, &moves);

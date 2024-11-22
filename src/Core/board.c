@@ -165,34 +165,54 @@ void makeMove(Board *board, Move *m){
   setCastlingRights(m, (board->flags&(0b00011110))>>1);
   setEnPassanTarget(m, board->enPassanTarget);
   if(isKingside(m)){
+    board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
     board->enPassanTarget = EN_PASSAN_NULL;
+    board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
     //this side can no longer castle
-    if(color == WHITE) board->flags &= ~(WHITE_CASTLING_RIGHTS);
-    if(color == BLACK) board->flags &= ~(BLACK_CASTLING_RIGHTS);
+    if(color == WHITE){
+      if(board->flags & WHITE_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[0];
+      if(board->flags & WHITE_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[1];
+      board->flags &= ~(WHITE_CASTLING_RIGHTS);
+    }
+    if(color == BLACK){
+      if(board->flags & BLACK_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[2];
+      if(board->flags & BLACK_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[3];
+      board->flags &= ~(BLACK_CASTLING_RIGHTS);
+    }
     
     int offset= (board->flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     movePiece(board, 3+offset, 1+offset, color+KING, EMPTY);
     movePiece(board, 0+offset, 2+offset, color+ROOK, EMPTY);
 
+    board->zobrist ^= zobristSideToMove;
     board->flags ^= WHITE_TO_MOVE_BIT;
     board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
-    genZobristKey(board);
     return;
   }
   if(isQueenside(m)){
+    board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
     board->enPassanTarget = EN_PASSAN_NULL;
+    board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
     //this side can no longer castle
-    if(color == WHITE) board->flags &= ~(WHITE_CASTLING_RIGHTS);
-    if(color == BLACK) board->flags &= ~(BLACK_CASTLING_RIGHTS);
+    if(color == WHITE){
+      if(board->flags & WHITE_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[0];
+      if(board->flags & WHITE_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[1];
+      board->flags &= ~(WHITE_CASTLING_RIGHTS);
+    }
+    if(color == BLACK){
+      if(board->flags & BLACK_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[2];
+      if(board->flags & BLACK_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[3];
+      board->flags &= ~(BLACK_CASTLING_RIGHTS);
+    }
     
     int offset= (board->flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
 
     movePiece(board, 3+offset, 5+offset, color+KING, EMPTY);
     movePiece(board, 7+offset, 4+offset, color+ROOK, EMPTY);
 
+    board->zobrist ^= zobristSideToMove;
     board->flags ^= WHITE_TO_MOVE_BIT;
     board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
-    genZobristKey(board);
     return;
   }
 
@@ -201,8 +221,9 @@ void makeMove(Board *board, Move *m){
   if(isPromotion(m)){
     resetBit(&board->bitboards[board->squares[from]], from);
     setBit(&board->bitboards[color+getPromotionPiece(m)],from);
+    board->zobrist ^= zobristTable[board->squares[from]][from];
+    board->zobrist ^= zobristTable[color+getPromotionPiece(m)][from];
     board->squares[from] = color+getPromotionPiece(m);
-    genZobristKey(board);
   }
   byte fromPiece = board->squares[from];
   byte toPiece = board->squares[to];
@@ -210,20 +231,24 @@ void makeMove(Board *board, Move *m){
   setCapturedPiece(m, toPiece);//store captured piece (if there is no piece it will just be empty)
   
   if(fromPiece == color+KING){
-    if(board->flags&WHITE_TO_MOVE_BIT){
+    if(color == WHITE){
+      if(board->flags & WHITE_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[0];
+      if(board->flags & WHITE_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[1];
       board->flags &= ~(WHITE_CASTLING_RIGHTS);
-    }else{
+    }
+    if(color == BLACK){
+      if(board->flags & BLACK_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[2];
+      if(board->flags & BLACK_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[3];
       board->flags &= ~(BLACK_CASTLING_RIGHTS);
     }
-    genZobristKey(board);
   }
   
   //update castling rights
   byte rookSquares[4] = {0,7,56,63};
   for(int i = 0; i<4; i++){
     if(from == rookSquares[i] || to == rookSquares[i]){
+      if(board->flags&(WHITE_KINGSIDE_BIT<<i)) board->zobrist ^= zobristCastlingRights[i];
       board->flags &= ~(WHITE_KINGSIDE_BIT<<i);
-      genZobristKey(board);
     }
   }
 
@@ -233,12 +258,12 @@ void makeMove(Board *board, Move *m){
       resetBit(&board->bitboards[BLACK+PAWN],to-8);
       resetBit(&board->bitboards[BLACK_PIECES],to-8);
       board->squares[to-8] = EMPTY;
-      genZobristKey(board);
+      board->zobrist ^= zobristTable[BLACK+PAWN][to-8];
     }else{
       resetBit(&board->bitboards[WHITE+PAWN],to+8);
       resetBit(&board->bitboards[WHITE_PIECES],to+8);
       board->squares[to+8] = EMPTY;
-      genZobristKey(board);
+      board->zobrist ^= zobristTable[WHITE+PAWN][to+8];
     }
   }
   
@@ -262,19 +287,36 @@ void makeMove(Board *board, Move *m){
   board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
 }
 
+inline static void restoreBoardState(Board *board, Move *m){
+  if(board->flags & WHITE_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[0];
+  if(board->flags & WHITE_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[1];
+  if(board->flags & BLACK_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[2];
+  if(board->flags & BLACK_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[3];
+
+  board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
+  board->flags  |= getCastlingRights(m)<<1;
+
+  if(board->flags & WHITE_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[0];
+  if(board->flags & WHITE_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[1];
+  if(board->flags & BLACK_KINGSIDE_BIT) board->zobrist ^= zobristCastlingRights[2];
+  if(board->flags & BLACK_QUEENSIDE_BIT) board->zobrist ^= zobristCastlingRights[3];
+
+  board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
+}
+
 void unmakeMove(Board *board, Move *m){
   board->flags ^= WHITE_TO_MOVE_BIT;
+  board->zobrist ^= zobristSideToMove;
   int color = (board->flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
+  board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
   board->enPassanTarget = getEnPassanTarget(m);
+  board->zobrist ^= zobristEnPassanTarget[board->enPassanTarget];
   if(isKingside(m)){
     int offset= (board->flags & WHITE_TO_MOVE_BIT) ? 0 : 56;
     movePiece(board, 1+offset, 3+offset, color+KING, EMPTY);
     movePiece(board, 2+offset, 0+offset, color+ROOK, EMPTY);
 
-    board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
-    board->flags  |= getCastlingRights(m)<<1;
-    board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
-    genZobristKey(board);
+    restoreBoardState(board,m);
     return;
   }
   if(isQueenside(m)){
@@ -283,10 +325,7 @@ void unmakeMove(Board *board, Move *m){
     movePiece(board, 5+offset, 3+offset, color+KING, EMPTY);
     movePiece(board, 4+offset, 7+offset, color+ROOK, EMPTY);
 
-    board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
-    board->flags  |= getCastlingRights(m)<<1;
-    board->occupancy = board->bitboards[WHITE_PIECES] | board->bitboards[BLACK_PIECES];
-    genZobristKey(board);
+    restoreBoardState(board,m);
     return;
   }
 
@@ -297,6 +336,8 @@ void unmakeMove(Board *board, Move *m){
   if(isPromotion(m)){
     resetBit(&board->bitboards[board->squares[to]], to);
     setBit(&board->bitboards[PAWN+color],to);
+    board->zobrist ^= zobristTable[board->squares[to]][to];
+    board->zobrist ^= zobristTable[PAWN+color][to];
     board->squares[to] = PAWN + color; 
   }
   
@@ -304,14 +345,18 @@ void unmakeMove(Board *board, Move *m){
   byte pieceOnToSquare = board->squares[to];
   setBit(&board->bitboards[pieceOnToSquare],from);
   resetBit(&board->bitboards[pieceOnToSquare],to);
+  board->zobrist ^= zobristTable[pieceOnToSquare][from];
+  board->zobrist ^= zobristTable[pieceOnToSquare][to];
   board->squares[from] = pieceOnToSquare;
 
   //undo capture
   byte capturedPiece = getCapturedPiece(m);
-  if(capturedPiece != EMPTY)
+  if(capturedPiece != EMPTY){
     setBit(&board->bitboards[capturedPiece],to);
-  
+    board->zobrist ^= zobristTable[capturedPiece][to];
+  }
   board->squares[to] = capturedPiece;
+
   if(color == BLACK){
     resetBit(&board->bitboards[BLACK_PIECES], to);
     setBit(&board->bitboards[BLACK_PIECES], from);
@@ -326,17 +371,15 @@ void unmakeMove(Board *board, Move *m){
     if(color == BLACK){
       setBit(&board->bitboards[WHITE+PAWN],to+8);
       setBit(&board->bitboards[WHITE_PIECES], to+8);
+      board->zobrist ^= zobristTable[WHITE+PAWN][to+8];
       board->squares[to+8] = WHITE+PAWN;
     }else{
       setBit(&board->bitboards[BLACK+PAWN],to-8);
       setBit(&board->bitboards[BLACK_PIECES], to-8);
+      board->zobrist ^= zobristTable[BLACK+PAWN][to-8];
       board->squares[to-8] = BLACK+PAWN;
     }
   }
 
-  //restore board state
-  board->flags &= ~(WHITE_CASTLING_RIGHTS  | BLACK_CASTLING_RIGHTS);
-  board->flags  |= getCastlingRights(m)<<1;
-  board->occupancy = board->bitboards[WHITE_PIECES]|board->bitboards[BLACK_PIECES];
-  genZobristKey(board);
+  restoreBoardState(board,m);
 }
