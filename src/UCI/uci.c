@@ -110,7 +110,8 @@ static void position(char* saveptr, UCIstate *state){
     rstr fen = createRstr();
     for(int i = 0; i<6; i++){
       tokenptr = strtok_r(NULL, " ", &saveptr);
-      if(!tokenptr || strcmp(tokenptr,"moves")) break;
+      if(!tokenptr) break;
+      rstrAppend(&fen," ");
       rstrAppend(&fen,tokenptr);
     }
     state->board = boardFromFEN(fen.buf);
