@@ -49,13 +49,16 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
   if(depth<=1 && quitTime != 0 && getTimeMS()>=quitTime)
     return NULL_EVAL;
   if(quitIfTrue != NULL && *quitIfTrue)
-    return NULL_EVAL;
-  if(depth == 0){nodesSearched++; return evaluate(b);}
+    return NULL_EVAL; 
 
   ttEntry *e = transpositionLookup(b->zobrist);
   if(e != NULL && e->depth>=depth){
+    printf("ttt hit\n");
     return e->eval;
-  }
+  } 
+
+  if(depth == 0){nodesSearched++; return evaluate(b);}
+
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
   int bestEval = N_INF;
@@ -99,13 +102,14 @@ Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWh
   Move bestMove = moves.moves[0];
   int evaluations[255];
   for(int i= 0; i<255; i++) evaluations[i] = N_INF;
+
+  genZobristKey(&b);
   for(int depth = 1; depth <= maxDepth; depth++){
     nodesSearched = 0;
     int bestEval = N_INF;
     orderMoves(&moves, evaluations);
     bool checkmate = true;
     for(int i = 0; i<moves.end;i++){
-
       makeMove(&b,&moves.moves[i]);
       if(inCheck(&b,color)){unmakeMove(&b,&moves.moves[i]); continue;}
       int eval = -nmax(&b, depth-1,N_INF,-bestEval,quitTime,quitWhenTrue);
