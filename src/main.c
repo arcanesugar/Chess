@@ -11,10 +11,10 @@ int main(int argc, char *argv[]) {
   initMoveGenerator();
   initEval();
   initTranspositionTable(32*MB);
-  if(argc>1 && strcmp(argv[1],"uci") == 0)
-    runUCI();
-  else
+  if(argc>1 && strcmp(argv[1],"cli") == 0)
     runConsoleInterface(STARTPOS_FEN);
+  else
+    runUCI();
   cleanupMoveGenerator();
   cleanupTranspositionTable();
   return 0;
