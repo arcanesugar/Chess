@@ -232,7 +232,7 @@ void runConsoleInterface(const char* fen){
     if(state.printBoard) printBoard(state.settings,state.board,0);
     getNextInput(&state);
     if(rstrEquals(&state.lastInput, "mve")) {makeMoveFromConsole(&state); continue;}
-    if(rstrEquals(&state.lastInput, "evl")) {printf("%f\n",evaluate(&state.board)); continue;}
+    if(rstrEquals(&state.lastInput, "evl")) {printf("%d\n",evaluate(&state.board)); continue;}
     if(rstrEquals(&state.lastInput, "bst")) {makeBestMove(&state); continue;}
     if(rstrEquals(&state.lastInput, "dsp")) {displaySettings(&state); continue;}
     if(rstrEquals(&state.lastInput, "lgl")) {printLegalMoves(&state); continue;}
