@@ -69,8 +69,8 @@ void initpsqt(){
     -3,-4,-4,-4,-4,-4,-4,-4,//being up here is bad probably
     -3,-3,-3,-3,-3,-3,-3,-3,
      0,-1,-3,-3,-3,-3,-1, 0,
-     2, 0, 0, 0, 0, 0, 0, 2,
-     3, 2, 0,-3,-3, 0, 2, 3
+     3, 0, 0, 0, 0, 0, 0, 3,
+     3, 4, 0,-3,-3, 0, 4, 3 
   };
   for(int i = 0; i<64; i++){
     //64-i makes the squares indices correct
@@ -86,12 +86,10 @@ void initpsqt(){
   psqtMobility(pieceSquareTables[KNIGHT], knightMoves, movesToEdge, mobilityValue);
   psqtMobility(pieceSquareTables[ROOK],   rookMasks,   movesToEdge, mobilityValue);
   psqtMobility(pieceSquareTables[BISHOP], bishopMasks, movesToEdge, mobilityValue);
-  psqtMobility(pieceSquareTables[QUEEN],  queenMasks,  movesToEdge, mobilityValue);
-  
+  psqtMobility(pieceSquareTables[QUEEN],  queenMasks,  movesToEdge, 20);
   
   //Create black peice square tables by negating the white ones and flipping them over the y axis;
   for(int piece = 6; piece<12; piece++){
-
     for(int square = 0; square<64; square++){
       int sx = square%8;
       int sy = square/8;
@@ -117,7 +115,7 @@ static int psqt(Board *board){
       psqt += pieceSquareTables[piece][popls1b(&bb)];
     }
   }
-  if(valueOnBoard<=20){
+  if(valueOnBoard<=2000){
     psqt += endgameKingTables[0][bitScanForward(board->bitboards[KING])];
     psqt += endgameKingTables[1][bitScanForward(board->bitboards[BLACK+KING])];
   }else{

@@ -147,7 +147,7 @@ static u64 perftTest(Board *b, int depth, bool root){
     unmakeMove(b,&moves.moves[i]);
     if(root){
       char movestr[21] = "";
-      moveToString(moves.moves[i],movestr);
+      moveToString(moves.moves[i],movestr,getSideToMove(b));
       printf("%s : %llu\n", movestr, found);
     }
     count += found;

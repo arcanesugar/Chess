@@ -7,7 +7,6 @@
 #define CASTLE_QUEENSIDE 0b0000000000000010
 #define EN_PASSAN        0b0000000000000011
 
-//Move is completely abstracted, never access move or unmakeData directly
 //Set functions only work if that property has not yet been set, and the initial move was empty
 struct Move{
   unsigned short move; //ttttttffffffssss  t = to f = from s = special move data 
@@ -40,7 +39,7 @@ Move createNullMove();
 Move createEmptyMove();
 bool isNullMove(Move* move);
 
-void moveToString(Move move, char *target);
+void moveToString(Move move, char *target, char sideToMove);
 
 #define MOVE_LIST_MAX 219
 struct MoveList{

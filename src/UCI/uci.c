@@ -54,7 +54,7 @@ static void* doSearch(void* args){
   state->searchState = SEARCHING;
   state->searchResult = iterativeDeepeningSearch(state->board,state->searchDepth,state->searchTime,&state->quitSearch);
   char moveStr[10] = "";
-  moveToString(state->searchResult, moveStr);
+  moveToString(state->searchResult, moveStr, getSideToMove(&state->board));
   printf("bestmove %s\n",moveStr);
   state->searchState = DONE;
   return NULL;
