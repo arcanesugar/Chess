@@ -7,6 +7,8 @@
 #include "../Core/types.h"
 #include "../Movegen/movegen.h"
 #include "eval.h"
+#include "../Core/bitboard.h"
+#include "zobrist.h"
 
 //because -INF must equal N_INF, INT MIN cannot be used
 //(-INT_MIN >INT_MAX so it overflows)
@@ -15,31 +17,23 @@
 #define NULL_EVAL 88888
 
 static int nodesSearched = 0;
-typedef struct orderedMoveList{
-  MoveList moveList;
-  int evals[255];
-}orderedMoveList;
-orderedMoveList createOrderedMoveList(MoveList ml){
-  orderedMoveList oml;
-  oml.moveList = ml;
-  for(int i = 0; i<255; i++) oml.evals[i] = 0;
-  return oml;
-}
-static void orderMoves(orderedMoveList *oml){//orders the moves high to low based on the evals list
-  for(int i = 0; i<oml->moveList.end; i++){
+
+static void orderMoves(MoveList *ml, int *evaluations){//orders the moves high to low based on the evals list
+  for(int i = 0; i<ml->end; i++){
     for(int j = 0; j<i-1; j++){
-      if(oml->evals[j]<oml->evals[j+1]){
-        int tempI =  oml->evals[j];
-        Move tempM =  oml->moveList.moves[j];
-        oml->evals[j] = oml->evals[j+1];
-        oml->moveList.moves[j] = oml->moveList.moves[j+1];
+      if(evaluations[j]<evaluations[j+1]){
+        int tempI =  evaluations[j];
+        Move tempM =  ml->moves[j];
+        evaluations[j] = evaluations[j+1];
+        ml->moves[j] = ml->moves[j+1];
         
-        oml->evals[j+1] = tempI;
-        oml->moveList.moves[j+1] = tempM;
+        evaluations[j+1] = tempI;
+        ml->moves[j+1] = tempM;
       }
     }
   }
 }
+
 static long long getTimeMS(){//guess what this does? your right! it get the time in miliseconds. Good job
   struct timespec t;
   clock_gettime ( CLOCK_MONOTONIC , & t ) ;
@@ -49,24 +43,32 @@ static long long getTimeMS(){//guess what this does? your right! it get the time
 static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bool *quitIfTrue){
   //alpha is the best score we are able to achieve (we being whoevers turn it is)
   //and beta is the best score the opponent is able to achieve
-  //why alpha and beta? I dont know, it probably made more sense in original minimax
-  //or maybe whoever named them made it intentionally confusing
-  if(depth == 0){nodesSearched++; return evaluate(b);}
+  //They are called alpha and beta because using the greek alphabet to name things makes
+  //programmers feel smart
+  if(depth<=1 && quitTime != 0 && getTimeMS()>=quitTime)
+    return NULL_EVAL;
+  if(quitIfTrue != NULL && *quitIfTrue)
+    return NULL_EVAL; 
+
+  ttEntry *e = transpositionLookup(b->zobrist);
+  if(e != NULL && e->depth>=depth){
+    return e->eval;
+  } 
+
+  nodesSearched++;
+  if(depth == 0){ return evaluate(b);}
+
   MoveList ml = createMoveList();
   generateMoves(b, &ml);
-  if(ml.end == 0){ nodesSearched++; return N_INF;}//checkmate is the worst possible outcome (for the side whos turn it is)
   int bestEval = N_INF;
   for(int i = 0; i<ml.end; i++){
-    if(quitTime != 0){
-      if(getTimeMS()>quitTime) {return NULL_EVAL;}
-    }
-    if(quitIfTrue != NULL && *quitIfTrue) return NULL_EVAL;
     makeMove(b,&ml.moves[i]);
+    if(inCheck(b,getOpponentColor(b))){unmakeMove(b,&ml.moves[i]); continue;}//opponent will be the side that made the move
     //a move that is good for the opponent is equally bad for us, so we negate all evaluations(including the return)
     //we also swap alpha and beta, because we will be the opponent in the child search
     int eval = -nmax(b,depth-1,-beta, -alpha, quitTime, quitIfTrue);
+    if(eval == -NULL_EVAL) return NULL_EVAL;//if we're exiting the search we dont need to unmake the move
     unmakeMove(b,&ml.moves[i]);
-    if(eval == NULL_EVAL | eval == -NULL_EVAL) return NULL_EVAL;
 
     if(eval>bestEval){
       bestEval = eval;
@@ -78,63 +80,74 @@ static int nmax(Board *b, int depth, int alpha, int beta, long long quitTime, bo
       //if the best score the opponent can get is less than the best score we can get, that means 
       //the opponent can force us into a worse score somewere else in the tree,
       //and therefore will never let us get here meaning we can prune the search
-      break;
+      return bestEval;
     }
   }
+  ttEntry entry;
+  entry.depth = depth;
+  entry.eval = bestEval;
+  entry.key = b->zobrist;
+  transpositionWrite(&entry);
   return bestEval;
 }
 
 Move iterativeDeepeningSearch(Board b, int maxDepth, int timeLimit, bool *quitWhenTrue){
   long long startTime = getTimeMS();
-  long long quitTime = startTime+timeLimit;
+  long long quitTime = startTime + timeLimit;
   if(timeLimit == 0) quitTime = 0;
-  
-  MoveList ml = createMoveList();
-  generateMoves(&b, &ml);
-  if(ml.end == 0) return createNullMove();
-  orderedMoveList orderedMoves = createOrderedMoveList(ml);
-  
-  Move bestMove = createNullMove();
-  bool quitSearch = false;
-  for(int depth = 1; depth<=maxDepth; depth++){
-    orderMoves(&orderedMoves);
+  MoveList moves = createMoveList();
+  generateMoves(&b, &moves);
+  byte color = getSideToMove(&b);
+  Move bestMove = moves.moves[0];
+  int evaluations[255];
+  for(int i= 0; i<255; i++) evaluations[i] = N_INF;
+
+  genZobristKey(&b);
+  for(int depth = 1; depth <= maxDepth; depth++){
     nodesSearched = 0;
-    int bestEval = N_INF;//any move is better than no moves
-    Move bestSoFar = createNullMove();
-    bool hasSearchedFirstMove = false;
-    for(int i = 0; i<orderedMoves.moveList.end; i++){
-      Move currentMove = orderedMoves.moveList.moves[i];
-      makeMove(&b,&currentMove);
-      int eval = -nmax(&b,depth-1, N_INF,-bestEval,quitTime, quitWhenTrue);
-      unmakeMove(&b,&currentMove);
-      if(eval == NULL_EVAL | eval == -NULL_EVAL){ quitSearch = true;break;}
-      orderedMoves.evals[i] = eval;
+    int bestEval = N_INF;
+    orderMoves(&moves, evaluations);
+    bool checkmate = true;
+    for(int i = 0; i<moves.end;i++){
+      makeMove(&b,&moves.moves[i]);
+      if(inCheck(&b,color)){unmakeMove(&b,&moves.moves[i]); continue;}
+      int eval = -nmax(&b, depth-1,N_INF,-bestEval,quitTime,quitWhenTrue);
+      if(eval == -NULL_EVAL) {
+        printf("info nodes %d depth %d time %lld\n", nodesSearched, depth, getTimeMS() - startTime);
+        return bestMove;
+      }
+      unmakeMove(&b,&moves.moves[i]);
+      checkmate = false;
+      evaluations[i] = eval;
       if(eval>bestEval){
         bestEval = eval;
-        bestSoFar = currentMove;
+        bestMove = moves.moves[i];
       }
-      hasSearchedFirstMove = true;
     }
-    if(hasSearchedFirstMove) bestMove = bestSoFar;
-    printf("info nodes %d depth %d time %lld\n",nodesSearched,depth,getTimeMS()-startTime);
-    if(quitSearch) break;
+    if(checkmate) return createNullMove();
+    printf("info nodes %d depth %d time %lld\n", nodesSearched, depth, getTimeMS() - startTime);
   }
-  if(isNullMove(&bestMove)) bestMove = ml.moves[0];//if we didnt complete any search just choose the first move
+
   return bestMove;
 };
 
 static u64 perftTest(Board *b, int depth, bool root){
-  if(depth <= 0){return 1;}
+  if(depth <= 0){
+  //  if(!validateZobrist(*b)) printf("INVALID_ZOBRIST\n");
+    return 1;
+  }
   u64 count = 0;
   MoveList moves = createMoveList();
   generateMoves(b, &moves);
+  byte color = getSideToMove(b);
   for(byte i = 0; i<moves.end;i++){
     makeMove(b,&moves.moves[i]);
+    if(inCheck(b,color)){unmakeMove(b,&moves.moves[i]); continue;}
     u64 found = perftTest(b, depth-1,0);
     unmakeMove(b,&moves.moves[i]);
     if(root){
       char movestr[21] = "";
-      moveToString(moves.moves[i],movestr);
+      moveToString(moves.moves[i],movestr,getSideToMove(b));
       printf("%s : %llu\n", movestr, found);
     }
     count += found;
@@ -188,6 +201,7 @@ void runMoveGenerationSuite(){
   Board board;
   for(int i = 0; i<8; i++){
     board = boardFromFEN(positions[i]);
+    genZobristKey(&board);
     u64 found = perftTest(&board,depths[i],false);
     sum += found;
     printf("Depth: %i Found: ",depths[i]);

@@ -15,6 +15,7 @@ void initPrintSettings(printSettings *settings);
 void setUnicodePieces(printSettings *settings);
 void setASCIIPieces(printSettings *settings);
 
+void printBitboard(u64 bb);
 void printPsqt(printSettings settings);
 void printBoard(printSettings settings, Board board, u64 highlighted);
 void printMoveOnBoard(printSettings settings, Board board, Move m);

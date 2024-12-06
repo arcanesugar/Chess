@@ -22,5 +22,5 @@ enum piece{
   QUEEN,
   KING
 };
-
+char getPieceColor(char piece);
 void strcatchar(char *string, char c);

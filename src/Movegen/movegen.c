@@ -19,8 +19,7 @@ static void addPawnMoves(Board *board, MoveList *moves);
 static void addKnightMoves(Board *board, MoveList *moves);
 static void addKingMoves(Board *board, MoveList *moves);
 static void addCastlingMoves(Board *board, MoveList *moves);
-
-static void filterLegalMoves(Board *board, MoveList *moves);
+static int getNumAttackers(Board *board, byte square, byte opponentColor);
 
 void initMoveGenerator(){
   generateBoardMasks();
@@ -33,11 +32,10 @@ void cleanupMoveGenerator(){
   cleanupMagics();
 }
 
-
-u64 friendlyBitboard;
-u64 enemyBitboard;
-byte color;
-byte opponentColor;
+static u64 friendlyBitboard;
+static u64 enemyBitboard;
+static byte color;
+static byte opponentColor;
 
 void generateMoves(Board *board, MoveList *moves) {
   friendlyBitboard = (board->flags & WHITE_TO_MOVE_BIT)
@@ -46,29 +44,58 @@ void generateMoves(Board *board, MoveList *moves) {
   enemyBitboard = (board->flags & WHITE_TO_MOVE_BIT)
      ? board->bitboards[BLACK_PIECES]
      : board->bitboards[WHITE_PIECES];
-  color = (board->flags & WHITE_TO_MOVE_BIT) ? WHITE : BLACK;
-  opponentColor = (color == WHITE)? BLACK : WHITE;
+  color = getSideToMove(board);
+  opponentColor = getOpponentColor(board);
   moves->end = 0;
-
-  addPawnMoves(board, moves);
-  addSlidingMoves(board, moves);
-  addKnightMoves(board, moves);
+  int numAttackers = getNumAttackers(board, bitScanForward(board->bitboards[color+KING]), opponentColor);
   addKingMoves(board, moves);
-  addCastlingMoves(board, moves);
-  filterLegalMoves(board, moves);
+  
+  if(numAttackers < 2){
+    if(numAttackers == 0)
+      addCastlingMoves(board, moves);
+    addPawnMoves(board, moves);
+    addSlidingMoves(board, moves);
+    addKnightMoves(board, moves);
+  }
 }
 
-static void filterLegalMoves(Board *board, MoveList *moves){
-  for(int i = moves->end-1; i>=0; i--){
-    makeMove(board,&moves->moves[i]);
-    byte kingSquare = bitScanForward(board->bitboards[color+KING]);
-    bool isLegal = !isAttacked(board, kingSquare, opponentColor);
-    unmakeMove(board,&moves->moves[i]);
-    moves->moves[i].unmakeData = 0;
-    if(!isLegal){
-      moveListRemove(moves,i);
-    }
+bool inCheck(Board *board, byte color){
+  opponentColor = (color == WHITE)? BLACK : WHITE;
+  byte kingSquare = bitScanForward(board->bitboards[color+KING]);
+  return isAttacked(board,kingSquare,opponentColor);
+}
+
+static int getNumAttackers(Board *board, byte square, byte opponentColor){
+  int numAttackers = 0;
+  //attacked by knight
+  u64 possibleKnights = knightMoves[square];
+  if(possibleKnights&board->bitboards[KNIGHT+opponentColor]) numAttackers++;
+
+  //attacked by king
+  u64 possibleKings = kingMoves[square];
+  if(possibleKings & board->bitboards[KING+opponentColor]) numAttackers++;
+
+  //attacked by sliders
+  u64 possibleRooks = rookLookup(board->occupancy, square);
+  if(possibleRooks&board->bitboards[ROOK+opponentColor]) numAttackers++;
+
+  u64 possibleBishops = bishopLookup(board->occupancy, square);
+  if(possibleBishops&board->bitboards[BISHOP+opponentColor]) numAttackers++;
+
+  if((possibleBishops|possibleRooks)&board->bitboards[QUEEN+opponentColor]) numAttackers++;
+  
+  //attacked by pawn
+  u64 possiblePawns = 0;
+  if(opponentColor == WHITE){
+    if(square%8 != 0)setBit(&possiblePawns, square-9);
+    if(square%8 != 7)setBit(&possiblePawns, square-7);
+  }else{
+    if(square%8 != 7)setBit(&possiblePawns, square+9);
+    if(square%8 != 0)setBit(&possiblePawns, square+7);
   }
+  if(possiblePawns & board->bitboards[PAWN + opponentColor]) numAttackers++;
+  
+  return numAttackers;
 }
 
 bool isAttacked(Board *board, byte square, byte opponentColor){
@@ -210,7 +237,6 @@ static void addKingMoves(Board *board, MoveList *moves) {
 }
 
 static void addCastlingMoves(Board *board, MoveList *moves){
-  if(isAttacked(board,(byte)bitScanForward(board->bitboards[color+KING]),opponentColor)) return;//cannot castle out of check
   u64 mustBeEmpty[4] = {6ULL,112ULL,432345564227567616ULL,8070450532247928832ULL};
   byte mustBeSafe [4][2] = {{2,1},{4,5},{57,58},{61,60}};
   byte masks[4] = {WHITE_KINGSIDE_BIT,WHITE_QUEENSIDE_BIT,BLACK_KINGSIDE_BIT,BLACK_QUEENSIDE_BIT};

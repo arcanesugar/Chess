@@ -1,5 +1,5 @@
 CC:=clang
-CFLAGS:=-Wall -Werror -MMD -MP
+CFLAGS:=-Wall -MMD -MP -O3
 BINNAME:=main
 SRCDIR:=src
 

@@ -29,6 +29,7 @@ Move moveFromStr(char *str, Board board){
   setFrom(&move,squareNameToIndex(str,0));
   setTo(&move,squareNameToIndex(str,2));
   if(strlen(str) == 5){
+    printf("%c",str[4]);
     byte piece;
     switch(str[4]){
       case 'p': piece = PAWN; break;
@@ -44,21 +45,24 @@ Move moveFromStr(char *str, Board board){
   generateMoves(&board, &legalMoves);
   bool isLegal = false;
   for(int i  =0; i<legalMoves.end; i++){
+
     if(getFrom(&move) == getFrom(&legalMoves.moves[i]) && getTo(&move) == getTo(&legalMoves.moves[i])){
-      move = legalMoves.moves[i];
+      if(isEnPassan(&legalMoves.moves[i])) setSpecialMoveData(&move, EN_PASSAN);
       isLegal = true;
       break;
     }
     if(isKingside(&legalMoves.moves[i])){
       if(strcmp(str,"e1g1") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
-      if(strcmp(str,"e1c1") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
+      if(strcmp(str,"e8g8") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("ks", board);
     }
     if(isQueenside(&legalMoves.moves[i])){
-      if(strcmp(str,"e8g8") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
+      if(strcmp(str,"e1c1") == 0 &&  (board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
       if(strcmp(str,"e8c8") == 0 && !(board.flags & WHITE_TO_MOVE_BIT)) return moveFromStr("qs", board);
     }
   }
   if(!isLegal) return createNullMove();
-
+  makeMove(&board, &move);
+  if(inCheck(&board,getOpponentColor(&board))) return createNullMove();
+  unmakeMove(&board, &move);
   return move;
 };

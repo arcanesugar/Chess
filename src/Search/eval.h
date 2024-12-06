@@ -4,5 +4,5 @@
 
 extern int pieceSquareTables[12][64];
 
-double evaluate(Board *board);
+int evaluate(Board *board);
 void initEval();

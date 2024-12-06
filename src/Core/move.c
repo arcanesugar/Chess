@@ -64,13 +64,15 @@ void moveListPop(MoveList *ml){
   ml->end--;
 }
 
-void moveToString(Move move, char *target){
+void moveToString(Move move, char *target, char sideToMove){
   if(isKingside(&move)){
-    strcpy(target, "ks");
+    strcpy(target, "e1g1");
+    if(sideToMove == BLACK) strcpy(target, "e8g8");
     return;
   }
   if(isQueenside(&move)){
-    strcpy(target, "qs");
+    strcpy(target, "e1c1");
+    if(sideToMove == BLACK) strcpy(target, "e8c8");
     return;
   }
   char fromStr[3] = "  ";

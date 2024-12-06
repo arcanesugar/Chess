@@ -26,13 +26,18 @@ struct Board{
   byte enPassanTarget;
   byte squares[64];
   byte flags;
+  u64 zobrist;
 };
 typedef struct Board Board;
 
 byte squareNameToIndex(char *squareName, int startIndex);
+byte charToPiece(char c);
+byte getBoardCastlingRights(Board *b);
 Board boardFromFEN(const char* fen);
+char getSideToMove(Board *board);
+char getOpponentColor(Board *board);
+
 bool validateBoard(Board board);
 void makeMove(Board *board, Move *m);
 void unmakeMove(Board *board, Move *m);
-
 #define STARTPOS_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
