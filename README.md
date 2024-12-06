@@ -22,11 +22,6 @@ but using infinite in combination with depth/movetime results in unpredictable b
 - go \[depth \<x\> | movetime \<x\> | infinite\]
 - stop
 
-## TODO
-Refactor ui code
-Fix bug in magic search (wiggle immidiatly drops to 64 after every square has a magic)
-Add wtime/btime and wint/binc options to go
-
 ## Changelog
 - uci-fixes
   - added wtime,btime and movestogo to uci
